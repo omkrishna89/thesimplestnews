@@ -47,7 +47,7 @@ Without the key the site still works: stories show their original headline with 
 
 ### Step 3 — Start it
 Merge the pull request into `main`. The **Update news** run starts by itself (Actions tab). After 10–15 minutes the site is live at
-`https://omkrishna89.github.io/thesimplestnews/`. From then on it updates every 30 minutes.
+`https://omkrishna89.github.io/thesimplestnews-/` (the address follows the repository's name). From then on it updates every 30 minutes.
 
 To run it by hand: **Actions** → **Update news** → **Run workflow**.
 
