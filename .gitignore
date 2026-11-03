@@ -1,0 +1,6 @@
+node_modules/
+_site/
+.data/
+.cache/
+*.log
+.DS_Store

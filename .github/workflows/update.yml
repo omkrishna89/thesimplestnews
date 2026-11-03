@@ -1,0 +1,91 @@
+# Reads the news, lets Google Gemini write the short versions, builds the website and publishes it
+# on GitHub Pages — free. Runs every 30 minutes, after every change to the main branch,
+# and when you click "Run workflow" on the Actions tab.
+name: Update news
+
+on:
+  schedule:
+    - cron: "7,37 * * * *"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write # saves the news database in the "data" branch
+  pages: write
+  id-token: write
+
+# One run at a time. A new run waits for the running one instead of cancelling it.
+concurrency:
+  group: update-news
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Get the files
+        uses: actions/checkout@v7
+
+      # The news database lives in the "data" branch. It is replaced on every run, so it never grows.
+      - name: Get the news database
+        run: |
+          mkdir -p .data
+          if git ls-remote --exit-code --heads origin data > /dev/null 2>&1; then
+            git fetch -q --depth=1 origin data
+            git archive FETCH_HEAD | tar -x -C .data
+          fi
+          ls -la .data
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # A problem here (a news site down, Gemini's free limit) never stops the website from being published.
+      - name: Read the news and write the short versions
+        continue-on-error: true
+        timeout-minutes: 24
+        run: node scripts/update.mjs
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Save the news database
+        run: |
+          [ -f .data/db.json.gz ] || exit 0
+          export GIT_INDEX_FILE="$RUNNER_TEMP/data-index"
+          git --work-tree=.data add -A .
+          tree=$(git write-tree)
+          commit=$(git -c user.name="The Simplest News bot" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit-tree "$tree" -m "News database $(date -u +%Y-%m-%dT%H:%MZ)")
+          git push -q -f origin "$commit:refs/heads/data"
+
+      - name: Read GitHub Pages settings
+        id: pages
+        uses: actions/configure-pages@v6
+
+      - name: Build the website
+        run: node scripts/build.mjs
+        env:
+          SITE_URL: ${{ steps.pages.outputs.origin }}
+          PATH_PREFIX: ${{ steps.pages.outputs.base_path }}
+
+      - name: Upload the website
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    needs: update
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

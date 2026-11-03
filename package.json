@@ -1,0 +1,22 @@
+{
+  "name": "thesimplestnews",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The Simplest News - India's news in the shortest, simplest words (Hindi + English), updated every 30 minutes",
+  "type": "module",
+  "scripts": {
+    "update": "node scripts/update.mjs",
+    "build": "node scripts/build.mjs",
+    "start": "node scripts/serve.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@mozilla/readability": "0.6.0",
+    "fast-xml-parser": "5.11.2",
+    "linkedom": "0.18.13",
+    "robots-parser": "3.0.1"
+  }
+}

@@ -1,0 +1,464 @@
+{
+  "about": "States and districts. 'alias' maps other spellings (and old names) to one standard name, so news and the reader's GPS place match. Add a line here if a district shows up under two names.",
+  "covered": [
+    "up",
+    "br",
+    "mp",
+    "rj",
+    "dl",
+    "hr",
+    "jh",
+    "uk",
+    "cg",
+    "hp"
+  ],
+  "states": {
+    "up": {
+      "en": "Uttar Pradesh",
+      "hi": "उत्तर प्रदेश",
+      "iso": [
+        "IN-UP"
+      ]
+    },
+    "br": {
+      "en": "Bihar",
+      "hi": "बिहार",
+      "iso": [
+        "IN-BR"
+      ]
+    },
+    "mp": {
+      "en": "Madhya Pradesh",
+      "hi": "मध्य प्रदेश",
+      "iso": [
+        "IN-MP"
+      ]
+    },
+    "rj": {
+      "en": "Rajasthan",
+      "hi": "राजस्थान",
+      "iso": [
+        "IN-RJ"
+      ]
+    },
+    "dl": {
+      "en": "Delhi",
+      "hi": "दिल्ली",
+      "iso": [
+        "IN-DL"
+      ],
+      "aliases": [
+        "nct-of-delhi",
+        "national-capital-territory-of-delhi",
+        "new-delhi"
+      ]
+    },
+    "hr": {
+      "en": "Haryana",
+      "hi": "हरियाणा",
+      "iso": [
+        "IN-HR"
+      ]
+    },
+    "jh": {
+      "en": "Jharkhand",
+      "hi": "झारखंड",
+      "iso": [
+        "IN-JH"
+      ]
+    },
+    "uk": {
+      "en": "Uttarakhand",
+      "hi": "उत्तराखंड",
+      "iso": [
+        "IN-UK",
+        "IN-UT"
+      ],
+      "aliases": [
+        "uttaranchal"
+      ]
+    },
+    "cg": {
+      "en": "Chhattisgarh",
+      "hi": "छत्तीसगढ़",
+      "iso": [
+        "IN-CG",
+        "IN-CT"
+      ],
+      "aliases": [
+        "chattisgarh"
+      ]
+    },
+    "hp": {
+      "en": "Himachal Pradesh",
+      "hi": "हिमाचल प्रदेश",
+      "iso": [
+        "IN-HP"
+      ]
+    },
+    "pb": {
+      "en": "Punjab",
+      "hi": "पंजाब",
+      "iso": [
+        "IN-PB"
+      ]
+    },
+    "ch": {
+      "en": "Chandigarh",
+      "hi": "चंडीगढ़",
+      "iso": [
+        "IN-CH"
+      ]
+    },
+    "jk": {
+      "en": "Jammu & Kashmir",
+      "hi": "जम्मू-कश्मीर",
+      "iso": [
+        "IN-JK"
+      ],
+      "aliases": [
+        "jammu-and-kashmir",
+        "jammu-kashmir"
+      ]
+    },
+    "la": {
+      "en": "Ladakh",
+      "hi": "लद्दाख",
+      "iso": [
+        "IN-LA"
+      ]
+    },
+    "gj": {
+      "en": "Gujarat",
+      "hi": "गुजरात",
+      "iso": [
+        "IN-GJ"
+      ]
+    },
+    "mh": {
+      "en": "Maharashtra",
+      "hi": "महाराष्ट्र",
+      "iso": [
+        "IN-MH"
+      ]
+    },
+    "ga": {
+      "en": "Goa",
+      "hi": "गोवा",
+      "iso": [
+        "IN-GA"
+      ]
+    },
+    "ka": {
+      "en": "Karnataka",
+      "hi": "कर्नाटक",
+      "iso": [
+        "IN-KA"
+      ]
+    },
+    "kl": {
+      "en": "Kerala",
+      "hi": "केरल",
+      "iso": [
+        "IN-KL"
+      ]
+    },
+    "tn": {
+      "en": "Tamil Nadu",
+      "hi": "तमिलनाडु",
+      "iso": [
+        "IN-TN"
+      ]
+    },
+    "py": {
+      "en": "Puducherry",
+      "hi": "पुडुचेरी",
+      "iso": [
+        "IN-PY"
+      ],
+      "aliases": [
+        "pondicherry"
+      ]
+    },
+    "ap": {
+      "en": "Andhra Pradesh",
+      "hi": "आंध्र प्रदेश",
+      "iso": [
+        "IN-AP"
+      ]
+    },
+    "tg": {
+      "en": "Telangana",
+      "hi": "तेलंगाना",
+      "iso": [
+        "IN-TG",
+        "IN-TS"
+      ]
+    },
+    "od": {
+      "en": "Odisha",
+      "hi": "ओडिशा",
+      "iso": [
+        "IN-OD",
+        "IN-OR"
+      ],
+      "aliases": [
+        "orissa"
+      ]
+    },
+    "wb": {
+      "en": "West Bengal",
+      "hi": "पश्चिम बंगाल",
+      "iso": [
+        "IN-WB"
+      ]
+    },
+    "as": {
+      "en": "Assam",
+      "hi": "असम",
+      "iso": [
+        "IN-AS"
+      ]
+    },
+    "ar": {
+      "en": "Arunachal Pradesh",
+      "hi": "अरुणाचल प्रदेश",
+      "iso": [
+        "IN-AR"
+      ]
+    },
+    "nl": {
+      "en": "Nagaland",
+      "hi": "नागालैंड",
+      "iso": [
+        "IN-NL"
+      ]
+    },
+    "mn": {
+      "en": "Manipur",
+      "hi": "मणिपुर",
+      "iso": [
+        "IN-MN"
+      ]
+    },
+    "mz": {
+      "en": "Mizoram",
+      "hi": "मिज़ोरम",
+      "iso": [
+        "IN-MZ"
+      ]
+    },
+    "tr": {
+      "en": "Tripura",
+      "hi": "त्रिपुरा",
+      "iso": [
+        "IN-TR"
+      ]
+    },
+    "ml": {
+      "en": "Meghalaya",
+      "hi": "मेघालय",
+      "iso": [
+        "IN-ML"
+      ]
+    },
+    "sk": {
+      "en": "Sikkim",
+      "hi": "सिक्किम",
+      "iso": [
+        "IN-SK"
+      ]
+    },
+    "an": {
+      "en": "Andaman & Nicobar",
+      "hi": "अंडमान-निकोबार",
+      "iso": [
+        "IN-AN"
+      ],
+      "aliases": [
+        "andaman-and-nicobar-islands"
+      ]
+    },
+    "ld": {
+      "en": "Lakshadweep",
+      "hi": "लक्षद्वीप",
+      "iso": [
+        "IN-LD"
+      ]
+    },
+    "dh": {
+      "en": "Dadra & Nagar Haveli and Daman & Diu",
+      "hi": "दादरा-नगर हवेली और दमन-दीव",
+      "iso": [
+        "IN-DH",
+        "IN-DN",
+        "IN-DD"
+      ],
+      "aliases": [
+        "dadra-and-nagar-haveli-and-daman-and-diu"
+      ]
+    }
+  },
+  "districtAlias": {
+    "up": {
+      "kanpur": "kanpur-nagar",
+      "allahabad": "prayagraj",
+      "faizabad": "ayodhya",
+      "noida": "gautam-buddh-nagar",
+      "greater-noida": "gautam-buddh-nagar",
+      "gautam-budh-nagar": "gautam-buddh-nagar",
+      "gb-nagar": "gautam-buddh-nagar",
+      "kheri": "lakhimpur-kheri",
+      "lakhimpur": "lakhimpur-kheri",
+      "sant-ravidas-nagar": "bhadohi",
+      "sant-ravidas-nagar-bhadohi": "bhadohi",
+      "jyotiba-phule-nagar": "amroha",
+      "kanshi-ram-nagar": "kasganj",
+      "panchsheel-nagar": "hapur",
+      "prabuddh-nagar": "shamli",
+      "bhim-nagar": "sambhal",
+      "chhatrapati-shahuji-maharaj-nagar": "amethi",
+      "rae-bareli": "raebareli",
+      "rae-bareilly": "raebareli",
+      "sonebhadra": "sonbhadra",
+      "bagpat": "baghpat",
+      "badaun": "budaun",
+      "bara-banki": "barabanki",
+      "mahrajganj": "maharajganj",
+      "sidharthnagar": "siddharthnagar",
+      "siddharth-nagar": "siddharthnagar",
+      "shrawasti": "shravasti",
+      "kushi-nagar": "kushinagar",
+      "lucknow-city": "lucknow",
+      "varanasi-city": "varanasi",
+      "kanpur-city": "kanpur-nagar",
+      "ghatampur": "kanpur-nagar",
+      "jhansi-city": "jhansi",
+      "balrampur-up": "balrampur",
+      "pratapgarh-up": "pratapgarh",
+      "hamirpur-up": "hamirpur"
+    },
+    "uk": {
+      "pauri": "pauri-garhwal",
+      "garhwal": "pauri-garhwal",
+      "tehri": "tehri-garhwal",
+      "kotdwar": "pauri-garhwal",
+      "rishikesh": "dehradun",
+      "roorkee": "haridwar",
+      "udham-singh-nagar": "udham-singh-nagar",
+      "rudrapur": "udham-singh-nagar",
+      "haldwani": "nainital"
+    },
+    "hr": {
+      "gurgaon": "gurugram",
+      "mewat": "nuh",
+      "yamuna-nagar": "yamunanagar",
+      "jhajjar-bahadurgarh": "jhajjar",
+      "mahendragarh-narnaul": "mahendragarh",
+      "narnaul": "mahendragarh",
+      "bahadurgarh": "jhajjar",
+      "charkhi-dadri": "charkhi-dadri"
+    },
+    "hp": {
+      "hamirpur-hp": "hamirpur",
+      "sirmour": "sirmaur",
+      "dharamshala": "kangra",
+      "rampur-bushahar": "shimla",
+      "lahaul-spiti": "lahaul-and-spiti"
+    },
+    "cg": {
+      "durg-bhilai": "durg",
+      "bhilai": "durg",
+      "bilaspur-chhattisgarh": "bilaspur",
+      "gorella-pendra-marwahi": "gaurela-pendra-marwahi",
+      "balodabazar-bhatapara": "baloda-bazar",
+      "baloda-bazar-bhatapara": "baloda-bazar",
+      "balodabazar": "baloda-bazar",
+      "kawardha": "kabirdham",
+      "kabeerdham": "kabirdham",
+      "jagdalpur": "bastar",
+      "ambikapur": "surguja",
+      "sarguja": "surguja",
+      "uttar-bastar-kanker": "kanker",
+      "dakshin-bastar-dantewada": "dantewada",
+      "jashpur-nagar": "jashpur",
+      "balrampur-chattisgarh": "balrampur",
+      "balrampur-ramanujganj": "balrampur",
+      "koriya": "koria",
+      "kondagoan": "kondagaon"
+    },
+    "mp": {
+      "hoshangabad": "narmadapuram",
+      "itarsi": "narmadapuram",
+      "badwani": "barwani",
+      "sendhwa": "barwani",
+      "pithampur": "dhar",
+      "dabra": "gwalior",
+      "sihora": "jabalpur",
+      "gadarwara": "narsinghpur",
+      "kareli": "narsinghpur",
+      "khajuraho": "chhatarpur",
+      "jaora": "ratlam",
+      "mahu": "indore",
+      "mhow": "indore",
+      "nagda": "ujjain",
+      "kolar": "bhopal",
+      "east-nimar": "khandwa",
+      "west-nimar": "khargone",
+      "agar": "agar-malwa"
+    },
+    "rj": {
+      "kishangarh": "ajmer",
+      "kuchaman-city": "didwana-kuchaman",
+      "bhiwadi": "khairthal-tijara",
+      "bagru": "jaipur",
+      "bassi": "jaipur",
+      "pratapgarh-rajasthan": "pratapgarh",
+      "jalor": "jalore",
+      "dhaulpur": "dholpur",
+      "chittaurgarh": "chittorgarh",
+      "ganganagar": "sri-ganganagar",
+      "shri-ganganagar": "sri-ganganagar",
+      "jhunjhunun": "jhunjhunu",
+      "kotputli": "kotputli-behror"
+    },
+    "br": {
+      "kosi": "saharsa",
+      "purnea": "purnia",
+      "chapra": "saran",
+      "east-champaran": "purba-champaran",
+      "motihari": "purba-champaran",
+      "west-champaran": "pashchim-champaran",
+      "bettiah": "pashchim-champaran",
+      "bhabua": "kaimur",
+      "arrah": "bhojpur",
+      "aurangabad-bihar": "aurangabad",
+      "biharsharif": "nalanda",
+      "sasaram": "rohtas",
+      "hajipur": "vaishali",
+      "purbi-champaran": "purba-champaran",
+      "shiekhpura": "sheikhpura",
+      "sheikpura": "sheikhpura"
+    },
+    "jh": {
+      "chaibasa": "west-singhbhum",
+      "pashchimi-singhbhum": "west-singhbhum",
+      "west-singhbum": "west-singhbhum",
+      "jamshedpur": "east-singhbhum",
+      "purbi-singhbhum": "east-singhbhum",
+      "east-singhbum": "east-singhbhum",
+      "giridh": "giridih",
+      "seraikela-kharsawan": "saraikela-kharsawan",
+      "seraikela": "saraikela-kharsawan",
+      "palamau": "palamu",
+      "medininagar": "palamu",
+      "sahebganj": "sahibganj",
+      "hazaribag": "hazaribagh",
+      "pakaur": "pakur",
+      "kodarma": "koderma"
+    },
+    "dl": {
+      "*": "delhi"
+    }
+  }
+}

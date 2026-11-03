@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel><title>Test Feed</title>
+<item>
+  <title><![CDATA[ Barabanki News: जैदपुर तालाब एक करोड़ 53 लाख रुपये में नीलाम ]]></title>
+  <link>https://www.example.com/uttar-pradesh/barabanki/pond-auction?utm_source=rss&amp;id=7</link>
+  <description><![CDATA[ <p>नीलामी <b>दूसरी</b> बार &amp; पूरी हुई</p><img src="https://img.example.com/a.jpg"> ]]></description>
+  <pubDate>Tue, 03 Nov 2026 01:42:30 +0530</pubDate>
+</item>
+<item>
+  <title>Ranji Trophy: Karnataka in control & Aneesh scores 120</title>
+  <link>https://www.example.com/sport/ranji</link>
+  <media:content url="https://img.example.com/b.jpg" medium="image"/>
+  <pubDate>Tue, 03 Nov 2026 10:00:00 GMT</pubDate>
+</item>
+<item><title></title><link>https://www.example.com/empty</link></item>
+</channel></rss>

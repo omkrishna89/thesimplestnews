@@ -1,0 +1,22 @@
+{
+  "name": { "en": "The Simplest News", "hi": "द सिंपलेस्ट न्यूज़" },
+  "tagline": { "en": "Every story in the shortest, simplest words", "hi": "हर खबर, सबसे छोटे और आसान शब्दों में" },
+  "domain": "thesimplestnews.com",
+  "url": "https://thesimplestnews.com",
+  "email": "contact@thesimplestnews.com",
+  "keepDays": 7,
+  "adsense": {
+    "about": "Paste your AdSense publisher ID (ca-pub-...) after Google approves the site. Slot ids come from AdSense > Ads > By ad unit. Empty = that ad spot is not shown.",
+    "client": "",
+    "auto": true,
+    "slots": { "top": "", "infeed": "", "side": "", "story": "" }
+  },
+  "gemini": {
+    "about": "Free Google Gemini settings. models: tried in order (each has its own free limit). batch: stories per request. perRun: most stories summarized in one run (every 30 minutes).",
+    "models": ["gemini-flash-lite-latest", "gemini-flash-latest"],
+    "batch": 8,
+    "perRun": 96,
+    "pauseMs": 6000
+  },
+  "social": { "whatsapp": "", "telegram": "", "facebook": "", "x": "", "instagram": "", "youtube": "" }
+}
