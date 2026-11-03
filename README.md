@@ -102,7 +102,7 @@ To check that all feeds still work: `node scripts/check-feeds.mjs` (see section 
 
 ## 4. Good to know
 
-- **Gemini's free limit:** about 1,000 requests a day (Google changes this). Each request writes 8 stories, and the biggest stories go first.
+- **Gemini's free limit:** about 1,000 requests a day (Google changes this). Each request writes 6 stories, and the biggest stories go first. If Google is busy ("high demand"), the robot stops and tries again in the next run.
   When the limit is used up, new stories show "summary coming soon" until the next day's limit (around 1:30 pm India time).
   Settings: `config/site.json` → `gemini`.
 - **GitHub Pages limits:** the site must stay under 1 GB (it is about 40–200 MB) and about 100 GB of visits a month.

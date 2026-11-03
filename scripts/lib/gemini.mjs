@@ -81,55 +81,95 @@ function storyBlock(s, i) {
   ].join("\n");
 }
 
-const noThinking = new Set(); // models that refused the thinking setting
+// Different Gemini models accept different settings, and Google answers only "invalid argument" (400)
+// when one is not accepted. So each model starts with the full request and, after a 400, moves on to a
+// simpler one: 0 = answer format + thinking switched off, 1 = answer format only, 2 = plain JSON
+// (the answer's shape is then spelled out in the instructions).
+export const VARIANTS = 3;
+const JSON_SHAPE = `Reply with JSON only, exactly in this shape (one entry per story):
+{"stories":[{"n":1,"hi":{"h":"","what":"","who":"","whom":"","whose":"","where":"","when":"","why":"","which":"","how":""},"en":{"h":"","what":"","who":"","whom":"","whose":"","where":"","when":"","why":"","which":"","how":""},"groups":["${GROUPS[0]}"],"good":false,"importance":5,"scope":"district","country":"India","state":"","district":"","tehsil":"","place":"","place_hi":"","district_hi":"","same_as":0}]}
+"groups" may only use: ${GROUPS.join(", ")}. "scope" is one of: ${SCOPES.join(", ")}.`;
 
-async function callModel(model, stories) {
-  const body = {
-    systemInstruction: { parts: [{ text: SYSTEM }] },
+export function requestBody(stories, variant = 0) {
+  return {
+    systemInstruction: { parts: [{ text: variant >= 2 ? `${SYSTEM}\n\n${JSON_SHAPE}` : SYSTEM }] },
     contents: [{ role: "user", parts: [{ text: stories.map(storyBlock).join("\n\n") }] }],
     generationConfig: {
       temperature: 0.2,
-      maxOutputTokens: 16000,
+      maxOutputTokens: 12000,
       responseMimeType: "application/json",
-      responseSchema: SCHEMA,
-      ...(noThinking.has(model) ? {} : { thinkingConfig: { thinkingBudget: 0 } }),
+      ...(variant <= 1 ? { responseSchema: SCHEMA } : {}),
+      ...(variant === 0 ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
     },
   };
-  const res = await fetch(`${BASE}/models/${encodeURIComponent(model)}:generateContent`, {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-goog-api-key": KEY },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(240000),
-  });
-  const text = await res.text();
-  if (res.status === 429) throw new QuotaError(`${model}: free limit reached (429) ${text.slice(0, 200)}`);
-  if (res.status === 400 && /thinking/i.test(text) && !noThinking.has(model)) {
-    noThinking.add(model);
-    return callModel(model, stories);
-  }
-  if (!res.ok) {
-    const err = new Error(`${model}: HTTP ${res.status} ${text.slice(0, 200)}`);
-    err.status = res.status;
-    throw err;
-  }
-  const json = JSON.parse(text);
-  const raw = json.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
-  const out = JSON.parse(raw.replace(/^```(json)?\s*|\s*```$/g, ""));
-  if (!Array.isArray(out.stories)) throw new Error(`${model}: answer has no stories`);
-  return out.stories;
 }
+
+// The answer as JSON, even when Gemini wraps it in ``` fences or adds a sentence around it
+export function parseAnswer(raw) {
+  const s = String(raw || "").replace(/^\s*```(?:json)?\s*|\s*```\s*$/g, "");
+  try {
+    return JSON.parse(s);
+  } catch {
+    const a = s.indexOf("{");
+    const b = s.lastIndexOf("}");
+    if (a >= 0 && b > a) return JSON.parse(s.slice(a, b + 1));
+    throw new Error("answer is not JSON");
+  }
+}
+
+const variantOf = new Map(); // model -> request shape that works for it in this run
+const broken = new Set(); // models that refused every request shape in this run
+
+async function callModel(model, stories) {
+  for (;;) {
+    const variant = variantOf.get(model) || 0;
+    const res = await fetch(`${BASE}/models/${encodeURIComponent(model)}:generateContent`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-goog-api-key": KEY },
+      body: JSON.stringify(requestBody(stories, variant)),
+      signal: AbortSignal.timeout(150000),
+    });
+    const text = await res.text();
+    if (res.status === 429) throw new QuotaError(`${model}: free limit reached (429) ${text.slice(0, 200)}`);
+    if (res.status === 400 && variant < VARIANTS - 1) {
+      log(`[gemini] ${model} did not accept request shape ${variant} (${firstLine(text)}); trying a simpler one`);
+      variantOf.set(model, variant + 1);
+      continue;
+    }
+    if (res.status === 400 || res.status === 404) broken.add(model);
+    if (!res.ok) {
+      const err = new Error(`${model}: HTTP ${res.status} ${firstLine(text)}`);
+      err.status = res.status;
+      throw err;
+    }
+    const json = JSON.parse(text);
+    const raw = json.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
+    const out = parseAnswer(raw);
+    if (!Array.isArray(out.stories)) throw new Error(`${model}: answer has no stories`);
+    return { stories: out.stories, variant };
+  }
+}
+
+const firstLine = (text) => {
+  try {
+    return JSON.parse(text).error?.message?.slice(0, 160) || text.slice(0, 160);
+  } catch {
+    return String(text).replace(/\s+/g, " ").slice(0, 160);
+  }
+};
 
 const outOfQuota = new Set();
 
-// Returns an array (same order as `stories`) of cleaned results or null for stories Gemini skipped.
+// Returns { model, variant, results } — results in the same order as `stories`, null where Gemini skipped one.
+// Throws QuotaError when every model's free limit is used up, or the last error when no model could answer.
 export async function summarize(stories) {
   let lastErr;
   for (const model of MODELS) {
-    if (outOfQuota.has(model)) continue;
+    if (outOfQuota.has(model) || broken.has(model)) continue;
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
-        const answer = await callModel(model, stories);
-        return { model, results: stories.map((_, i) => clean(answer.find((a) => Number(a.n) === i + 1))) };
+        const { stories: answer, variant } = await callModel(model, stories);
+        return { model, variant, results: stories.map((_, i) => clean(answer.find((a) => Number(a.n) === i + 1))) };
       } catch (err) {
         lastErr = err;
         if (err instanceof QuotaError) {
@@ -138,12 +178,15 @@ export async function summarize(stories) {
           break;
         }
         log(`[gemini] ${String(err.message).slice(0, 200)}`);
-        // "high demand" (503) or a broken answer: wait and try once more
-        if (attempt === 1) await sleep(err.status === 503 ? 20000 : 5000);
+        if (broken.has(model)) break;
+        // "high demand" (503), a timeout or a broken answer: wait a little and try once more
+        if (attempt === 1) await sleep(err.status === 503 ? 15000 : 4000);
       }
     }
   }
-  if (MODELS.every((m) => outOfQuota.has(m))) throw new QuotaError("every model reached its free limit");
+  if (MODELS.every((m) => outOfQuota.has(m) || broken.has(m)) && MODELS.some((m) => outOfQuota.has(m))) {
+    throw new QuotaError("every model reached its free limit");
+  }
   throw lastErr || new Error("no model available");
 }
 
