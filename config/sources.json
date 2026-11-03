@@ -1,0 +1,5438 @@
+{
+ "about": "News feeds the robot reads. level: country | world | state | district. 'every' = minutes between reads. 'priority' 1-10: higher is summarized first. Run 'node scripts/check-feeds.mjs' to test them all.",
+ "feeds": [
+  {
+   "id": "amarujala-com-rss-breaking-news-xml",
+   "every": 30,
+   "priority": 8,
+   "url": "https://www.amarujala.com/rss/breaking-news.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "country"
+  },
+  {
+   "id": "amarujala-com-rss-india-news-xml",
+   "every": 30,
+   "priority": 7,
+   "url": "https://www.amarujala.com/rss/india-news.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "country"
+  },
+  {
+   "id": "aajtak-in-rssfeeds-id-home",
+   "every": 30,
+   "priority": 8,
+   "url": "https://www.aajtak.in/rssfeeds?id=home",
+   "source": {
+    "en": "Aaj Tak",
+    "hi": "आज तक"
+   },
+   "lang": "hi",
+   "level": "country"
+  },
+  {
+   "id": "bhaskar-com-rss-v1-category-1061-xml",
+   "every": 30,
+   "priority": 8,
+   "url": "https://www.bhaskar.com/rss-v1--category-1061.xml",
+   "source": {
+    "en": "Dainik Bhaskar",
+    "hi": "दैनिक भास्कर"
+   },
+   "lang": "hi",
+   "level": "country"
+  },
+  {
+   "id": "bbci-co-uk-hindi-rss-xml",
+   "every": 30,
+   "priority": 8,
+   "url": "https://feeds.bbci.co.uk/hindi/rss.xml",
+   "source": {
+    "en": "BBC Hindi",
+    "hi": "बीबीसी हिंदी"
+   },
+   "lang": "hi",
+   "level": "country"
+  },
+  {
+   "id": "abplive-com-news-india-feed",
+   "every": 30,
+   "priority": 7,
+   "url": "https://www.abplive.com/news/india/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "country"
+  },
+  {
+   "id": "tv9hindi-com-feed",
+   "every": 30,
+   "priority": 7,
+   "url": "https://www.tv9hindi.com/feed",
+   "source": {
+    "en": "TV9 Bharatvarsh",
+    "hi": "टीवी9 भारतवर्ष"
+   },
+   "lang": "hi",
+   "level": "country"
+  },
+  {
+   "id": "indiatv-in-rssnews-topstory-xml",
+   "every": 30,
+   "priority": 7,
+   "url": "https://www.indiatv.in/rssnews/topstory.xml",
+   "source": {
+    "en": "India TV",
+    "hi": "इंडिया टीवी"
+   },
+   "lang": "hi",
+   "level": "country"
+  },
+  {
+   "id": "prabhatkhabar-com-national-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.prabhatkhabar.com/national/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "country"
+  },
+  {
+   "id": "thehindu-com-news-national-feeder-default-rss",
+   "every": 30,
+   "priority": 8,
+   "url": "https://www.thehindu.com/news/national/feeder/default.rss",
+   "source": {
+    "en": "The Hindu",
+    "hi": "द हिंदू"
+   },
+   "lang": "en",
+   "level": "country"
+  },
+  {
+   "id": "hindustantimes-com-feeds-rss-india-news-rssfeed-xml",
+   "every": 30,
+   "priority": 8,
+   "url": "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml",
+   "source": {
+    "en": "Hindustan Times",
+    "hi": "हिंदुस्तान टाइम्स"
+   },
+   "lang": "en",
+   "level": "country"
+  },
+  {
+   "id": "indianexpress-com-section-india-feed",
+   "every": 30,
+   "priority": 8,
+   "url": "https://indianexpress.com/section/india/feed/",
+   "source": {
+    "en": "The Indian Express",
+    "hi": "इंडियन एक्सप्रेस"
+   },
+   "lang": "en",
+   "level": "country"
+  },
+  {
+   "id": "timesofindia-indiatimes-com-rssfeedstopstories-cms",
+   "every": 30,
+   "priority": 8,
+   "url": "https://timesofindia.indiatimes.com/rssfeedstopstories.cms",
+   "source": {
+    "en": "Times of India",
+    "hi": "टाइम्स ऑफ़ इंडिया"
+   },
+   "lang": "en",
+   "level": "country"
+  },
+  {
+   "id": "feedburner-com-ndtvnews-top-stories",
+   "every": 30,
+   "priority": 8,
+   "url": "https://feeds.feedburner.com/ndtvnews-top-stories",
+   "source": {
+    "en": "NDTV",
+    "hi": "एनडीटीवी"
+   },
+   "lang": "en",
+   "level": "country"
+  },
+  {
+   "id": "indiatoday-in-rss-home",
+   "every": 30,
+   "priority": 7,
+   "url": "https://www.indiatoday.in/rss/home",
+   "source": {
+    "en": "India Today",
+    "hi": "इंडिया टुडे"
+   },
+   "lang": "en",
+   "level": "country"
+  },
+  {
+   "id": "livemint-com-rss-news",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.livemint.com/rss/news",
+   "source": {
+    "en": "Mint",
+    "hi": "मिंट"
+   },
+   "lang": "en",
+   "level": "country"
+  },
+  {
+   "id": "yourstory-com-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://yourstory.com/feed",
+   "source": {
+    "en": "YourStory",
+    "hi": "योरस्टोरी"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "startup"
+   ]
+  },
+  {
+   "id": "inc42-com-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://inc42.com/feed/",
+   "source": {
+    "en": "Inc42",
+    "hi": "इंक42"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "startup"
+   ]
+  },
+  {
+   "id": "economictimes-indiatimes-com-tech-startups-rssfeeds-78570540",
+   "every": 30,
+   "priority": 6,
+   "url": "https://economictimes.indiatimes.com/tech/startups/rssfeeds/78570540.cms",
+   "source": {
+    "en": "Economic Times",
+    "hi": "इकोनॉमिक टाइम्स"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "startup"
+   ]
+  },
+  {
+   "id": "indianexpress-com-section-technology-artificial-intelligence",
+   "every": 30,
+   "priority": 6,
+   "url": "https://indianexpress.com/section/technology/artificial-intelligence/feed/",
+   "source": {
+    "en": "The Indian Express",
+    "hi": "इंडियन एक्सप्रेस"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "ai"
+   ]
+  },
+  {
+   "id": "analyticsindiamag-com-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://analyticsindiamag.com/feed/",
+   "source": {
+    "en": "Analytics India Magazine",
+    "hi": "एनालिटिक्स इंडिया मैगज़ीन"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "ai"
+   ]
+  },
+  {
+   "id": "techcrunch-com-category-artificial-intelligence-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://techcrunch.com/category/artificial-intelligence/feed/",
+   "source": {
+    "en": "TechCrunch",
+    "hi": "टेकक्रंच"
+   },
+   "lang": "en",
+   "level": "world",
+   "groups": [
+    "ai"
+   ]
+  },
+  {
+   "id": "theverge-com-rss-ai-artificial-intelligence-index-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+   "source": {
+    "en": "The Verge",
+    "hi": "द वर्ज"
+   },
+   "lang": "en",
+   "level": "world",
+   "groups": [
+    "ai"
+   ]
+  },
+  {
+   "id": "amarujala-com-rss-entertainment-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/entertainment.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "entertainment",
+    "movies"
+   ]
+  },
+  {
+   "id": "abplive-com-entertainment-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.abplive.com/entertainment/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "entertainment",
+    "movies"
+   ]
+  },
+  {
+   "id": "bollywoodhungama-com-rss-news-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.bollywoodhungama.com/rss/news.xml",
+   "source": {
+    "en": "Bollywood Hungama",
+    "hi": "बॉलीवुड हंगामा"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "movies"
+   ]
+  },
+  {
+   "id": "thehindu-com-entertainment-movies-feeder-default-rss",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.thehindu.com/entertainment/movies/feeder/default.rss",
+   "source": {
+    "en": "The Hindu",
+    "hi": "द हिंदू"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "movies"
+   ]
+  },
+  {
+   "id": "hindi-thebetterindia-com-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://hindi.thebetterindia.com/feed/",
+   "source": {
+    "en": "The Better India",
+    "hi": "द बेटर इंडिया"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "good-news"
+   ]
+  },
+  {
+   "id": "thebetterindia-com-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.thebetterindia.com/feed/",
+   "source": {
+    "en": "The Better India",
+    "hi": "द बेटर इंडिया"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "good-news"
+   ]
+  },
+  {
+   "id": "amarujala-com-rss-business-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/business.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "business"
+   ]
+  },
+  {
+   "id": "abplive-com-business-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.abplive.com/business/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "business"
+   ]
+  },
+  {
+   "id": "thehindu-com-business-feeder-default-rss",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.thehindu.com/business/feeder/default.rss",
+   "source": {
+    "en": "The Hindu",
+    "hi": "द हिंदू"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "business"
+   ]
+  },
+  {
+   "id": "livemint-com-rss-markets",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.livemint.com/rss/markets",
+   "source": {
+    "en": "Mint",
+    "hi": "मिंट"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "stock-market"
+   ]
+  },
+  {
+   "id": "economictimes-indiatimes-com-markets-rssfeeds-1977021501-cms",
+   "every": 30,
+   "priority": 6,
+   "url": "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms",
+   "source": {
+    "en": "Economic Times",
+    "hi": "इकोनॉमिक टाइम्स"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "stock-market"
+   ]
+  },
+  {
+   "id": "amarujala-com-rss-cricket-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/cricket.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "cricket"
+   ]
+  },
+  {
+   "id": "abplive-com-sports-cricket-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.abplive.com/sports/cricket/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "cricket"
+   ]
+  },
+  {
+   "id": "espncricinfo-com-rss-content-story-feeds-0-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.espncricinfo.com/rss/content/story/feeds/0.xml",
+   "source": {
+    "en": "ESPNcricinfo",
+    "hi": "ईएसपीएन क्रिकइंफ़ो"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "cricket"
+   ]
+  },
+  {
+   "id": "thehindu-com-sport-cricket-feeder-default-rss",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.thehindu.com/sport/cricket/feeder/default.rss",
+   "source": {
+    "en": "The Hindu",
+    "hi": "द हिंदू"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "cricket"
+   ]
+  },
+  {
+   "id": "amarujala-com-rss-sports-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/sports.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "sports"
+   ]
+  },
+  {
+   "id": "amarujala-com-rss-automobiles-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/automobiles.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "auto"
+   ]
+  },
+  {
+   "id": "abplive-com-auto-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.abplive.com/auto/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "auto"
+   ]
+  },
+  {
+   "id": "auto-economictimes-indiatimes-com-rss-topstories",
+   "every": 30,
+   "priority": 6,
+   "url": "https://auto.economictimes.indiatimes.com/rss/topstories",
+   "source": {
+    "en": "ET Auto",
+    "hi": "ईटी ऑटो"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "auto"
+   ]
+  },
+  {
+   "id": "amarujala-com-rss-technology-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/technology.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "tech"
+   ]
+  },
+  {
+   "id": "abplive-com-technology-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.abplive.com/technology/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "tech"
+   ]
+  },
+  {
+   "id": "thehindu-com-sci-tech-technology-feeder-default-rss",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.thehindu.com/sci-tech/technology/feeder/default.rss",
+   "source": {
+    "en": "The Hindu",
+    "hi": "द हिंदू"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "tech"
+   ]
+  },
+  {
+   "id": "thehindu-com-sci-tech-science-feeder-default-rss",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.thehindu.com/sci-tech/science/feeder/default.rss",
+   "source": {
+    "en": "The Hindu",
+    "hi": "द हिंदू"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "science"
+   ]
+  },
+  {
+   "id": "amarujala-com-rss-jobs-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/jobs.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "jobs"
+   ]
+  },
+  {
+   "id": "abplive-com-education-jobs-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.abplive.com/education/jobs/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "jobs"
+   ]
+  },
+  {
+   "id": "amarujala-com-rss-education-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/education.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "education"
+   ]
+  },
+  {
+   "id": "amarujala-com-rss-crime-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/crime.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "crime"
+   ]
+  },
+  {
+   "id": "kisantak-in-rssfeeds-id-home",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.kisantak.in/rssfeeds?id=home",
+   "source": {
+    "en": "Kisan Tak",
+    "hi": "किसान तक"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "farming"
+   ]
+  },
+  {
+   "id": "amarujala-com-rss-astrology-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/astrology.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "religion"
+   ]
+  },
+  {
+   "id": "amarujala-com-rss-spirituality-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/spirituality.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "religion"
+   ]
+  },
+  {
+   "id": "abplive-com-astro-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.abplive.com/astro/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "religion"
+   ]
+  },
+  {
+   "id": "amarujala-com-rss-world-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/world.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "world"
+  },
+  {
+   "id": "abplive-com-news-world-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.abplive.com/news/world/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "world"
+  },
+  {
+   "id": "bbci-co-uk-news-world-rss-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+   "source": {
+    "en": "BBC News",
+    "hi": "बीबीसी न्यूज़"
+   },
+   "lang": "en",
+   "level": "world"
+  },
+  {
+   "id": "thehindu-com-news-international-feeder-default-rss",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.thehindu.com/news/international/feeder/default.rss",
+   "source": {
+    "en": "The Hindu",
+    "hi": "द हिंदू"
+   },
+   "lang": "en",
+   "level": "world"
+  },
+  {
+   "id": "hindustantimes-com-feeds-rss-world-news-rssfeed-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.hindustantimes.com/feeds/rss/world-news/rssfeed.xml",
+   "source": {
+    "en": "Hindustan Times",
+    "hi": "हिंदुस्तान टाइम्स"
+   },
+   "lang": "en",
+   "level": "world"
+  },
+  {
+   "id": "theguardian-com-world-rss",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.theguardian.com/world/rss",
+   "source": {
+    "en": "The Guardian",
+    "hi": "द गार्जियन"
+   },
+   "lang": "en",
+   "level": "world"
+  },
+  {
+   "id": "aljazeera-com-xml-rss-all-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.aljazeera.com/xml/rss/all.xml",
+   "source": {
+    "en": "Al Jazeera",
+    "hi": "अल जज़ीरा"
+   },
+   "lang": "en",
+   "level": "world"
+  },
+  {
+   "id": "amarujala-com-rss-uttar-pradesh-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/uttar-pradesh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "up",
+   "urlDistrict": "^/uttar-pradesh/([a-z0-9-]+)/[^/]+$"
+  },
+  {
+   "id": "amarujala-com-rss-bihar-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/bihar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "br",
+   "urlDistrict": "^/bihar/([a-z0-9-]+)/[^/]+$"
+  },
+  {
+   "id": "amarujala-com-rss-madhya-pradesh-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/madhya-pradesh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "mp",
+   "urlDistrict": "^/madhya-pradesh/([a-z0-9-]+)/[^/]+$"
+  },
+  {
+   "id": "amarujala-com-rss-rajasthan-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/rajasthan.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "rj",
+   "urlDistrict": "^/rajasthan/([a-z0-9-]+)/[^/]+$"
+  },
+  {
+   "id": "amarujala-com-rss-delhi-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/delhi.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "dl",
+   "urlDistrict": "^/delhi/([a-z0-9-]+)/[^/]+$"
+  },
+  {
+   "id": "amarujala-com-rss-haryana-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/haryana.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "hr",
+   "urlDistrict": "^/haryana/([a-z0-9-]+)/[^/]+$"
+  },
+  {
+   "id": "amarujala-com-rss-jharkhand-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/jharkhand.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "jh",
+   "urlDistrict": "^/jharkhand/([a-z0-9-]+)/[^/]+$"
+  },
+  {
+   "id": "amarujala-com-rss-uttarakhand-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/uttarakhand.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "uk",
+   "urlDistrict": "^/uttarakhand/([a-z0-9-]+)/[^/]+$"
+  },
+  {
+   "id": "amarujala-com-rss-chhattisgarh-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/chhattisgarh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "cg",
+   "urlDistrict": "^/chhattisgarh/([a-z0-9-]+)/[^/]+$"
+  },
+  {
+   "id": "amarujala-com-rss-himachal-pradesh-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.amarujala.com/rss/himachal-pradesh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "hp",
+   "urlDistrict": "^/himachal-pradesh/([a-z0-9-]+)/[^/]+$"
+  },
+  {
+   "id": "abplive-com-states-up-uk-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.abplive.com/states/up-uk/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "up"
+  },
+  {
+   "id": "abplive-com-states-bihar-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.abplive.com/states/bihar/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "br"
+  },
+  {
+   "id": "abplive-com-states-madhya-pradesh-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.abplive.com/states/madhya-pradesh/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "mp"
+  },
+  {
+   "id": "abplive-com-states-rajasthan-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.abplive.com/states/rajasthan/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "rj"
+  },
+  {
+   "id": "abplive-com-states-delhi-ncr-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.abplive.com/states/delhi-ncr/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "dl"
+  },
+  {
+   "id": "abplive-com-states-haryana-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.abplive.com/states/haryana/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "hr"
+  },
+  {
+   "id": "abplive-com-states-jharkhand-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.abplive.com/states/jharkhand/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "jh"
+  },
+  {
+   "id": "abplive-com-states-himachal-pradesh-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.abplive.com/states/himachal-pradesh/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "hp"
+  },
+  {
+   "id": "abplive-com-states-chhattisgarh-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.abplive.com/states/chhattisgarh/feed",
+   "source": {
+    "en": "ABP Live",
+    "hi": "एबीपी लाइव"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "cg"
+  },
+  {
+   "id": "prabhatkhabar-com-state-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.prabhatkhabar.com/state/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "jh"
+  },
+  {
+   "id": "hindustantimes-com-feeds-rss-cities-lucknow-news-rssfeed-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.hindustantimes.com/feeds/rss/cities/lucknow-news/rssfeed.xml",
+   "source": {
+    "en": "Hindustan Times",
+    "hi": "हिंदुस्तान टाइम्स"
+   },
+   "lang": "en",
+   "level": "state",
+   "state": "up"
+  },
+  {
+   "id": "hindustantimes-com-feeds-rss-cities-patna-news-rssfeed-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.hindustantimes.com/feeds/rss/cities/patna-news/rssfeed.xml",
+   "source": {
+    "en": "Hindustan Times",
+    "hi": "हिंदुस्तान टाइम्स"
+   },
+   "lang": "en",
+   "level": "state",
+   "state": "br"
+  },
+  {
+   "id": "indianexpress-com-section-cities-lucknow-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://indianexpress.com/section/cities/lucknow/feed/",
+   "source": {
+    "en": "The Indian Express",
+    "hi": "इंडियन एक्सप्रेस"
+   },
+   "lang": "en",
+   "level": "state",
+   "state": "up"
+  },
+  {
+   "id": "amarujala-com-rss-dehradun-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/dehradun.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "uk",
+   "district": "dehradun"
+  },
+  {
+   "id": "amarujala-com-rss-lucknow-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/lucknow.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "lucknow"
+  },
+  {
+   "id": "amarujala-com-rss-shimla-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/shimla.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hp",
+   "district": "shimla"
+  },
+  {
+   "id": "amarujala-com-rss-amroha-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/amroha.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "amroha"
+  },
+  {
+   "id": "amarujala-com-rss-amethi-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/amethi.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "amethi"
+  },
+  {
+   "id": "amarujala-com-rss-ambedkar-nagar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/ambedkar-nagar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "ambedkar-nagar"
+  },
+  {
+   "id": "amarujala-com-rss-ayodhya-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/ayodhya.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "ayodhya"
+  },
+  {
+   "id": "amarujala-com-rss-aligarh-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/aligarh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "aligarh"
+  },
+  {
+   "id": "amarujala-com-rss-agra-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/agra.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "agra"
+  },
+  {
+   "id": "amarujala-com-rss-azamgarh-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/azamgarh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "azamgarh"
+  },
+  {
+   "id": "amarujala-com-rss-etawah-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/etawah.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "etawah"
+  },
+  {
+   "id": "amarujala-com-rss-unnao-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/unnao.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "unnao"
+  },
+  {
+   "id": "amarujala-com-rss-etah-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/etah.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "etah"
+  },
+  {
+   "id": "amarujala-com-rss-auraiya-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/auraiya.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "auraiya"
+  },
+  {
+   "id": "amarujala-com-rss-kannauj-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/kannauj.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "kannauj"
+  },
+  {
+   "id": "amarujala-com-rss-kanpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/kanpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "kanpur-nagar"
+  },
+  {
+   "id": "amarujala-com-rss-kasganj-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/kasganj.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "kasganj"
+  },
+  {
+   "id": "amarujala-com-rss-kushinagar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/kushinagar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "kushinagar"
+  },
+  {
+   "id": "amarujala-com-rss-kaushambi-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/kaushambi.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "kaushambi"
+  },
+  {
+   "id": "amarujala-com-rss-ghazipur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/ghazipur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "ghazipur"
+  },
+  {
+   "id": "amarujala-com-rss-gonda-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/gonda.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "gonda"
+  },
+  {
+   "id": "amarujala-com-rss-chandauli-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/chandauli.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "chandauli"
+  },
+  {
+   "id": "amarujala-com-rss-chitrakoot-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/chitrakoot.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "chitrakoot"
+  },
+  {
+   "id": "amarujala-com-rss-jalaun-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/jalaun.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "jalaun"
+  },
+  {
+   "id": "amarujala-com-rss-jaunpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/jaunpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "jaunpur"
+  },
+  {
+   "id": "amarujala-com-rss-jhansi-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/jhansi.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "jhansi"
+  },
+  {
+   "id": "amarujala-com-rss-deoria-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/deoria.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "deoria"
+  },
+  {
+   "id": "amarujala-com-rss-pilibhit-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/pilibhit.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "pilibhit"
+  },
+  {
+   "id": "amarujala-com-rss-pratapgarh-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/pratapgarh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "pratapgarh"
+  },
+  {
+   "id": "amarujala-com-rss-allahabad-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/allahabad.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "prayagraj"
+  },
+  {
+   "id": "amarujala-com-rss-fatehpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/fatehpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "fatehpur"
+  },
+  {
+   "id": "amarujala-com-rss-farrukhabad-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/farrukhabad.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "farrukhabad"
+  },
+  {
+   "id": "amarujala-com-rss-firozabad-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/firozabad.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "firozabad"
+  },
+  {
+   "id": "amarujala-com-rss-budaun-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/budaun.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "budaun"
+  },
+  {
+   "id": "amarujala-com-rss-bareilly-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bareilly.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "bareilly"
+  },
+  {
+   "id": "amarujala-com-rss-balrampur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/balrampur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "balrampur"
+  },
+  {
+   "id": "amarujala-com-rss-ballia-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/ballia.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "ballia"
+  },
+  {
+   "id": "amarujala-com-rss-basti-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/basti.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "basti"
+  },
+  {
+   "id": "amarujala-com-rss-bahraich-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bahraich.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "bahraich"
+  },
+  {
+   "id": "amarujala-com-rss-banda-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/banda.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "banda"
+  },
+  {
+   "id": "amarujala-com-rss-baghpat-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/baghpat.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "baghpat"
+  },
+  {
+   "id": "amarujala-com-rss-barabanki-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/barabanki.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "barabanki"
+  },
+  {
+   "id": "amarujala-com-rss-bijnor-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bijnor.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "bijnor"
+  },
+  {
+   "id": "amarujala-com-rss-bulandshahr-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bulandshahr.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "bulandshahr"
+  },
+  {
+   "id": "amarujala-com-rss-bhadohi-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bhadohi.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "bhadohi"
+  },
+  {
+   "id": "amarujala-com-rss-mau-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/mau.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "mau"
+  },
+  {
+   "id": "amarujala-com-rss-mathura-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/mathura.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "mathura"
+  },
+  {
+   "id": "amarujala-com-rss-maharajganj-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/maharajganj.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "maharajganj"
+  },
+  {
+   "id": "amarujala-com-rss-mahoba-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/mahoba.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "mahoba"
+  },
+  {
+   "id": "amarujala-com-rss-mirzapur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/mirzapur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "mirzapur"
+  },
+  {
+   "id": "amarujala-com-rss-muzaffarnagar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/muzaffarnagar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "muzaffarnagar"
+  },
+  {
+   "id": "amarujala-com-rss-moradabad-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/moradabad.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "moradabad"
+  },
+  {
+   "id": "amarujala-com-rss-meerut-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/meerut.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "meerut"
+  },
+  {
+   "id": "amarujala-com-rss-mainpuri-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/mainpuri.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "mainpuri"
+  },
+  {
+   "id": "amarujala-com-rss-rampur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/rampur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "rampur"
+  },
+  {
+   "id": "amarujala-com-rss-raebareli-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/raebareli.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "raebareli"
+  },
+  {
+   "id": "amarujala-com-rss-lakhimpur-kheri-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/lakhimpur-kheri.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "lakhimpur-kheri"
+  },
+  {
+   "id": "amarujala-com-rss-lalitpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/lalitpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "lalitpur"
+  },
+  {
+   "id": "amarujala-com-rss-varanasi-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/varanasi.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "varanasi"
+  },
+  {
+   "id": "amarujala-com-rss-shamli-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/shamli.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "shamli"
+  },
+  {
+   "id": "amarujala-com-rss-shahjahanpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/shahjahanpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "shahjahanpur"
+  },
+  {
+   "id": "amarujala-com-rss-shravasti-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/shravasti.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "shravasti"
+  },
+  {
+   "id": "amarujala-com-rss-sant-kabir-nagar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/sant-kabir-nagar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "sant-kabir-nagar"
+  },
+  {
+   "id": "amarujala-com-rss-sambhal-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/sambhal.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "sambhal"
+  },
+  {
+   "id": "amarujala-com-rss-saharanpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/saharanpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "saharanpur"
+  },
+  {
+   "id": "amarujala-com-rss-siddharthnagar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/siddharthnagar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "siddharthnagar"
+  },
+  {
+   "id": "amarujala-com-rss-sitapur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/sitapur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "sitapur"
+  },
+  {
+   "id": "amarujala-com-rss-sultanpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/sultanpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "sultanpur"
+  },
+  {
+   "id": "amarujala-com-rss-sonebhadra-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/sonebhadra.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "sonbhadra"
+  },
+  {
+   "id": "amarujala-com-rss-hamirpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/hamirpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "hamirpur"
+  },
+  {
+   "id": "amarujala-com-rss-hardoi-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/hardoi.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "hardoi"
+  },
+  {
+   "id": "amarujala-com-rss-hathras-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/hathras.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "hathras"
+  },
+  {
+   "id": "amarujala-com-rss-hapur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/hapur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "hapur"
+  },
+  {
+   "id": "amarujala-com-rss-almora-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/almora.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "uk",
+   "district": "almora"
+  },
+  {
+   "id": "amarujala-com-rss-uttarkashi-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/uttarkashi.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "uk",
+   "district": "uttarkashi"
+  },
+  {
+   "id": "amarujala-com-rss-udham-singh-nagar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/udham-singh-nagar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "uk",
+   "district": "udham-singh-nagar"
+  },
+  {
+   "id": "amarujala-com-rss-rishikesh-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/rishikesh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "uk",
+   "district": "dehradun",
+   "tehsil": "rishikesh"
+  },
+  {
+   "id": "amarujala-com-rss-kotdwar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/kotdwar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "uk",
+   "district": "pauri-garhwal",
+   "tehsil": "kotdwar"
+  },
+  {
+   "id": "amarujala-com-rss-chamoli-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/chamoli.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "uk",
+   "district": "chamoli"
+  },
+  {
+   "id": "amarujala-com-rss-champawat-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/champawat.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "uk",
+   "district": "champawat"
+  },
+  {
+   "id": "amarujala-com-rss-tehri-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/tehri.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "uk",
+   "district": "tehri-garhwal"
+  },
+  {
+   "id": "amarujala-com-rss-nainital-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/nainital.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "uk",
+   "district": "nainital"
+  },
+  {
+   "id": "amarujala-com-rss-pithoragarh-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/pithoragarh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "uk",
+   "district": "pithoragarh"
+  },
+  {
+   "id": "amarujala-com-rss-pauri-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/pauri.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "uk",
+   "district": "pauri-garhwal"
+  },
+  {
+   "id": "amarujala-com-rss-bageshwar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bageshwar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "uk",
+   "district": "bageshwar"
+  },
+  {
+   "id": "amarujala-com-rss-roorkee-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/roorkee.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "uk",
+   "district": "haridwar",
+   "tehsil": "roorkee"
+  },
+  {
+   "id": "amarujala-com-rss-rudraprayag-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/rudraprayag.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "uk",
+   "district": "rudraprayag"
+  },
+  {
+   "id": "amarujala-com-rss-haridwar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/haridwar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "uk",
+   "district": "haridwar"
+  },
+  {
+   "id": "amarujala-com-rss-panchkula-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/panchkula.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "panchkula"
+  },
+  {
+   "id": "amarujala-com-rss-ambikapur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/ambikapur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "cg",
+   "district": "surguja"
+  },
+  {
+   "id": "amarujala-com-rss-kabirdham-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/kabirdham.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "cg",
+   "district": "kabirdham"
+  },
+  {
+   "id": "amarujala-com-rss-kanker-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/kanker.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "cg",
+   "district": "kanker"
+  },
+  {
+   "id": "amarujala-com-rss-korba-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/korba.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "cg",
+   "district": "korba"
+  },
+  {
+   "id": "amarujala-com-rss-gorella-pendra-marwahi-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/gorella-pendra-marwahi.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "cg",
+   "district": "gaurela-pendra-marwahi"
+  },
+  {
+   "id": "amarujala-com-rss-jagdalpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/jagdalpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "cg",
+   "district": "bastar"
+  },
+  {
+   "id": "amarujala-com-rss-janjgir-champa-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/janjgir-champa.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "cg",
+   "district": "janjgir-champa"
+  },
+  {
+   "id": "amarujala-com-rss-durg-bhilai-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/durg-bhilai.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "cg",
+   "district": "durg"
+  },
+  {
+   "id": "amarujala-com-rss-dhamtari-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/dhamtari.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "cg",
+   "district": "dhamtari"
+  },
+  {
+   "id": "amarujala-com-rss-balodabazar-bhatapara-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/balodabazar-bhatapara.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "cg",
+   "district": "baloda-bazar"
+  },
+  {
+   "id": "amarujala-com-rss-balod-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/balod.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "cg",
+   "district": "balod"
+  },
+  {
+   "id": "amarujala-com-rss-bilaspur-chhattisgarh-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bilaspur-chhattisgarh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "cg",
+   "district": "bilaspur"
+  },
+  {
+   "id": "amarujala-com-rss-bijapur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bijapur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "cg",
+   "district": "bijapur"
+  },
+  {
+   "id": "amarujala-com-rss-bemetara-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bemetara.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "cg",
+   "district": "bemetara"
+  },
+  {
+   "id": "amarujala-com-rss-mahasamund-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/mahasamund.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "cg",
+   "district": "mahasamund"
+  },
+  {
+   "id": "amarujala-com-rss-raigarh-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/raigarh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "cg",
+   "district": "raigarh"
+  },
+  {
+   "id": "amarujala-com-rss-raipur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/raipur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "cg",
+   "district": "raipur"
+  },
+  {
+   "id": "amarujala-com-rss-ranchi-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/ranchi.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "ranchi"
+  },
+  {
+   "id": "amarujala-com-rss-ghaziabad-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/ghaziabad.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "ghaziabad"
+  },
+  {
+   "id": "amarujala-com-rss-gurgaon-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/gurgaon.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "gurugram"
+  },
+  {
+   "id": "amarujala-com-rss-nuh-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/nuh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "nuh"
+  },
+  {
+   "id": "amarujala-com-rss-noida-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/noida.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "up",
+   "district": "gautam-buddh-nagar"
+  },
+  {
+   "id": "amarujala-com-rss-faridabad-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/faridabad.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "faridabad"
+  },
+  {
+   "id": "amarujala-com-rss-muzaffarpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/muzaffarpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "muzaffarpur"
+  },
+  {
+   "id": "amarujala-com-rss-darbhanga-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/darbhanga.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "darbhanga"
+  },
+  {
+   "id": "amarujala-com-rss-patna-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/patna.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "patna"
+  },
+  {
+   "id": "amarujala-com-rss-purnea-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/purnea.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "purnia"
+  },
+  {
+   "id": "amarujala-com-rss-bhagalpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bhagalpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "bhagalpur"
+  },
+  {
+   "id": "amarujala-com-rss-gaya-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/gaya.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "gaya"
+  },
+  {
+   "id": "amarujala-com-rss-munger-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/munger.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "munger"
+  },
+  {
+   "id": "amarujala-com-rss-saran-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/saran.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "saran"
+  },
+  {
+   "id": "amarujala-com-rss-anuppur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/anuppur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "anuppur"
+  },
+  {
+   "id": "amarujala-com-rss-ashoknagar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/ashoknagar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "ashoknagar"
+  },
+  {
+   "id": "amarujala-com-rss-agar-malwa-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/agar-malwa.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "agar-malwa"
+  },
+  {
+   "id": "amarujala-com-rss-indore-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/indore.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "indore"
+  },
+  {
+   "id": "amarujala-com-rss-ujjain-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/ujjain.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "ujjain"
+  },
+  {
+   "id": "amarujala-com-rss-umaria-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/umaria.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "umaria"
+  },
+  {
+   "id": "amarujala-com-rss-katni-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/katni.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "katni"
+  },
+  {
+   "id": "amarujala-com-rss-khandwa-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/khandwa.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "khandwa"
+  },
+  {
+   "id": "amarujala-com-rss-khargone-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/khargone.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "khargone"
+  },
+  {
+   "id": "amarujala-com-rss-guna-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/guna.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "guna"
+  },
+  {
+   "id": "amarujala-com-rss-gwalior-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/gwalior.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "gwalior"
+  },
+  {
+   "id": "amarujala-com-rss-chhatarpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/chhatarpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "chhatarpur"
+  },
+  {
+   "id": "amarujala-com-rss-chhindwara-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/chhindwara.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "chhindwara"
+  },
+  {
+   "id": "amarujala-com-rss-jabalpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/jabalpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "jabalpur"
+  },
+  {
+   "id": "amarujala-com-rss-jhabua-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/jhabua.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "jhabua"
+  },
+  {
+   "id": "amarujala-com-rss-tikamgarh-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/tikamgarh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "tikamgarh"
+  },
+  {
+   "id": "amarujala-com-rss-dindori-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/dindori.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "dindori"
+  },
+  {
+   "id": "amarujala-com-rss-datia-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/datia.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "datia"
+  },
+  {
+   "id": "amarujala-com-rss-damoh-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/damoh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "damoh"
+  },
+  {
+   "id": "amarujala-com-rss-dewas-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/dewas.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "dewas"
+  },
+  {
+   "id": "amarujala-com-rss-dhar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/dhar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "dhar"
+  },
+  {
+   "id": "amarujala-com-rss-narsinghpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/narsinghpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "narsinghpur"
+  },
+  {
+   "id": "amarujala-com-rss-narmadapuram-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/narmadapuram.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "narmadapuram"
+  },
+  {
+   "id": "amarujala-com-rss-neemuch-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/neemuch.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "neemuch"
+  },
+  {
+   "id": "amarujala-com-rss-panna-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/panna.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "panna"
+  },
+  {
+   "id": "amarujala-com-rss-barwani-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/barwani.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "barwani"
+  },
+  {
+   "id": "amarujala-com-rss-balaghat-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/balaghat.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "balaghat"
+  },
+  {
+   "id": "amarujala-com-rss-burhanpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/burhanpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "burhanpur"
+  },
+  {
+   "id": "amarujala-com-rss-betul-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/betul.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "betul"
+  },
+  {
+   "id": "amarujala-com-rss-bhind-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bhind.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "bhind"
+  },
+  {
+   "id": "amarujala-com-rss-bhopal-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bhopal.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "bhopal"
+  },
+  {
+   "id": "amarujala-com-rss-mandla-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/mandla.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "mandla"
+  },
+  {
+   "id": "amarujala-com-rss-mandsaur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/mandsaur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "mandsaur"
+  },
+  {
+   "id": "amarujala-com-rss-morena-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/morena.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "morena"
+  },
+  {
+   "id": "amarujala-com-rss-maihar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/maihar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "maihar"
+  },
+  {
+   "id": "amarujala-com-rss-ratlam-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/ratlam.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "ratlam"
+  },
+  {
+   "id": "amarujala-com-rss-rajgarh-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/rajgarh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "rajgarh"
+  },
+  {
+   "id": "amarujala-com-rss-raisen-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/raisen.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "raisen"
+  },
+  {
+   "id": "amarujala-com-rss-rewa-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/rewa.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "rewa"
+  },
+  {
+   "id": "amarujala-com-rss-vidisha-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/vidisha.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "vidisha"
+  },
+  {
+   "id": "amarujala-com-rss-shahdol-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/shahdol.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "shahdol"
+  },
+  {
+   "id": "amarujala-com-rss-shajapur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/shajapur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "shajapur"
+  },
+  {
+   "id": "amarujala-com-rss-shivpuri-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/shivpuri.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "shivpuri"
+  },
+  {
+   "id": "amarujala-com-rss-sheopur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/sheopur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "sheopur"
+  },
+  {
+   "id": "amarujala-com-rss-satna-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/satna.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "satna"
+  },
+  {
+   "id": "amarujala-com-rss-sagar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/sagar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "sagar"
+  },
+  {
+   "id": "amarujala-com-rss-singrauli-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/singrauli.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "singrauli"
+  },
+  {
+   "id": "amarujala-com-rss-seoni-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/seoni.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "seoni"
+  },
+  {
+   "id": "amarujala-com-rss-sidhi-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/sidhi.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "sidhi"
+  },
+  {
+   "id": "amarujala-com-rss-sehore-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/sehore.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "sehore"
+  },
+  {
+   "id": "amarujala-com-rss-harda-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/harda.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "mp",
+   "district": "harda"
+  },
+  {
+   "id": "amarujala-com-rss-ajmer-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/ajmer.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "ajmer"
+  },
+  {
+   "id": "amarujala-com-rss-alwar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/alwar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "alwar"
+  },
+  {
+   "id": "amarujala-com-rss-udaipur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/udaipur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "udaipur"
+  },
+  {
+   "id": "amarujala-com-rss-karauli-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/karauli.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "karauli"
+  },
+  {
+   "id": "amarujala-com-rss-kotputli-behror-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/kotputli-behror.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "kotputli-behror"
+  },
+  {
+   "id": "amarujala-com-rss-kota-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/kota.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "kota"
+  },
+  {
+   "id": "amarujala-com-rss-chittorgarh-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/chittorgarh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "chittorgarh"
+  },
+  {
+   "id": "amarujala-com-rss-jaipur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/jaipur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "jaipur"
+  },
+  {
+   "id": "amarujala-com-rss-jalore-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/jalore.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "jalore"
+  },
+  {
+   "id": "amarujala-com-rss-jaisalmer-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/jaisalmer.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "jaisalmer"
+  },
+  {
+   "id": "amarujala-com-rss-jodhpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/jodhpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "jodhpur"
+  },
+  {
+   "id": "amarujala-com-rss-jhalawar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/jhalawar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "jhalawar"
+  },
+  {
+   "id": "amarujala-com-rss-jhunjhunu-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/jhunjhunu.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "jhunjhunu"
+  },
+  {
+   "id": "amarujala-com-rss-tonk-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/tonk.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "tonk"
+  },
+  {
+   "id": "amarujala-com-rss-dausa-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/dausa.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "dausa"
+  },
+  {
+   "id": "amarujala-com-rss-dholpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/dholpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "dholpur"
+  },
+  {
+   "id": "amarujala-com-rss-nagaur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/nagaur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "nagaur"
+  },
+  {
+   "id": "amarujala-com-rss-banswara-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/banswara.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "banswara"
+  },
+  {
+   "id": "amarujala-com-rss-barmer-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/barmer.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "barmer"
+  },
+  {
+   "id": "amarujala-com-rss-baran-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/baran.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "baran"
+  },
+  {
+   "id": "amarujala-com-rss-balotra-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/balotra.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "balotra"
+  },
+  {
+   "id": "amarujala-com-rss-bikaner-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bikaner.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "bikaner"
+  },
+  {
+   "id": "amarujala-com-rss-bundi-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bundi.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "bundi"
+  },
+  {
+   "id": "amarujala-com-rss-bharatpur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bharatpur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "bharatpur"
+  },
+  {
+   "id": "amarujala-com-rss-bhilwara-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bhilwara.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "bhilwara"
+  },
+  {
+   "id": "amarujala-com-rss-rajsamand-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/rajsamand.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "rajsamand"
+  },
+  {
+   "id": "amarujala-com-rss-sri-ganganagar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/sri-ganganagar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "sri-ganganagar"
+  },
+  {
+   "id": "amarujala-com-rss-sawai-madhopur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/sawai-madhopur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "sawai-madhopur"
+  },
+  {
+   "id": "amarujala-com-rss-sirohi-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/sirohi.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "sirohi"
+  },
+  {
+   "id": "amarujala-com-rss-sikar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/sikar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "sikar"
+  },
+  {
+   "id": "amarujala-com-rss-hanumangarh-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/hanumangarh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "rj",
+   "district": "hanumangarh"
+  },
+  {
+   "id": "amarujala-com-rss-ambala-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/ambala.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "ambala"
+  },
+  {
+   "id": "amarujala-com-rss-karnal-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/karnal.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "karnal"
+  },
+  {
+   "id": "amarujala-com-rss-kurukshetra-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/kurukshetra.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "kurukshetra"
+  },
+  {
+   "id": "amarujala-com-rss-kaithal-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/kaithal.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "kaithal"
+  },
+  {
+   "id": "amarujala-com-rss-charkhi-dadri-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/charkhi-dadri.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "charkhi-dadri"
+  },
+  {
+   "id": "amarujala-com-rss-jind-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/jind.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "jind"
+  },
+  {
+   "id": "amarujala-com-rss-jhajjar-bahadurgarh-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/jhajjar-bahadurgarh.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "jhajjar"
+  },
+  {
+   "id": "amarujala-com-rss-palwal-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/palwal.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "palwal"
+  },
+  {
+   "id": "amarujala-com-rss-panipat-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/panipat.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "panipat"
+  },
+  {
+   "id": "amarujala-com-rss-fatehabad-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/fatehabad.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "fatehabad"
+  },
+  {
+   "id": "amarujala-com-rss-bhiwani-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bhiwani.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "bhiwani"
+  },
+  {
+   "id": "amarujala-com-rss-mahendragarh-narnaul-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/mahendragarh-narnaul.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "mahendragarh"
+  },
+  {
+   "id": "amarujala-com-rss-yamuna-nagar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/yamuna-nagar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "yamunanagar"
+  },
+  {
+   "id": "amarujala-com-rss-rewari-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/rewari.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "rewari"
+  },
+  {
+   "id": "amarujala-com-rss-rohtak-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/rohtak.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "rohtak"
+  },
+  {
+   "id": "amarujala-com-rss-sirsa-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/sirsa.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "sirsa"
+  },
+  {
+   "id": "amarujala-com-rss-sonipat-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/sonipat.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "sonipat"
+  },
+  {
+   "id": "amarujala-com-rss-hisar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/hisar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hr",
+   "district": "hisar"
+  },
+  {
+   "id": "amarujala-com-rss-una-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/una.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hp",
+   "district": "una"
+  },
+  {
+   "id": "amarujala-com-rss-kangra-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/kangra.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hp",
+   "district": "kangra"
+  },
+  {
+   "id": "amarujala-com-rss-kullu-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/kullu.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hp",
+   "district": "kullu"
+  },
+  {
+   "id": "amarujala-com-rss-chamba-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/chamba.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hp",
+   "district": "chamba"
+  },
+  {
+   "id": "amarujala-com-rss-bilaspur-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/bilaspur.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hp",
+   "district": "bilaspur"
+  },
+  {
+   "id": "amarujala-com-rss-mandi-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/mandi.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hp",
+   "district": "mandi"
+  },
+  {
+   "id": "amarujala-com-rss-rampur-bushahar-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/rampur-bushahar.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hp",
+   "district": "shimla",
+   "tehsil": "rampur-bushahar"
+  },
+  {
+   "id": "amarujala-com-rss-sirmour-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/sirmour.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hp",
+   "district": "sirmaur"
+  },
+  {
+   "id": "amarujala-com-rss-solan-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/solan.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hp",
+   "district": "solan"
+  },
+  {
+   "id": "amarujala-com-rss-hamirpur-hp-xml",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.amarujala.com/rss/hamirpur-hp.xml",
+   "source": {
+    "en": "Amar Ujala",
+    "hi": "अमर उजाला"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "hp",
+   "district": "hamirpur"
+  },
+  {
+   "id": "bhaskar-com-rss-v1-category-1739-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.bhaskar.com/rss-v1--category-1739.xml",
+   "source": {
+    "en": "Dainik Bhaskar",
+    "hi": "दैनिक भास्कर"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "mp",
+   "urlDistrict": "^/local/mp/([a-z0-9-]+)/"
+  },
+  {
+   "id": "bhaskar-com-rss-v1-category-1740-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.bhaskar.com/rss-v1--category-1740.xml",
+   "source": {
+    "en": "Dainik Bhaskar",
+    "hi": "दैनिक भास्कर"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "rj",
+   "urlDistrict": "^/local/rajasthan/([a-z0-9-]+)/"
+  },
+  {
+   "id": "bhaskar-com-rss-v1-category-1741-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.bhaskar.com/rss-v1--category-1741.xml",
+   "source": {
+    "en": "Dainik Bhaskar",
+    "hi": "दैनिक भास्कर"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "cg",
+   "urlDistrict": "^/local/chhattisgarh/([a-z0-9-]+)/"
+  },
+  {
+   "id": "bhaskar-com-rss-v1-category-1742-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.bhaskar.com/rss-v1--category-1742.xml",
+   "source": {
+    "en": "Dainik Bhaskar",
+    "hi": "दैनिक भास्कर"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "hr",
+   "urlDistrict": "^/local/haryana/([a-z0-9-]+)/"
+  },
+  {
+   "id": "bhaskar-com-rss-v1-category-2052-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.bhaskar.com/rss-v1--category-2052.xml",
+   "source": {
+    "en": "Dainik Bhaskar",
+    "hi": "दैनिक भास्कर"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "up",
+   "urlDistrict": "^/local/uttar-pradesh/([a-z0-9-]+)/"
+  },
+  {
+   "id": "bhaskar-com-rss-v1-category-3679-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.bhaskar.com/rss-v1--category-3679.xml",
+   "source": {
+    "en": "Dainik Bhaskar",
+    "hi": "दैनिक भास्कर"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "br",
+   "urlDistrict": "^/local/bihar/([a-z0-9-]+)/"
+  },
+  {
+   "id": "bhaskar-com-rss-v1-category-3682-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.bhaskar.com/rss-v1--category-3682.xml",
+   "source": {
+    "en": "Dainik Bhaskar",
+    "hi": "दैनिक भास्कर"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "jh",
+   "urlDistrict": "^/local/jharkhand/([a-z0-9-]+)/"
+  },
+  {
+   "id": "bhaskar-com-rss-v1-category-12084-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.bhaskar.com/rss-v1--category-12084.xml",
+   "source": {
+    "en": "Dainik Bhaskar",
+    "hi": "दैनिक भास्कर"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "hp",
+   "urlDistrict": "^/local/himachal/([a-z0-9-]+)/"
+  },
+  {
+   "id": "bhaskar-com-rss-v1-category-1051-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.bhaskar.com/rss-v1--category-1051.xml",
+   "source": {
+    "en": "Dainik Bhaskar",
+    "hi": "दैनिक भास्कर"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "business"
+   ]
+  },
+  {
+   "id": "bhaskar-com-rss-v1-category-1053-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.bhaskar.com/rss-v1--category-1053.xml",
+   "source": {
+    "en": "Dainik Bhaskar",
+    "hi": "दैनिक भास्कर"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "sports"
+   ]
+  },
+  {
+   "id": "bhaskar-com-rss-v1-category-3998-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.bhaskar.com/rss-v1--category-3998.xml",
+   "source": {
+    "en": "Dainik Bhaskar",
+    "hi": "दैनिक भास्कर"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "entertainment"
+   ]
+  },
+  {
+   "id": "bhaskar-com-rss-v1-category-3379-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.bhaskar.com/rss-v1--category-3379.xml",
+   "source": {
+    "en": "Dainik Bhaskar",
+    "hi": "दैनिक भास्कर"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "religion"
+   ]
+  },
+  {
+   "id": "bhaskar-com-rss-v1-category-1125-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.bhaskar.com/rss-v1--category-1125.xml",
+   "source": {
+    "en": "Dainik Bhaskar",
+    "hi": "दैनिक भास्कर"
+   },
+   "lang": "hi",
+   "level": "world"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.prabhatkhabar.com/state/bihar/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "br",
+   "urlDistrict": "^/state/bihar/([a-z-]+)/[^/]+$"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "state",
+   "state": "jh",
+   "urlDistrict": "^/state/jharkhand/([a-z-]+)/[^/]+$"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-araria-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/araria/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "araria"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-arwal-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/arwal/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "arwal"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-aurangabad-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/aurangabad/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "aurangabad"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-banka-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/banka/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "banka"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-begusarai-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/begusarai/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "begusarai"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-bhagalpur-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/bhagalpur/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "bhagalpur"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-arrah-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/arrah/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "bhojpur"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-buxar-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/buxar/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "buxar"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-darbhanga-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/darbhanga/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "darbhanga"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-motihari-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/motihari/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "purba-champaran"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-gaya-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/gaya/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "gaya"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-gopalganj-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/gopalganj/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "gopalganj"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-jamui-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/jamui/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "jamui"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-jehanabad-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/jehanabad/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "jehanabad"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-kaimur-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/kaimur/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "kaimur"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-katihar-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/katihar/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "katihar"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-khagaria-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/khagaria/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "khagaria"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-kishanganj-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/kishanganj/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "kishanganj"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-lakhisarai-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/lakhisarai/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "lakhisarai"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-madhepura-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/madhepura/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "madhepura"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-madhubani-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/madhubani/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "madhubani"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-munger-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/munger/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "munger"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-muzaffarpur-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/muzaffarpur/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "muzaffarpur"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-biharsharif-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/biharsharif/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "nalanda"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-nawada-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/nawada/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "nawada"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-patna-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/patna/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "patna"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-purnia-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/purnia/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "purnia"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-sasaram-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/sasaram/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "rohtas"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-saharsa-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/saharsa/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "saharsa"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-samastipur-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/samastipur/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "samastipur"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-saran-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/saran/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "saran"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-sheohar-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/sheohar/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "sheohar"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-sitamarhi-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/sitamarhi/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "sitamarhi"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-siwan-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/siwan/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "siwan"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-supaul-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/supaul/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "supaul"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-hajipur-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/hajipur/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "vaishali"
+  },
+  {
+   "id": "prabhatkhabar-com-state-bihar-bettiah-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/bihar/bettiah/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "br",
+   "district": "pashchim-champaran"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-bokaro-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/bokaro/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "bokaro"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-chatra-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/chatra/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "chatra"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-deoghar-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/deoghar/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "deoghar"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-dhanbad-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/dhanbad/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "dhanbad"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-dumka-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/dumka/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "dumka"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-jamshedpur-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/jamshedpur/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "east-singhbhum"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-garhwa-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/garhwa/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "garhwa"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-giridih-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/giridih/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "giridih"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-godda-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/godda/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "godda"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-gumla-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/gumla/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "gumla"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-hazaribagh-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/hazaribagh/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "hazaribagh"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-jamtara-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/jamtara/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "jamtara"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-khunti-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/khunti/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "khunti"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-koderma-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/koderma/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "koderma"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-latehar-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/latehar/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "latehar"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-lohardaga-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/lohardaga/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "lohardaga"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-pakur-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/pakur/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "pakur"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-palamu-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/palamu/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "palamu"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-ramgarh-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/ramgarh/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "ramgarh"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-ranchi-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/ranchi/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "ranchi"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-sahibganj-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/sahibganj/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "sahibganj"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-simdega-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/simdega/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "simdega"
+  },
+  {
+   "id": "prabhatkhabar-com-state-jharkhand-chaibasa-feed",
+   "every": 60,
+   "priority": 4,
+   "url": "https://www.prabhatkhabar.com/state/jharkhand/chaibasa/feed",
+   "source": {
+    "en": "Prabhat Khabar",
+    "hi": "प्रभात खबर"
+   },
+   "lang": "hi",
+   "level": "district",
+   "state": "jh",
+   "district": "west-singhbhum"
+  }
+ ]
+}
