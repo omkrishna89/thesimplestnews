@@ -48,6 +48,9 @@ ${noindex ? '<meta name="robots" content="noindex, follow">' : '<meta name="robo
 <link rel="apple-touch-icon" href="${url("/assets/img/icon-192.png")}">
 <link rel="manifest" href="${url("/manifest.webmanifest")}">
 <script>(function(){var d=document.documentElement,l,t;try{l=localStorage.getItem("lang");t=localStorage.getItem("theme")}catch(e){}if(!l){l=[].concat(navigator.languages||[],navigator.language||"").some(function(x){return /^hi/i.test(x)})?"hi":"en"}d.setAttribute("data-lang",l);d.lang=l;d.setAttribute("data-theme",t||"dark")})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="${assets.css}">
 <script type="module" src="${assets.js}"></script>
 ${adOn ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(ads.client)}" crossorigin="anonymous"></script>` : ""}
@@ -62,15 +65,16 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
 <div class="hd__in">
 <a class="logo" href="${url("/")}" aria-label="${esc(site.name.en)}"><img src="${url("/assets/img/icon.svg")}" alt="" width="30" height="30"><span class="logo__t">The Simplest <b>News</b></span></a>
 <div class="hd__tools">
-<div class="seg" role="group" aria-label="भाषा · Language"><button type="button" data-set-lang="hi" lang="hi">हिंदी</button><button type="button" data-set-lang="en" lang="en">English</button></div>
-<button type="button" class="theme" data-toggle-theme><span class="theme--to-light">☀︎ ${biT("light")}</span><span class="theme--to-dark">☾ ${biT("dark")}</span></button>
+<div class="seg" role="group" aria-label="भाषा · Language"><button type="button" data-set-lang="hi" lang="hi">हिंदी</button><button type="button" data-set-lang="en" lang="en"><span class="lg">English</span><span class="sm">EN</span></button></div>
+<button type="button" class="theme" data-toggle-theme aria-label="Light / Dark"><span class="theme--to-light">☀︎<span class="lg"> ${biT("light")}</span></span><span class="theme--to-dark">☾<span class="lg"> ${biT("dark")}</span></span></button>
+<button type="button" class="hd__loc" data-loc-chip hidden><span aria-hidden="true">📍</span><span class="loc__short" data-loc-short></span><span class="loc__full" data-loc-full></span></button>
 </div>
 </div>
+</header>
 <nav class="gnav" aria-label="${esc(T.en.groups)}"><div class="gnav__in">
 ${chip("all", "🏠", T.hi.home, T.en.home)}
-${groups.map((g) => chip(g.slug, g.icon, g.hi, g.en)).join("\n")}
-</div></nav>
-</header>`;
+${groups.map((g) => chip(g.slug, g.icon, g.nav_hi || g.hi, g.nav_en || g.en)).join("\n")}
+</div></nav>`;
   }
 
   function footer() {
@@ -116,8 +120,6 @@ ${footer()}
     return `<div class="ctls">${sel("hi")}${sel("en")}</div>`;
   };
 
-  const placeBar = () =>
-    `<div class="loc" data-loc hidden><span class="loc__pin" aria-hidden="true">📍</span><span class="loc__name" data-loc-name></span><button type="button" class="btn btn--small" data-gps>${biT("useGps")}</button></div>`;
 
   const staticLists = (items) =>
     ["hi", "en"]
@@ -144,7 +146,6 @@ ${ad("top", "ad--top")}
 <div class="pagehead"><h1>${bi(esc(h1hi), esc(h1en))}</h1>${g ? `<p class="pagehead__about">${bi(esc(g.about_hi), esc(g.about_en))}</p>` : ""}</div>
 ${extraTop}
 ${tabsBar(group, tab)}
-${placeBar()}
 ${controls()}
 <div class="lists" data-lists>${PLACE_TABS.has(tab) ? `<p class="empty" data-wait>${biT("loading")}</p>` : staticLists(items)}</div>
 <button type="button" class="btn btn--more" data-more hidden>${biT("more")}</button>

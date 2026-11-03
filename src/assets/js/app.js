@@ -133,9 +133,12 @@ async function guessFromInternet() {
 }
 
 function gps() {
-  const btn = $("[data-gps]");
+  const btn = $("[data-loc-chip]");
   if (!navigator.geolocation) return alert(T[lang].gpsDenied);
-  btn && (btn.disabled = true);
+  if (btn) {
+    btn.disabled = true;
+    btn.classList.add("is-busy");
+  }
   navigator.geolocation.getCurrentPosition(
     async (pos) => {
       const { latitude: la, longitude: lo } = pos.coords;
@@ -150,28 +153,40 @@ function gps() {
           l = (await fromOSM((await r.json()).address)) || l;
         } catch {}
       }
-      btn && (btn.disabled = false);
+      if (btn) {
+        btn.disabled = false;
+        btn.classList.remove("is-busy");
+      }
       if (!l) return alert(T[lang].noPlace);
       store.set("loc", (loc = l));
       showPlace();
       if (list.ready && PLACE_TABS.has(list.tab)) loadAndRender();
     },
     () => {
-      btn && (btn.disabled = false);
+      if (btn) {
+        btn.disabled = false;
+        btn.classList.remove("is-busy");
+      }
       alert(T[lang].gpsDenied);
     },
     { enableHighAccuracy: false, timeout: 15000, maximumAge: 6 * 3600e3 },
   );
 }
-$("[data-gps]")?.addEventListener("click", gps);
+$("[data-loc-chip]")?.addEventListener("click", gps);
 
+// The reader's place in the top bar: "📍 Sanganer" on phones, "📍 Sanganer, Jaipur, Rajasthan" on computers.
+// Tapping it finds the exact place with GPS.
 async function showPlace() {
-  const bar = $("[data-loc]");
-  if (!bar) return;
-  const name = $("[data-loc-name]", bar);
+  const chip = $("[data-loc-chip]");
+  if (!chip) return;
+  const L = T[lang];
+  const short = $("[data-loc-short]", chip);
+  const full = $("[data-loc-full]", chip);
+  chip.hidden = false;
   if (!loc) {
-    bar.hidden = false;
-    name.textContent = T[lang].finding;
+    short.textContent = full.textContent = L.setPlace;
+    chip.classList.add("is-approx");
+    chip.title = L.useGps;
     return;
   }
   const P = await placesData();
@@ -181,11 +196,10 @@ async function showPlace() {
   const lName = lang === "hi" && P?.names?.[`${key}/${loc.l}`] ? P.names[`${key}/${loc.l}`] : loc.names?.l || "";
   const st = P?.states?.[loc.s]?.[lang] || "";
   const parts = [lName, dName && dName !== lName ? dName : "", st].filter(Boolean);
-  const placeLink = loc.d ? `${base}/place/${loc.s}/${loc.d}/` : loc.s ? `${base}/place/${loc.s}/` : "";
-  name.innerHTML = `${placeLink ? `<a href="${placeLink}">${esc(parts.join(", "))}</a>` : esc(parts.join(", "))}${loc.approx ? ` <small>(${esc(T[lang].approx)})</small>` : ""}`;
-  const gpsBtn = $("[data-gps]", bar);
-  if (gpsBtn) gpsBtn.textContent = loc.approx ? T[lang].useGps : `📍 ${T[lang].change}`;
-  bar.hidden = false;
+  full.textContent = parts.join(", ") || L.setPlace;
+  short.textContent = lName || dName || st || L.setPlace;
+  chip.classList.toggle("is-approx", !!loc.approx);
+  chip.title = loc.approx ? `${parts.join(", ")} (${L.approx}) — ${L.useGps}` : `${parts.join(", ")} — ${L.useGps}`;
 }
 
 // ---------- lists: which stories, in what order ----------
