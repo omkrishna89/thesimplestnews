@@ -5433,6 +5433,276 @@
    "level": "district",
    "state": "jh",
    "district": "west-singhbhum"
+  },
+  {
+   "id": "hindi-business-standard-com-rss-markets-stock-market-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://hindi.business-standard.com/rss/markets/stock-market.xml",
+   "source": {
+    "en": "Business Standard",
+    "hi": "बिज़नेस स्टैंडर्ड"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "stock-market"
+   ]
+  },
+  {
+   "id": "hindi-moneycontrol-com-news-rss-feeds-markets-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://hindi.moneycontrol.com/news/rss/feeds/markets.xml",
+   "source": {
+    "en": "Moneycontrol",
+    "hi": "मनीकंट्रोल"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "stock-market"
+   ]
+  },
+  {
+   "id": "hindi-moneycontrol-com-news-rss-feeds-ipo-xml",
+   "every": 60,
+   "priority": 6,
+   "url": "https://hindi.moneycontrol.com/news/rss/feeds/ipo.xml",
+   "source": {
+    "en": "Moneycontrol",
+    "hi": "मनीकंट्रोल"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "stock-market"
+   ]
+  },
+  {
+   "id": "yourstory-com-hindi-feed",
+   "every": 60,
+   "priority": 6,
+   "url": "https://yourstory.com/hindi/feed",
+   "source": {
+    "en": "YourStory",
+    "hi": "योरस्टोरी"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "startup"
+   ]
+  },
+  {
+   "id": "tv9hindi-com-technology-feed",
+   "every": 60,
+   "priority": 6,
+   "url": "https://www.tv9hindi.com/technology/feed",
+   "source": {
+    "en": "TV9 Bharatvarsh",
+    "hi": "टीवी9 भारतवर्ष"
+   },
+   "lang": "hi",
+   "level": "country",
+   "groups": [
+    "tech"
+   ]
+  },
+  {
+   "id": "thehindu-com-sport-feeder-default-rss",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.thehindu.com/sport/feeder/default.rss",
+   "source": {
+    "en": "The Hindu",
+    "hi": "द हिंदू"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "sports"
+   ]
+  },
+  {
+   "id": "indianexpress-com-section-sports-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://indianexpress.com/section/sports/feed/",
+   "source": {
+    "en": "The Indian Express",
+    "hi": "इंडियन एक्सप्रेस"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "sports"
+   ]
+  },
+  {
+   "id": "feeds-feedburner-com-ndtvsports-latest",
+   "every": 30,
+   "priority": 6,
+   "url": "https://feeds.feedburner.com/ndtvsports-latest",
+   "source": {
+    "en": "NDTV Sports",
+    "hi": "एनडीटीवी स्पोर्ट्स"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "sports"
+   ]
+  },
+  {
+   "id": "hindustantimes-com-feeds-rss-entertainment-rssfeed-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.hindustantimes.com/feeds/rss/entertainment/rssfeed.xml",
+   "source": {
+    "en": "Hindustan Times",
+    "hi": "हिंदुस्तान टाइम्स"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "entertainment"
+   ]
+  },
+  {
+   "id": "indianexpress-com-section-entertainment-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://indianexpress.com/section/entertainment/feed/",
+   "source": {
+    "en": "The Indian Express",
+    "hi": "इंडियन एक्सप्रेस"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "entertainment"
+   ]
+  },
+  {
+   "id": "timesofindia-indiatimes-com-rssfeeds-1081479906-cms",
+   "every": 30,
+   "priority": 6,
+   "url": "https://timesofindia.indiatimes.com/rssfeeds/1081479906.cms",
+   "source": {
+    "en": "Times of India",
+    "hi": "टाइम्स ऑफ़ इंडिया"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "entertainment"
+   ]
+  },
+  {
+   "id": "timesofindia-indiatimes-com-rssfeeds-913168846-cms",
+   "every": 30,
+   "priority": 6,
+   "url": "https://timesofindia.indiatimes.com/rssfeeds/913168846.cms",
+   "source": {
+    "en": "Times of India",
+    "hi": "टाइम्स ऑफ़ इंडिया"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "education"
+   ]
+  },
+  {
+   "id": "hindustantimes-com-feeds-rss-education-rssfeed-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.hindustantimes.com/feeds/rss/education/rssfeed.xml",
+   "source": {
+    "en": "Hindustan Times",
+    "hi": "हिंदुस्तान टाइम्स"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "education"
+   ]
+  },
+  {
+   "id": "indianexpress-com-section-education-feed",
+   "every": 60,
+   "priority": 6,
+   "url": "https://indianexpress.com/section/education/feed/",
+   "source": {
+    "en": "The Indian Express",
+    "hi": "इंडियन एक्सप्रेस"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "education"
+   ]
+  },
+  {
+   "id": "freejobalert-com-feed",
+   "every": 60,
+   "priority": 5,
+   "url": "https://www.freejobalert.com/feed/",
+   "source": {
+    "en": "FreeJobAlert",
+    "hi": "फ्रीजॉबअलर्ट"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "jobs"
+   ]
+  },
+  {
+   "id": "thehindubusinessline-com-economy-agri-business-feeder-default-rss",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.thehindubusinessline.com/economy/agri-business/feeder/default.rss",
+   "source": {
+    "en": "BusinessLine",
+    "hi": "बिज़नेसलाइन"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "farming"
+   ]
+  },
+  {
+   "id": "krishijagran-com-feeds-rss",
+   "every": 60,
+   "priority": 6,
+   "url": "https://krishijagran.com/feeds/rss/",
+   "source": {
+    "en": "Krishi Jagran",
+    "hi": "कृषि जागरण"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "farming"
+   ]
+  },
+  {
+   "id": "economictimes-indiatimes-com-news-economy-agriculture-rssfeeds-1202099874-cms",
+   "every": 60,
+   "priority": 6,
+   "url": "https://economictimes.indiatimes.com/news/economy/agriculture/rssfeeds/1202099874.cms",
+   "source": {
+    "en": "Economic Times",
+    "hi": "इकोनॉमिक टाइम्स"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "farming"
+   ]
   }
  ]
 }

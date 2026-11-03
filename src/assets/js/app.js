@@ -42,7 +42,9 @@ function setLang(l) {
     $(".it__qa", a)?.remove();
   });
   if (list.dynamic) loadAndRender();
+  else seeMore();
   showPlace();
+  drawWatch();
 }
 $$("[data-set-lang]").forEach((b) => {
   b.setAttribute("aria-pressed", String(b.dataset.setLang === lang));
@@ -57,8 +59,6 @@ $("[data-toggle-theme]")?.addEventListener("click", () => {
 if (H.dataset.theme === "light") $('meta[name="theme-color"]')?.setAttribute("content", "#ffffff");
 
 // keep the active group chip in view, and open groups on the reader's favourite tab
-const onChip = $(".gnav .chip.is-on");
-if (onChip) onChip.scrollIntoView({ block: "nearest", inline: "center" });
 const favTab = store.get("tab", "country");
 if (favTab !== "country") {
   $$(".gnav .chip").forEach((a) => {
@@ -203,7 +203,25 @@ async function showPlace() {
 }
 
 // ---------- lists: which stories, in what order ----------
-const list = { ready: false, dynamic: false, tab: view?.tab, group: view?.group, sort: store.get("sort", "newest"), day: "all", date: "", loaded: [], days: [], next: 0, shown: 30, items: [] };
+const list = { ready: false, dynamic: false, tab: view?.tab, groups: [], sort: store.get("sort", "newest"), day: "all", date: "", from: "", to: "", keys: [], loaded: [], ids: new Set(), days: [], next: 0, shown: 30, items: [] };
+const LOCAL_SCOPES = ["local", "tehsil", "district"];
+const PLACE_KEY_TABS = new Set(["district", "tehsil", "local"]); // these tabs read the district's list and filter it here
+
+// The groups shown: one or more, picked with the group buttons (remembered on this phone). None = all news.
+const chipEls = $$(".gnav .chip[data-g]");
+const GROUP_OK = new Set(chipEls.map((a) => a.dataset.g).filter((g) => g !== "all"));
+const cleanGroups = (arr) => [...new Set((Array.isArray(arr) ? arr : []).filter((g) => GROUP_OK.has(g)))];
+const pageGroups = view?.group && view.group !== "all" ? [view.group] : [];
+{
+  const fromUrl = new URLSearchParams(location.search).get("g");
+  list.groups = fromUrl !== null ? cleanGroups(fromUrl.split(",")) : view?.group === "all" ? cleanGroups(store.get("groups", [])) : pageGroups;
+}
+
+// The Stocks box: the reader's own stocks, e.g. [{ s: "RELIANCE" }, { t: "Suzlon" }] (kept only on this phone)
+let watch = store.get("stocks", []).filter((w) => w && (w.s || w.t));
+const watching = () => list.groups.length === 1 && list.groups[0] === "stock-market" && watch.length > 0;
+// company news is often in Business, so the Stocks box looks there too
+const loadGroups = () => (watching() ? ["stock-market", "business"] : list.groups);
 
 function keyFor(tab, group) {
   if (tab === "world") return `world/${group}`;
@@ -212,16 +230,57 @@ function keyFor(tab, group) {
   if (tab === "state") return `s-${loc.s}/${group}`;
   return loc.d ? `d/${loc.s}/${loc.d}` : null;
 }
+function keysFor(tab) {
+  if (PLACE_KEY_TABS.has(tab)) {
+    const k = keyFor(tab, "all");
+    return k ? [k] : [];
+  }
+  const gs = loadGroups();
+  return [...new Set((gs.length ? gs : ["all"]).map((g) => keyFor(tab, g)).filter(Boolean))];
+}
+const inGroups = (it) => {
+  const gs = loadGroups();
+  return !gs.length || gs.some((g) => (g === "local" ? LOCAL_SCOPES.includes(it.sc) : it.g?.includes(g)));
+};
 
 function keep(it) {
-  const { tab, group } = list;
-  if (["district", "tehsil", "local"].includes(tab)) {
-    if (group !== "all" && !(group === "local" ? ["local", "tehsil", "district"].includes(it.sc) : it.g?.includes(group))) return false;
-    if (tab === "tehsil") return !!loc.t && (it.p[2] === loc.t || it.p[3] === loc.t);
-    if (tab === "local") return !!it.p[3] && (it.p[3] === loc.l || it.p[3] === loc.t || it.p[2] === loc.l);
+  const { tab } = list;
+  if (PLACE_KEY_TABS.has(tab)) {
+    if (!inGroups(it)) return false;
+    if (tab === "tehsil" && !(loc.t && (it.p[2] === loc.t || it.p[3] === loc.t))) return false;
+    if (tab === "local" && !(it.p[3] && (it.p[3] === loc.l || it.p[3] === loc.t || it.p[2] === loc.l))) return false;
   }
-  return true;
+  return !watching() || matchesWatch(it);
 }
+
+// Stock names must stand on their own ("Tata" is not found inside "Tatanagar").
+// Words in CAPITALS (TCS, ITC, SBI) must match exactly. No look-behind, so older iPhones work too.
+const EDGE = "[^\\p{L}\\p{M}\\p{N}]";
+const reEsc = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+function wordTests(words) {
+  const exact = words.filter((w) => /[A-Z]/.test(w) && !/[a-z]/.test(w));
+  const loose = words.filter((w) => !exact.includes(w));
+  const mk = (ws, flags) => {
+    try {
+      return new RegExp(`(?:^|${EDGE})(?:${ws.join("|")})(?=$|${EDGE})`, flags);
+    } catch {
+      return null;
+    }
+  };
+  return [loose.length ? mk(loose, "iu") : null, exact.length ? mk(exact, "u") : null].filter(Boolean);
+}
+let stocksList = null;
+const stocksData = async () => (stocksList ||= (await getJSON("/data/stocks.json")) || []);
+async function watchEntries() {
+  const all = await stocksData();
+  const own = (t) => ({ en: t, hi: t, k: [reEsc(t)] });
+  return watch.map((w) => (w.s ? all.find((x) => x.s === w.s) || own(w.s) : own(w.t)));
+}
+let watchTests = [];
+const matchesWatch = (it) => {
+  const text = [it.h, it.x || "", ...(it.q || [])].join(" \n ");
+  return watchTests.some((r) => r.test(text));
+};
 
 // what the reader opens most (kept only on their own phone)
 const profile = store.get("prof", { g: {}, w: {}, at: Date.now() });
@@ -267,33 +326,47 @@ function order(items) {
 const today = () => istDay(Date.now());
 const shiftDay = (day, n) => istDay(Date.parse(`${day}T12:00:00+05:30`) + n * 86400e3);
 
+function dayWanted(d) {
+  if (list.day === "today") return d === today();
+  if (list.day === "yesterday") return d === shiftDay(today(), -1);
+  if (list.day === "pick") return d === list.date;
+  if (list.day === "range") return (!list.from || d >= list.from) && (!list.to || d <= list.to);
+  return true;
+}
+
 async function loadDays() {
   const idx = await index();
-  const key = keyFor(list.tab, list.group);
-  list.key = key;
-  list.loaded = [];
-  list.next = 0;
-  list.days = [];
-  if (!key || !idx) return;
-  let days = idx.days[key] || [];
-  if (list.day === "today") days = days.filter((d) => d === today());
-  if (list.day === "yesterday") days = days.filter((d) => d === shiftDay(today(), -1));
-  if (list.day === "pick") days = days.filter((d) => d === list.date);
-  list.days = days;
-  // one day first (small and fast); a second one only when the first is nearly empty
+  const keys = keysFor(list.tab);
+  Object.assign(list, { keys, loaded: [], ids: new Set(), next: 0, days: [] });
+  if (!keys.length || !idx) return;
+  list.days = [...new Set(keys.flatMap((k) => idx.days[k] || []))].sort().reverse().filter(dayWanted);
+  // one day first (small and fast); a second one only when the first is nearly empty.
+  // For the reader's own stocks: older days too, until enough news about them is found.
   await loadMore(1);
-  if (list.loaded.filter(keep).length < 40 && list.next < list.days.length) await loadMore(1);
+  const want = watching() ? 15 : 40;
+  while (list.loaded.filter(keep).length < want && list.next < list.days.length && (watching() || list.next < 2)) await loadMore(1);
 }
 
 async function loadMore(n = 1) {
+  const idx = await index();
+  const keys = list.keys;
   const take = list.days.slice(list.next, list.next + n);
   list.next += take.length;
-  const files = await Promise.all(take.map((d) => getJSON(`/data/${lang}/${list.key}/${d}.json`)));
-  for (const f of files) if (f) list.loaded.push(...f);
+  const files = await Promise.all(take.flatMap((d) => keys.filter((k) => idx?.days[k]?.includes(d)).map((k) => getJSON(`/data/${lang}/${k}/${d}.json`))));
+  if (keys !== list.keys) return; // the reader switched to other groups meanwhile
+  // a story in two picked groups is shown once
+  for (const f of files) {
+    for (const it of f || []) {
+      if (list.ids.has(it.i)) continue;
+      list.ids.add(it.i);
+      list.loaded.push(it);
+    }
+  }
 }
 
 function emptyText() {
   if (!loc && PLACE_TABS.has(list.tab)) return T[lang].finding;
+  if (watching()) return T[lang].noStockNews;
   if (list.tab === "local") return T[lang].emptyLocal;
   return T[lang].empty;
 }
@@ -343,21 +416,68 @@ function render() {
   $$(".ad", el).forEach((a, i) => (a.style.display = shown.length > (i === 0 ? 6 : 18) ? "" : "none"));
   const more = $("[data-more]");
   if (more) more.hidden = !(list.items.length > list.shown || list.next < list.days.length);
+  seeMore();
 }
 
+let gen = 0; // only the newest request draws the list (taps on group buttons can be quick)
 async function loadAndRender() {
   if (!view?.tab) return;
+  const my = ++gen;
   if (PLACE_TABS.has(list.tab) && !loc) {
     render();
     await guessFromInternet();
     showPlace();
   }
+  watchTests = watching() ? wordTests((await watchEntries()).flatMap((w) => w.k)) : [];
   await loadDays();
+  if (my !== gen) return;
   list.items = order(list.loaded.filter(keep));
   list.shown = 30;
   list.ready = true;
   render();
 }
+
+// A nearly empty tab points to the tab with the most stories for the same groups:
+// "See 94 stories in Country →"
+async function seeMore() {
+  let el = $("[data-seemore]");
+  if (!el) {
+    const box = $("[data-lists]");
+    if (!box) return;
+    el = D.createElement("p");
+    el.className = "seemore";
+    el.dataset.seemore = "";
+    box.after(el);
+  }
+  el.hidden = true;
+  if (!list.ready || watching() || list.items.length >= 5 || list.next < list.days.length) return;
+  if (PLACE_TABS.has(list.tab) && !loc) return;
+  const idx = await index();
+  const n = idx?.n?.[lang];
+  if (!n) return;
+  const gs = list.groups.length ? list.groups : ["all"];
+  const count = (tab) =>
+    gs
+      .map((g) => keyFor(tab, g))
+      .filter(Boolean)
+      .reduce((sum, k) => sum + (idx.days[k] || []).reduce((s, d, i) => s + (dayWanted(d) ? n[k]?.[i] || 0 : 0), 0), 0);
+  let best = null;
+  for (const tab of ["state", "country", "world"]) {
+    if (tab === list.tab || (tab === "state" && loc?.c !== "in")) continue;
+    const c = count(tab);
+    if (c > list.items.length && (!best || c > best.c)) best = { tab, c };
+  }
+  if (!best) return;
+  el.lang = lang;
+  el.innerHTML = `<a href="${esc(pagePath(list.groups, best.tab))}" data-tab-link="${best.tab}">${esc(T[lang].seeMore(best.c, T[lang].tabs[best.tab]))}</a>`;
+  el.hidden = false;
+}
+D.addEventListener("click", (e) => {
+  const a = e.target.closest("[data-tab-link]");
+  if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+  e.preventDefault();
+  setTab(a.dataset.tabLink);
+});
 
 async function more() {
   if (list.items.length <= list.shown && list.next < list.days.length) {
@@ -392,12 +512,21 @@ function syncControls() {
   $$("[data-sort]").forEach((s) => (s.value = list.sort));
   $$("[data-day]").forEach((s) => (s.value = list.day));
   const max = today();
+  const min = shiftDay(max, -6); // stories are kept 7 days
   $$("[data-date]").forEach((i) => {
     i.hidden = list.day !== "pick";
     i.max = max;
-    i.min = shiftDay(max, -6);
+    i.min = min;
     if (list.date) i.value = list.date;
   });
+  $$("[data-range]").forEach((r) => (r.hidden = list.day !== "range"));
+  for (const [sel, key] of [["[data-from]", "from"], ["[data-to]", "to"]]) {
+    $$(sel).forEach((i) => {
+      i.max = max;
+      i.min = min;
+      if (list[key]) i.value = list[key];
+    });
+  }
 }
 $$("[data-sort]").forEach((s) =>
   s.addEventListener("change", () => {
@@ -413,6 +542,10 @@ $$("[data-day]").forEach((s) =>
   s.addEventListener("change", () => {
     list.day = s.value;
     if (list.day === "pick" && !list.date) list.date = today();
+    if (list.day === "range" && !list.from) {
+      list.from = shiftDay(today(), -2);
+      list.to = today();
+    }
     syncControls();
     loadAndRender();
   }),
@@ -424,13 +557,23 @@ $$("[data-date]").forEach((i) =>
     loadAndRender();
   }),
 );
+// a range of days: From … To (swapped when typed the wrong way round)
+$$("[data-from], [data-to]").forEach((i) =>
+  i.addEventListener("change", () => {
+    list[i.hasAttribute("data-from") ? "from" : "to"] = i.value;
+    if (list.from && list.to && list.from > list.to) [list.from, list.to] = [list.to, list.from];
+    syncControls();
+    loadAndRender();
+  }),
+);
 
-// tabs switch without loading a new page
-function tabPath(tab) {
-  const g = list.group;
-  if (g === "all") return tab === "country" ? `${base}/` : `${base}/all/${tab}/`;
-  return tab === "country" ? `${base}/${g}/` : `${base}/${g}/${tab}/`;
+// The web address of a list: /cricket/world/, or /all/world/?g=cricket,business for several groups
+function pagePath(gs, tab) {
+  if (gs.length === 1) return tab === "country" ? `${base}/${gs[0]}/` : `${base}/${gs[0]}/${tab}/`;
+  const p = tab === "country" ? `${base}/` : `${base}/all/${tab}/`;
+  return gs.length > 1 ? `${p}?g=${gs.map(encodeURIComponent).join(",")}` : p;
 }
+// tabs switch without loading a new page
 function setTab(tab, push = true) {
   list.tab = tab;
   store.set("tab", tab);
@@ -439,7 +582,7 @@ function setTab(tab, push = true) {
     t.classList.toggle("is-on", on);
     on ? t.setAttribute("aria-current", "page") : t.removeAttribute("aria-current");
   });
-  if (push) history.pushState({ tab }, "", tabPath(tab));
+  if (push) history.pushState({ tab, groups: list.groups }, "", pagePath(list.groups, tab));
   loadAndRender();
 }
 $$(".tab").forEach((t) =>
@@ -449,7 +592,209 @@ $$(".tab").forEach((t) =>
     if (t.dataset.tab !== list.tab) setTab(t.dataset.tab);
   }),
 );
-addEventListener("popstate", (e) => e.state?.tab && setTab(e.state.tab, false));
+addEventListener("popstate", (e) => {
+  if (!e.state?.tab) return;
+  if (Array.isArray(e.state.groups)) {
+    list.groups = cleanGroups(e.state.groups);
+    showGroups();
+  }
+  setTab(e.state.tab, false);
+});
+
+// ---------- group buttons: tap to add a group, tap again to remove it; Home = all news ----------
+function chipLabel(g) {
+  const a = chipEls.find((x) => x.dataset.g === g);
+  if (!a) return "";
+  const [icon, ...names] = [...a.children];
+  return `${icon.outerHTML} ${names.map((n) => n.outerHTML).join("")}`;
+}
+function showGroups() {
+  const on = new Set(list.groups);
+  for (const a of chipEls) {
+    const pressed = a.dataset.g === "all" ? on.size === 0 : on.has(a.dataset.g);
+    a.classList.toggle("is-on", pressed);
+    a.setAttribute("aria-pressed", String(pressed));
+    a.removeAttribute("aria-current");
+  }
+  // the heading: "🏏 Cricket + 💼 Business"
+  const same = list.groups.join() === pageGroups.join();
+  const h1 = $(".pagehead h1");
+  if (h1) {
+    h1.dataset.orig ??= h1.innerHTML;
+    h1.innerHTML = same
+      ? h1.dataset.orig
+      : list.groups.length
+        ? list.groups.map(chipLabel).join(" + ")
+        : `<span class="l-hi" lang="hi">${esc(T.hi.all)}</span><span class="l-en" lang="en">${esc(T.en.all)}</span>`;
+  }
+  const about = $(".pagehead__about");
+  if (about) about.hidden = !same;
+  $$(".tab").forEach((t) => t.setAttribute("href", pagePath(list.groups, t.dataset.tab)));
+  stockBox();
+  fitGroups();
+}
+if (view?.tab) {
+  for (const a of chipEls) {
+    a.setAttribute("role", "button");
+    a.addEventListener("click", (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+      e.preventDefault();
+      const g = a.dataset.g;
+      list.groups = g === "all" ? [] : list.groups.includes(g) ? list.groups.filter((x) => x !== g) : [...list.groups, g];
+      store.set("groups", list.groups);
+      showGroups();
+      history.replaceState({ tab: list.tab, groups: list.groups }, "", pagePath(list.groups, list.tab));
+      closePop();
+      loadAndRender();
+    });
+  }
+}
+
+// One line of group buttons; "More" shows all of them, "Less" one line again. Picked groups always show.
+const gnav = $(".gnav__in");
+const moreGroupsBtn = $("[data-more-groups]");
+let groupsOpen = false;
+function fitGroups() {
+  if (!gnav || !moreGroupsBtn || !chipEls.length) return;
+  chipEls.forEach((a) => (a.hidden = false));
+  moreGroupsBtn.hidden = false;
+  moreGroupsBtn.setAttribute("aria-expanded", String(groupsOpen));
+  gnav.classList.toggle("is-open", groupsOpen);
+  if (groupsOpen) return;
+  const cs = getComputedStyle(gnav);
+  const gap = parseFloat(cs.columnGap) || 6;
+  const room0 = gnav.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const w = new Map(chipEls.map((a) => [a, a.offsetWidth]));
+  if (chipEls.reduce((s, a) => s + w.get(a) + gap, -gap) <= room0) {
+    moreGroupsBtn.hidden = true; // all of them fit on one line
+    return;
+  }
+  let room = room0 - moreGroupsBtn.offsetWidth - gap;
+  const show = new Set(chipEls.filter((a) => a.classList.contains("is-on")));
+  for (const a of show) room -= w.get(a) + gap;
+  for (const a of chipEls) {
+    if (show.has(a)) continue;
+    if (w.get(a) + gap > room) break;
+    room -= w.get(a) + gap;
+    show.add(a);
+  }
+  chipEls.forEach((a) => (a.hidden = !show.has(a)));
+}
+moreGroupsBtn?.addEventListener("click", () => {
+  groupsOpen = !groupsOpen;
+  fitGroups();
+});
+let fitFrame = 0;
+addEventListener("resize", () => {
+  cancelAnimationFrame(fitFrame);
+  fitFrame = requestAnimationFrame(fitGroups);
+});
+D.fonts?.ready.then(fitGroups);
+
+// ---------- the Stocks box (when Stocks is the only group picked) ----------
+function stockBox() {
+  const show = !!view?.tab && list.groups.length === 1 && list.groups[0] === "stock-market";
+  let box = $("[data-stocks]");
+  if (!show) {
+    if (box) box.hidden = true;
+    return;
+  }
+  if (!box) {
+    box = D.createElement("div");
+    box.className = "stk";
+    box.dataset.stocks = "";
+    box.innerHTML = `<div class="stk__f"><span aria-hidden="true">🔍</span><input type="search" class="stk__in" data-stk-in autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" role="combobox" aria-expanded="false" aria-controls="stk-sug" aria-autocomplete="list"></div><ul class="stk__sug" id="stk-sug" role="listbox" data-stk-sug hidden></ul><div class="stk__list" data-stk-list></div>`;
+    ($(".tabs") || $("[data-lists]"))?.before(box);
+    wireStockBox(box);
+  }
+  box.hidden = false;
+  drawWatch();
+}
+async function drawWatch() {
+  const box = $("[data-stocks]");
+  if (!box || box.hidden) return;
+  const L = T[lang];
+  const input = $("[data-stk-in]", box);
+  input.placeholder = L.stockPh;
+  input.setAttribute("aria-label", L.stockPh);
+  const entries = watch.length ? await watchEntries() : [];
+  const name = (w) => (lang === "hi" ? w.hi || w.en : w.en || w.hi);
+  $("[data-stk-list]", box).innerHTML = entries.length
+    ? `<span class="stk__only">${esc(L.stockOnly)}</span>${entries
+        .map((w, i) => `<span class="stk__pill">${esc(name(w))}<button type="button" data-stk-x="${i}" aria-label="${esc(`${L.stockRemove}: ${name(w)}`)}">✕</button></span>`)
+        .join("")}${entries.length > 1 ? `<button type="button" class="stk__clear" data-stk-clear>${esc(L.stockClear)}</button>` : ""}`
+    : "";
+}
+function setWatch(next) {
+  watch = next;
+  store.set("stocks", watch);
+  drawWatch();
+  loadAndRender();
+}
+async function suggest(q) {
+  const box = $("[data-stocks]");
+  const ul = $("[data-stk-sug]", box);
+  const input = $("[data-stk-in]", box);
+  q = q.trim();
+  if (!q) {
+    ul.hidden = true;
+    input.setAttribute("aria-expanded", "false");
+    return;
+  }
+  const lq = q.toLowerCase();
+  const have = new Set(watch.map((w) => w.s).filter(Boolean));
+  const score = (s) => {
+    const names = [s.en, s.hi, s.s, ...s.k].map((x) => String(x).toLowerCase());
+    return names.some((x) => x.startsWith(lq)) ? 2 : names.some((x) => x.includes(lq)) ? 1 : 0;
+  };
+  const hits = (await stocksData())
+    .filter((s) => !have.has(s.s))
+    .map((s) => [s, score(s)])
+    .filter(([, n]) => n)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([s]) => s);
+  if (input.value.trim() !== q) return; // the reader kept typing
+  const L = T[lang];
+  ul.innerHTML =
+    hits.map((s) => `<li role="option"><button type="button" data-stk-add="${esc(s.s)}">${esc(lang === "hi" ? s.hi : s.en)}<small>${esc(lang === "hi" ? s.en : s.hi)}</small></button></li>`).join("") +
+    `<li role="option"><button type="button" data-stk-free>“${esc(q)}” · ${esc(L.stockAdd)}</button></li>`;
+  ul.hidden = false;
+  input.setAttribute("aria-expanded", "true");
+}
+function wireStockBox(box) {
+  const input = $("[data-stk-in]", box);
+  const ul = $("[data-stk-sug]", box);
+  const close = () => {
+    ul.hidden = true;
+    input.setAttribute("aria-expanded", "false");
+  };
+  const add = (w) => {
+    if (!watch.some((x) => (w.s ? x.s === w.s : x.t?.toLowerCase() === w.t.toLowerCase()))) setWatch([...watch, w]);
+    input.value = "";
+    close();
+  };
+  input.addEventListener("input", () => suggest(input.value));
+  input.addEventListener("focus", () => {
+    stocksData();
+    if (input.value) suggest(input.value);
+  });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") return close();
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (!ul.hidden) $("button", ul)?.click();
+  });
+  box.addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    if (b.dataset.stkAdd) add({ s: b.dataset.stkAdd });
+    else if (b.hasAttribute("data-stk-free")) input.value.trim() && add({ t: input.value.trim().slice(0, 40) });
+    else if (b.dataset.stkX !== undefined) setWatch(watch.filter((_, i) => i !== Number(b.dataset.stkX)));
+    else if (b.hasAttribute("data-stk-clear")) setWatch([]);
+  });
+  D.addEventListener("click", (e) => !box.contains(e.target) && close());
+}
 
 // ---------- one story: data for the answers ----------
 async function findItem(id, el) {
@@ -458,7 +803,7 @@ async function findItem(id, el) {
   const art = el?.closest("[data-id]");
   const dt = art && $("time", art)?.getAttribute("datetime");
   const day = dt ? istDay(Date.parse(dt)) : today();
-  const keys = [...new Set([keyFor(list.tab, list.group), ...(view?.keys || []), "in/all", "world/all"].filter(Boolean))];
+  const keys = [...new Set([...keysFor(list.tab), ...(view?.keys || []), "in/all", "world/all"].filter(Boolean))];
   for (const k of keys) {
     for (const d of [day, shiftDay(day, -1), shiftDay(day, 1)]) {
       const f = await getJSON(`/data/${lang}/${k}/${d}.json`);
@@ -651,18 +996,22 @@ D.addEventListener(
 // ---------- start ----------
 syncControls();
 if (view?.tab) {
-  if (PLACE_TABS.has(list.tab)) loadAndRender();
-  else if (list.sort !== "newest") loadAndRender();
+  showGroups();
+  const samePage = list.groups.join() === pageGroups.join();
+  if (!samePage || PLACE_TABS.has(list.tab) || list.sort !== "newest" || watching()) loadAndRender();
   else
     (window.requestIdleCallback || setTimeout)(async () => {
       // the page already shows the newest stories; get their answers ready so the first click is instant
+      const my = gen;
       await loadDays();
+      if (my !== gen) return;
       list.items = order(list.loaded.filter(keep));
       list.ready = true;
       const more_ = $("[data-more]");
       if (more_) more_.hidden = !(list.items.length > 30 || list.next < list.days.length);
+      seeMore();
     });
-  history.replaceState({ tab: list.tab }, "");
-}
+  history.replaceState({ tab: list.tab, groups: list.groups }, "");
+} else fitGroups();
 if (!loc) guessFromInternet().then(showPlace);
 else showPlace();

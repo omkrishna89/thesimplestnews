@@ -1,0 +1,102 @@
+{
+  "about": "Clear words that put a story into a group right away, before the AI has written it (the AI's groups are used once it has). A word must stand on its own in the headline. Words in CAPITAL letters only (AI, IPO, ISRO) must match exactly; others ignore upper/lower case. Regular-expression text is allowed: (?:a|b) = a or b, s? = with or without s, \\d = a digit.",
+  "groups": {
+    "stock-market": [
+      "सेंसेक्स", "निफ्टी", "निफ़्टी", "शेयर बाजार", "शेयर बाज़ार", "शेयर मार्केट", "स्टॉक मार्केट", "शेयरों", "शेयरधारकों", "स्टॉक्स", "आईपीओ", "जीएमपी", "डिविडेंड", "मल्टीबैगर", "ब्रोकरेज", "टारगेट प्राइस", "लिस्टिंग", "सेबी",
+      "Sensex", "Nifty", "stock markets?", "share markets?", "stocks", "IPO", "IPOs", "GMP", "SEBI", "Dalal Street", "Wall Street", "Nasdaq", "Dow Jones", "multibaggers?", "dividends?", "target price", "brokerages?", "market cap", "m-?cap", "FIIs?", "DIIs?", "Q[1-4] results?",
+      "shares (?:rise|rose|fall|fell|jump|jumped|surge|surged|slump|slumped|tank|tanked|gain|gained|drop|dropped|crash|crashed|rally|rallied|climb|climbed|plunge|plunged|soar|soared|hit)"
+    ],
+    "startup": [
+      "स्टार्टअप", "स्टार्टअप्स", "स्टार्ट-अप", "यूनिकॉर्न", "शार्क टैंक", "सीड फंडिंग", "फंडिंग राउंड", "फंडिंग जुटाई",
+      "startups?", "start-ups?", "unicorns?", "Shark Tank", "seed funding", "seed round", "funding round", "pre-seed", "Series [A-F] (?:funding|round)", "venture capital", "VC funding", "co-founders?", "raises (?:\\$|Rs\\.?|₹) ?\\d"
+    ],
+    "ai": [
+      "AI", "एआई", "आर्टिफिशियल इंटेलिजेंस", "आर्टिफ़िशियल इंटेलिजेंस", "कृत्रिम बुद्धिमत्ता", "चैटजीपीटी", "चैटबॉट", "ओपनएआई", "डीपफेक",
+      "artificial intelligence", "ChatGPT", "OpenAI", "chatbots?", "Google Gemini", "Gemini AI", "generative AI", "GenAI", "LLMs?", "Anthropic", "deepfakes?", "machine learning", "Copilot", "Perplexity", "DeepSeek", "Grok"
+    ],
+    "science": [
+      "इसरो", "नासा", "अंतरिक्ष", "अंतरिक्ष यात्री", "वैज्ञानिक", "वैज्ञानिकों", "चंद्रयान", "गगनयान", "सूर्य ग्रहण", "चंद्र ग्रहण", "उपग्रह", "सैटेलाइट", "धूमकेतु", "उल्कापिंड", "क्षुद्रग्रह", "ब्लैक होल", "डायनासोर", "जीवाश्म", "आकाशगंगा", "टेलीस्कोप",
+      "ISRO", "NASA", "SpaceX", "scientists?", "space station", "spacecraft", "astronauts?", "astronomers?", "telescopes?", "asteroids?", "comets?", "meteors?", "black holes?", "fossils?", "dinosaurs?", "Chandrayaan", "Gaganyaan", "solar eclipse", "lunar eclipse", "galax(?:y|ies)", "Mars", "physicists?", "researchers", "study finds"
+    ],
+    "farming": [
+      "किसान", "किसानों", "खेती", "फसल", "फसलों", "कृषि", "एमएसपी", "खाद", "यूरिया", "डीएपी", "धान", "गेहूं", "गेहूँ", "सरसों", "बुवाई", "पराली", "मंडी भाव", "पशुपालन", "पशुपालक", "पशुपालकों", "डेयरी", "बागवानी",
+      "farmers?", "farming", "agriculture", "agricultural", "agri", "crops?", "kharif", "rabi", "MSP", "paddy", "wheat", "fertili[sz]ers?", "urea", "DAP", "stubble burning", "mandi (?:prices|rates)", "horticulture", "dairy", "sugarcane"
+    ],
+    "sports": [
+      "ओलंपिक", "पैरालंपिक", "फुटबॉल", "फ़ुटबॉल", "हॉकी", "टेनिस", "बैडमिंटन", "कुश्ती", "पहलवान", "पहलवानों", "मुक्केबाज", "मुक्केबाजी", "बॉक्सिंग", "एथलेटिक्स", "कबड्डी", "शतरंज", "ग्रैंडमास्टर", "भाला फेंक", "नीरज चोपड़ा", "खेलो इंडिया", "गोल्ड मेडल", "स्वर्ण पदक", "रजत पदक", "कांस्य पदक",
+      "Olympics?", "Paralympics?", "football", "FIFA", "hockey", "tennis", "badminton", "wrestling", "wrestlers?", "boxing", "boxers?", "athletics", "kabaddi", "chess", "grandmasters?", "javelin", "Neeraj Chopra", "Formula 1", "F1", "Grand Prix", "ISL", "Wimbledon", "Premier League", "La Liga", "Khelo India", "world championships?", "gold medal", "silver medal", "bronze medal"
+    ],
+    "cricket": [
+      "क्रिकेट", "आईपीएल", "बीसीसीआई", "टेस्ट मैच", "वनडे", "टी20", "टी-20", "रणजी", "विकेट", "शतक", "अर्धशतक", "कोहली", "रोहित शर्मा",
+      "cricket", "IPL", "BCCI", "WPL", "Test match", "ODIs?", "T20Is?", "T20", "Ranji Trophy", "wickets?", "Kohli", "Rohit Sharma", "Bumrah"
+    ],
+    "entertainment": [
+      "बॉलीवुड", "हॉलीवुड", "बॉक्स ऑफिस", "ओटीटी", "वेब सीरीज", "वेब सीरीज़", "बिग बॉस", "एक्ट्रेस", "अभिनेत्री", "अभिनेता", "एक्टर", "सीरियल", "टीवी शो", "रियलिटी शो", "सिंगर", "गायक", "गायिका",
+      "Bollywood", "Hollywood", "box office", "OTT", "web series", "Bigg Boss", "actress", "actor", "celebrit(?:y|ies)", "TV show", "reality show", "singer", "Netflix", "Prime Video", "JioHotstar", "Oscars?", "Grammys?", "K-pop"
+    ],
+    "movies": [
+      "फिल्म", "फ़िल्म", "फिल्मों", "फ़िल्मों", "ट्रेलर", "टीजर", "टीज़र", "बॉक्स ऑफिस", "मूवी", "फिल्ममेकर", "निर्देशक",
+      "films?", "movies?", "trailer", "teaser", "box office", "filmmakers?"
+    ],
+    "education": [
+      "परीक्षा", "परीक्षाओं", "बोर्ड परीक्षा", "छात्र", "छात्रों", "छात्रा", "छात्राओं", "विद्यार्थी", "विद्यार्थियों", "स्कूल", "स्कूलों", "कॉलेज", "विश्वविद्यालय", "यूनिवर्सिटी", "सीबीएसई", "नीट", "जेईई", "यूपीएससी", "सीयूईटी", "दाखिला", "दाखिले", "एडमिशन", "शिक्षक", "शिक्षकों", "टीचर", "स्कॉलरशिप", "छात्रवृत्ति", "सिलेबस",
+      "exams?", "board exams?", "students?", "schools?", "colleges?", "universit(?:y|ies)", "CBSE", "ICSE", "NEET", "JEE", "UPSC", "CUET", "NTA", "IITs?", "IIMs?", "NIRF", "admissions?", "teachers?", "scholarships?", "syllabus"
+    ],
+    "jobs": [
+      "नौकरी", "नौकरियां", "नौकरियों", "सरकारी नौकरी", "वैकेंसी", "भर्ती परीक्षा", "भर्ती प्रक्रिया", "भर्ती निकली", "भर्ती के लिए", "पदों पर भर्ती", "पदों के लिए", "रिक्त पद", "रिक्तियां", "रोजगार", "रोज़गार", "एडमिट कार्ड", "रिजल्ट जारी", "परीक्षा परिणाम", "कट ऑफ", "आंसर की", "छंटनी",
+      "jobs?", "recruitment", "vacanc(?:y|ies)", "hiring", "layoffs?", "apply online", "job fair", "Rozgar Mela", "admit cards?", "answer key", "cut-?off", "notification out", "results? (?:declared|out)", "\\d+ posts"
+    ],
+    "accidents": [
+      "सड़क हादसा", "सड़क हादसे", "सड़क हादसों", "सड़क दुर्घटना", "सड़क दुर्घटनाओं", "आमने-सामने की टक्कर", "हिट एंड रन", "बस हादसा", "कार हादसा",
+      "(?:कार|ट्रक|बस|बाइक|डंपर|ट्रैक्टर|ट्रॉली|ऑटो|पिकअप|जीप|वैन|स्कॉर्पियो|थार|टेंपो) (?:पलटी|पलट गई|पलट गया|पलटा|खाई में गिरी|खाई में गिरा)",
+      "(?:कार|ट्रक|बस|बाइक|डंपर|ट्रैक्टर|वाहन|गाड़ी|टेंपो|पिकअप) (?:ने|की) (?:कुचला|कुचल दिया|टक्कर|रौंदा)",
+      "बेकाबू (?:कार|ट्रक|बस|बाइक|डंपर|ट्रैक्टर|स्कॉर्पियो|थार|ऑटो|पिकअप)",
+      "road accidents?", "road crash(?:es)?", "car crash", "bus accident", "truck accident", "bike accident", "hit-and-run", "mowed down", "run over by", "head-on collision", "rams into", "skids off",
+      "(?:car|bus|truck|tractor|SUV|van|jeep|auto) overturns?"
+    ],
+    "crime": [
+      "हत्या", "हत्यारे", "मर्डर", "चोरी", "चोर", "चोरों", "लूट", "लुटेरे", "गिरफ्तार", "गिरफ़्तार", "गिरफ्तारी", "बदमाश", "बदमाशों", "दुष्कर्म", "रेप", "छेड़छाड़", "ठगी", "ठग", "धोखाधड़ी", "फायरिंग", "गोली मारकर", "अपहरण", "किडनैप", "तस्कर", "तस्करी", "रिश्वत", "एनकाउंटर", "मुठभेड़", "डकैती", "एफआईआर", "केस दर्ज",
+      "murder(?:ed|s)?", "shot dead", "stabbed", "arrested", "arrests?", "held for", "robbery", "robbers?", "theft", "thieves", "kidnapp(?:ed|ing)", "abduct(?:ed|ion)", "rape", "molest(?:ed|ation)?", "fraud", "scam", "cheated", "smuggling", "smugglers?", "bribe", "extortion", "gangsters?", "FIR"
+    ],
+    "politics": [
+      "चुनाव", "चुनावों", "चुनावी", "विधानसभा", "लोकसभा", "राज्यसभा", "भाजपा", "बीजेपी", "कांग्रेस", "सपा", "बसपा", "राजद", "जदयू", "टीएमसी", "आम आदमी पार्टी", "सांसद", "विधायक", "मुख्यमंत्री", "प्रधानमंत्री", "पीएम मोदी", "मोदी", "राहुल गांधी", "अखिलेश", "नीतीश", "केजरीवाल", "ममता", "मंत्री", "नेता प्रतिपक्ष", "मतदान", "गठबंधन",
+      "elections?", "polls?", "BJP", "Congress", "AAP", "BSP", "RJD", "JDU", "JD\\(U\\)", "TMC", "DMK", "MLAs?", "MPs", "Lok Sabha", "Rajya Sabha", "assembly", "Chief Minister", "CM", "Prime Minister", "PM Modi", "Modi", "Rahul Gandhi", "ministers?", "opposition", "Parliament", "voters?", "voting"
+    ],
+    "weather": [
+      "मौसम", "बारिश", "बरसात", "आंधी", "तूफान", "चक्रवात", "साइक्लोन", "ठंड", "सर्दी", "कोहरा", "कोहरे", "शीतलहर", "गर्मी", "लू", "बर्फबारी", "ओलावृष्टि", "आईएमडी", "मानसून", "बाढ़", "तापमान",
+      "weather", "rains?", "rainfall", "IMD", "cyclones?", "cyclonic", "monsoon", "heat ?wave", "cold wave", "fog", "snowfall", "thunderstorms?", "hailstorm", "floods?", "temperatures?", "orange alert", "yellow alert"
+    ],
+    "health": [
+      "स्वास्थ्य", "सेहत", "बीमारी", "बीमारियों", "डॉक्टर", "डॉक्टरों", "दवा", "दवाओं", "डेंगू", "मलेरिया", "कैंसर", "डायबिटीज", "हार्ट अटैक", "वायरस", "संक्रमण", "वैक्सीन", "टीकाकरण", "एम्स", "कोलेस्ट्रॉल", "मोटापा", "ब्लड प्रेशर", "आयुर्वेद",
+      "health", "healthcare", "diseases?", "doctors?", "medicines?", "dengue", "malaria", "cancer", "diabetes", "heart attacks?", "virus", "infections?", "vaccines?", "vaccination", "AIIMS", "cholesterol", "obesity", "blood pressure", "mental health", "WHO"
+    ],
+    "religion": [
+      "मंदिर", "मंदिरों", "राशिफल", "ज्योतिष", "पूजा विधि", "पूजा-पाठ", "व्रत", "श्रद्धालु", "श्रद्धालुओं", "आरती", "भजन", "धार्मिक", "मस्जिद", "गुरुद्वारा", "तीर्थ", "तीर्थयात्री", "पंचांग", "शुभ मुहूर्त", "कुंभ", "महाकुंभ", "छठ पूजा", "छठ महापर्व", "नवरात्रि",
+      "temples?", "horoscopes?", "zodiac", "astrology", "pilgrims?", "pilgrimage", "devotees", "mosques?", "gurdwaras?", "Kumbh", "Chhath", "Navratri"
+    ],
+    "money": [
+      "म्यूचुअल फंड", "म्यूचुअल फ़ंड", "एसआईपी", "एफडी", "फिक्स्ड डिपॉजिट", "ब्याज दर", "ब्याज दरों", "रेपो रेट", "लोन", "ईएमआई", "इनकम टैक्स", "आयकर", "आईटीआर", "टैक्स स्लैब", "पीएफ", "ईपीएफओ", "यूपीआई", "क्रेडिट कार्ड", "डेबिट कार्ड", "बीमा", "पेंशन", "बचत", "आरबीआई", "बैंक", "बैंकों", "पैन कार्ड",
+      "mutual funds?", "SIPs?", "FDs?", "fixed deposits?", "interest rates?", "repo rate", "loans?", "EMIs?", "income tax", "ITR", "tax slabs?", "PF", "EPFO", "UPI", "credit cards?", "debit cards?", "insurance", "pension", "savings", "RBI", "banks?", "banking", "PAN card"
+    ],
+    "gold-silver": [
+      "सोने-चांदी", "सोना-चांदी", "सोने चांदी", "सोना चांदी", "सोने का भाव", "सोने का दाम", "सोने के दाम", "सोने की कीमत", "सोने की कीमतों", "सोना सस्ता", "सोना महंगा", "चांदी", "चाँदी", "सर्राफा", "गोल्ड (?:रेट|प्राइस|ईटीएफ|लोन)", "सिल्वर (?:रेट|प्राइस)",
+      "gold prices?", "gold rates?", "silver prices?", "silver rates?", "gold and silver", "bullion", "gold ETFs?", "sovereign gold bonds?"
+    ],
+    "tech": [
+      "स्मार्टफोन", "स्मार्टफ़ोन", "आईफोन", "एंड्रॉयड", "ऐप", "ऐप्स", "इंटरनेट", "सोशल मीडिया", "व्हाट्सएप", "गूगल", "यूट्यूब", "इंस्टाग्राम", "फेसबुक", "लैपटॉप", "गैजेट", "5जी", "सिम कार्ड", "रिचार्ज", "साइबर",
+      "smartphones?", "iPhones?", "Android", "apps?", "internet", "social media", "WhatsApp", "Google", "YouTube", "Instagram", "Facebook", "laptops?", "gadgets?", "5G", "Samsung", "Xiaomi", "OnePlus", "Realme", "recharge", "tech", "technology", "cyber"
+    ],
+    "auto": [
+      "नई कार", "कार लॉन्च", "बाइक लॉन्च", "स्कूटर", "एसयूवी", "इलेक्ट्रिक वाहन", "इलेक्ट्रिक कार", "ईवी", "माइलेज", "एक्स-शोरूम", "ऑन-रोड", "मारुति", "टाटा मोटर्स", "हुंडई", "टोयोटा", "होंडा", "बजाज ऑटो", "टीवीएस", "रॉयल एनफील्ड", "महिंद्रा (?:थार|स्कॉर्पियो|एक्सयूवी|बोलेरो)", "ड्राइविंग लाइसेंस", "चालान", "फास्टैग",
+      "scooters?", "SUVs?", "EVs?", "electric vehicles?", "mileage", "ex-showroom", "on-road price", "Maruti", "Tata Motors", "Hyundai", "Toyota", "Honda", "Royal Enfield", "Mahindra (?:XUV|Thar|Scorpio|Bolero)", "two-wheelers?", "driving licen[cs]e", "challans?", "FASTag"
+    ],
+    "govt-schemes": [
+      "योजना के तहत", "योजना का लाभ", "सरकारी योजना", "सरकारी योजनाओं", "पीएम किसान", "किसान सम्मान निधि", "आयुष्मान", "उज्ज्वला", "लाडली", "मनरेगा", "राशन कार्ड", "पेंशन योजना", "आवास योजना", "किस्त", "लाभार्थी", "लाभार्थियों",
+      "schemes?", "Yojana", "PM-?KISAN", "Ayushman", "Ujjwala", "MGNREGA", "ration cards?", "beneficiar(?:y|ies)", "subsid(?:y|ies)", "welfare"
+    ],
+    "business": [
+      "कंपनी", "कंपनियों", "कारोबार", "व्यापार", "अर्थव्यवस्था", "जीडीपी", "महंगाई", "मुनाफा", "मुनाफे", "राजस्व", "निर्यात", "आयात", "टैरिफ", "निवेश", "अधिग्रहण", "बजट", "रुपया", "डॉलर", "कच्चा तेल", "पेट्रोल", "डीजल",
+      "compan(?:y|ies)", "business", "economy", "GDP", "inflation", "profits?", "revenue", "exports?", "imports?", "tariffs?", "investments?", "acquisition", "merger", "budget", "rupee", "crude", "oil prices", "petrol", "diesel"
+    ]
+  }
+}

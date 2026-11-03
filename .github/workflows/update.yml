@@ -1,6 +1,8 @@
 # Reads the news, lets Google Gemini write the short versions, builds the website and publishes it
 # on GitHub Pages — free. Runs every 30 minutes, after every change to the main branch,
 # and when you click "Run workflow" on the Actions tab.
+# The 30-minute timer is cron-job.org (free, see README: GitHub's own timer often starts late or not at all).
+# GitHub's timer below stays as a backup; a backup run right after another run skips the news step.
 name: Update news
 
 on:
@@ -54,6 +56,7 @@ jobs:
         run: node scripts/update.mjs
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          RUN_EVENT: ${{ github.event_name }}
 
       - name: Save the news database
         run: |
