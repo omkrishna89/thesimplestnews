@@ -262,6 +262,7 @@ async function writeStories() {
   const batchSize = Number(process.env.GEMINI_BATCH || site.gemini.batch);
   const fresh = [];
   let calls = 0;
+  let failedInARow = 0;
   for (let i = 0; i < list.length; i += batchSize) {
     if (Date.now() - started > RUN_BUDGET_MS) {
       log("[ai] time is up for this run; the rest waits for the next run");
@@ -300,9 +301,16 @@ async function writeStories() {
         for (const s of batch) s.tr--; // not their fault
         break;
       }
+      for (const s of batch) s.tr--; // Gemini didn't answer: not these stories' fault
       log(`[ai] batch failed: ${String(err.message).slice(0, 160)}`);
+      // Google's free service is busy (or refuses the request): stop for now, the next run tries again
+      if (++failedInARow >= 2) {
+        log("[ai] Gemini failed twice in a row; the rest waits for the next run");
+        break;
+      }
       continue;
     }
+    failedInARow = 0;
     out.results.forEach((r, j) => {
       const s = batch[j];
       delete s._text;
@@ -311,7 +319,7 @@ async function writeStories() {
       fresh.push(s);
       if (r.sameAs && r.sameAs !== j + 1 && batch[r.sameAs - 1]?.s === "ok") markDuplicate(s, batch[r.sameAs - 1]);
     });
-    log(`[ai] batch ${i / batchSize + 1}: ${out.results.filter(Boolean).length}/${batch.length} written by ${out.model}`);
+    log(`[ai] batch ${i / batchSize + 1}: ${out.results.filter(Boolean).length}/${batch.length} written by ${out.model}${out.variant ? ` (request shape ${out.variant})` : ""}`);
   }
   for (const s of list) if (s.s === "new" && s.tr >= 3) s.s = "fail";
   dedupeHeadlines(fresh);
