@@ -137,7 +137,8 @@ ${footer()}
     const h1hi = g ? `${g.icon} ${g.hi}` : T.hi.all;
     const h1en = g ? `${g.icon} ${g.en}` : T.en.all;
     const view = { group, tab };
-    const body = `<main id="main" class="wrap">
+    const wide = group === "gold-silver"; // the rates are this page's main content
+    const body = `<main id="main" class="wrap${wide ? " wrap--wide" : ""}">
 <div class="main">
 ${ad("top", "ad--top")}
 <div class="pagehead"><h1>${bi(esc(h1hi), esc(h1en))}</h1>${g ? `<p class="pagehead__about">${bi(esc(g.about_hi), esc(g.about_en))}</p>` : ""}</div>

@@ -207,6 +207,13 @@ h1, h2, h3 { line-height: 1.25; margin: 0 0 .5em; }
 .rates-foot { margin: 8px 0 0; font-size: .76rem; color: var(--muted); line-height: 1.45; }
 .rates-foot a { color: var(--accent); font-weight: 700; }
 .main > .metals { margin: 12px 0 4px; }
+@media (min-width: 760px) {
+  .main > .metals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; }
+  .main > .metals > h2, .main > .metals > .mbox__g24, .main > .metals > .rates-foot { grid-column: 1 / -1; }
+  .main > .metals .metal__plot { aspect-ratio: 2.2 / 1; }
+}
+.wrap--wide { grid-template-columns: minmax(0, 1fr) !important; }
+.wrap--wide .side:not(:has(.ad:not([hidden]))) { display: none; }
 
 /* ---------- trailers & songs ---------- */
 .vids { margin: 12px 0 6px; }
