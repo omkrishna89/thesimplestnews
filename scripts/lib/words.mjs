@@ -5,15 +5,18 @@
 import { config } from "./util.mjs";
 
 const EDGE_L = "(?<![\\p{L}\\p{M}\\p{N}])";
+const EDGE_L_NAME = "(?<![\\p{L}\\p{M}\\p{N}-])"; // company names: "self-reliance" is not Reliance
 const EDGE_R = "(?![\\p{L}\\p{M}\\p{N}])";
 
-export function wordTest(words) {
+// { names: true } for company names (the Stocks box): a word joined by a hyphen in front doesn't count
+export function wordTest(words, { names = false } = {}) {
   if (!Array.isArray(words) || !words.length) return null;
+  const left = names ? EDGE_L_NAME : EDGE_L;
   const exact = words.filter((w) => /[A-Z]/.test(w) && !/[a-z]/.test(w));
   const loose = words.filter((w) => !exact.includes(w));
   const res = [];
-  if (loose.length) res.push(new RegExp(`${EDGE_L}(?:${loose.join("|")})${EDGE_R}`, "iu"));
-  if (exact.length) res.push(new RegExp(`${EDGE_L}(?:${exact.join("|")})${EDGE_R}`, "u"));
+  if (loose.length) res.push(new RegExp(`${left}(?:${loose.join("|")})${EDGE_R}`, "iu"));
+  if (exact.length) res.push(new RegExp(`${left}(?:${exact.join("|")})${EDGE_R}`, "u"));
   return (text) => res.some((r) => r.test(text));
 }
 

@@ -22,6 +22,7 @@ export const T = {
     stockRemove: "हटाएं",
     stockOnly: "सिर्फ़ इन शेयरों की खबरें:",
     noStockNews: "इन शेयरों की कोई खबर अभी नहीं मिली। और नाम जोड़ें या बाद में देखें।",
+    noStockNewsDays: (names, n) => `${n > 1 ? `पिछले ${n} दिनों में` : "आज"} ${names} की कोई खबर नहीं मिली। जैसे ही कोई खबर आएगी, यहां दिखेगी।`,
     coming: "छोटा सार जल्द आएगा",
     readAt: "पूरी खबर पढ़ें:",
     sources: "सभी स्रोत",
@@ -79,6 +80,7 @@ export const T = {
     stockRemove: "Remove",
     stockOnly: "Only news about:",
     noStockNews: "No news about these stocks yet. Add more names or check again later.",
+    noStockNewsDays: (names, n) => `No news about ${names} ${n > 1 ? `in the last ${n} days` : "today"}. It will show here as soon as there is some.`,
     coming: "Short summary coming soon",
     readAt: "Read the full story:",
     sources: "All sources",
@@ -131,6 +133,9 @@ export function slug(s = "") {
     .replace(/[^a-z0-9\u0900-\u097f]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
+
+// The file with the news about one company: "M&M" -> "m-m" (build and browser must agree)
+export const stockFile = (symbol) => String(symbol).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
 export const TABS = ["local", "tehsil", "district", "state", "country", "world"];
 export const PLACE_TABS = new Set(["local", "tehsil", "district", "state"]);

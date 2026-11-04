@@ -35,6 +35,14 @@ test("words in CAPITALS match exactly, others ignore case", () => {
   assert.ok(!t("said the aide"), "'ai' in lower case is not AI");
 });
 
+test("company names: 'self-reliance' is not Reliance, but 'Reliance-backed' is", () => {
+  const reliance = wordTest(["Reliance", "RIL", "रिलायंस"], { names: true });
+  assert.ok(!reliance("To achieve self-reliance in defence technology"));
+  assert.ok(reliance("Reliance-backed Jio plans a listing"));
+  assert.ok(reliance("रिलायंस के शेयर चढ़े"));
+  assert.ok(reliance("RIL shares rise"));
+});
+
 test("every word in config/words.json is valid and belongs to a real group", () => {
   const groups = new Set(JSON.parse(fs.readFileSync(new URL("../config/groups.json", import.meta.url))).list.map((g) => g.slug));
   const words = JSON.parse(fs.readFileSync(new URL("../config/words.json", import.meta.url))).groups;

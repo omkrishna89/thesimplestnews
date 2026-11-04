@@ -1,5 +1,5 @@
 // The Simplest News — everything that happens in the browser. Small and without frameworks, so it stays fast.
-import { T, PLACE_TABS, ago, esc, istDay, itemHTML, qaHTML, slug, thumb } from "./ui.js";
+import { T, PLACE_TABS, ago, esc, istDay, itemHTML, qaHTML, slug, stockFile, thumb } from "./ui.js";
 
 const D = document;
 const H = D.documentElement;
@@ -245,12 +245,39 @@ const inGroups = (it) => {
 
 function keep(it) {
   const { tab } = list;
-  if (PLACE_KEY_TABS.has(tab)) {
+  if (watching()) {
+    // the reader's own stocks: news from every group; Country and World both show India + world news,
+    // the place tabs only news from the reader's state / district
+    if (!dayWanted(istDay(it.t * 1000))) return false;
+    if (PLACE_TABS.has(tab) && !(loc?.c === "in" && it.p[0] === loc.s)) return false;
+    if (PLACE_KEY_TABS.has(tab) && it.p[1] !== loc.d) return false;
+  } else if (PLACE_KEY_TABS.has(tab)) {
     if (!inGroups(it)) return false;
-    if (tab === "tehsil" && !(loc.t && (it.p[2] === loc.t || it.p[3] === loc.t))) return false;
-    if (tab === "local" && !(it.p[3] && (it.p[3] === loc.l || it.p[3] === loc.t || it.p[2] === loc.l))) return false;
   }
+  if (tab === "tehsil" && PLACE_KEY_TABS.has(tab) && !(loc.t && (it.p[2] === loc.t || it.p[3] === loc.t))) return false;
+  if (tab === "local" && !(it.p[3] && (it.p[3] === loc.l || it.p[3] === loc.t || it.p[2] === loc.l))) return false;
   return !watching() || matchesWatch(it);
+}
+
+// All news about the reader's stocks at once: one small file per listed company (made by the build), and for names
+// typed by the reader that aren't in the list, the day files of all groups, India and world.
+const WIDE = ["all", "stock-market", "business", "tech", "ai", "startup", "money", "auto", "jobs"];
+async function loadWatch() {
+  const idx = await index();
+  Object.assign(list, { keys: [], loaded: [], ids: new Set(), next: 0, days: [] });
+  if (!idx) return;
+  const have = idx.stocks?.[lang] || {};
+  const jobs = watch.filter((w) => w.s && have[w.s]).map((w) => getJSON(`/data/${lang}/stock/${stockFile(w.s)}.json`));
+  if (watch.some((w) => !w.s)) {
+    for (const k of WIDE.flatMap((g) => [`in/${g}`, `world/${g}`])) for (const d of (idx.days[k] || []).filter(dayWanted)) jobs.push(getJSON(`/data/${lang}/${k}/${d}.json`));
+  }
+  for (const f of await Promise.all(jobs)) {
+    for (const it of f || []) {
+      if (list.ids.has(it.i)) continue;
+      list.ids.add(it.i);
+      list.loaded.push(it);
+    }
+  }
 }
 
 // Stock names must stand on their own ("Tata" is not found inside "Tatanagar").
@@ -262,7 +289,8 @@ function wordTests(words) {
   const loose = words.filter((w) => !exact.includes(w));
   const mk = (ws, flags) => {
     try {
-      return new RegExp(`(?:^|${EDGE})(?:${ws.join("|")})(?=$|${EDGE})`, flags);
+      // in front: not a letter, digit or hyphen ("self-reliance" is not Reliance); after: not a letter or digit
+      return new RegExp(`(?:^|[^\\p{L}\\p{M}\\p{N}-])(?:${ws.join("|")})(?=$|${EDGE})`, flags);
     } catch {
       return null;
     }
@@ -366,7 +394,8 @@ async function loadMore(n = 1) {
 
 function emptyText() {
   if (!loc && PLACE_TABS.has(list.tab)) return T[lang].finding;
-  if (watching()) return T[lang].noStockNews;
+  // "No news about TCS in the last 3 days."
+  if (watching()) return list.watchNames && list.span ? T[lang].noStockNewsDays(list.watchNames, list.span) : T[lang].noStockNews;
   if (list.tab === "local") return T[lang].emptyLocal;
   return T[lang].empty;
 }
@@ -428,8 +457,16 @@ async function loadAndRender() {
     await guessFromInternet();
     showPlace();
   }
-  watchTests = watching() ? wordTests((await watchEntries()).flatMap((w) => w.k)) : [];
-  await loadDays();
+  if (watching()) {
+    const entries = await watchEntries();
+    watchTests = wordTests(entries.flatMap((w) => w.k));
+    list.watchNames = entries.map((w) => (lang === "hi" ? w.hi || w.en : w.en || w.hi)).join(", ");
+    list.span = (await index())?.span || 0;
+    await loadWatch();
+  } else {
+    watchTests = [];
+    await loadDays();
+  }
   if (my !== gen) return;
   list.items = order(list.loaded.filter(keep));
   list.shown = 30;

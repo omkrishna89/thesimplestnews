@@ -109,7 +109,9 @@ b, strong { font-weight: 600; }
 
 /* group buttons: all of them, on rows (no sideways scrolling) */
 .gnav { border-bottom: 1px solid var(--line); }
-.gnav__in { max-width: 1400px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 14px; }
+/* same width as the top bar and the page, so the buttons line up with them on both sides */
+.gnav__in { max-width: 1180px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 14px; }
+.gnav__in:not(.is-open) { justify-content: space-between; }
 .chip { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; background: var(--card-2); color: var(--text); text-decoration: none; font-size: .88rem; font-weight: 500; white-space: nowrap; border: 1px solid transparent; }
 .chip:hover { border-color: var(--line); }
 .chip.is-on { background: var(--accent); color: var(--accent-ink); }
@@ -121,11 +123,14 @@ b, strong { font-weight: 600; }
 .chip--more__less, .gnav__in.is-open .chip--more__more { display: none; }
 .gnav__in.is-open .chip--more__less { display: inline; }
 .chip[aria-pressed] { cursor: pointer; }
-@media (min-width: 1200px) { .gnav__in { justify-content: center; } }
 @media (max-width: 560px) { .gnav__in { gap: 5px; padding: 7px 10px; } .chip { padding: 3px 8px; font-size: .82rem; } }
+@media (max-width: 370px) { .gnav__in { padding-left: 8px; padding-right: 8px; } }
 
 /* ---------- page ---------- */
 .wrap { max-width: 1180px; margin: 0 auto; padding: 10px 14px 40px; display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr); }
+/* phones: the news lines up with the top bar and the group buttons */
+@media (max-width: 560px) { .wrap { padding-left: 10px; padding-right: 10px; } }
+@media (max-width: 370px) { .wrap { padding-left: 8px; padding-right: 8px; } }
 @media (min-width: 1000px) { .wrap { grid-template-columns: minmax(0, 1fr) 330px; } }
 .wrap--text { grid-template-columns: minmax(0, 760px); justify-content: center; }
 .main { min-width: 0; }

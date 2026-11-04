@@ -10,9 +10,9 @@ import { makePages } from "./lib/pages.mjs";
 import { STATES, placesForBrowser } from "./lib/places.mjs";
 import { ROOT, config, log } from "./lib/util.mjs";
 import { metalsBox, videosStrip } from "./lib/widgets.mjs";
-import { istDay } from "../src/assets/js/ui.js";
+import { istDay, stockFile } from "../src/assets/js/ui.js";
 import { HELP_PAGES } from "./lib/help-pages.mjs";
-import { groupsFromWords } from "./lib/words.mjs";
+import { groupsFromWords, wordTest } from "./lib/words.mjs";
 
 const OUT = path.resolve(ROOT, process.env.OUT_DIR || "_site");
 const site = config("site.json");
@@ -163,6 +163,29 @@ for (const [key, days] of lists) {
     }
   }
 }
+// The Stocks box: every story that mentions a listed company (any group, India or world), one small file per
+// company, so a phone loads only the news about the reader's own stocks. index.stocks[lang][SYMBOL] = how many.
+// index.span = how many days of news the site has (at most 7), for "No news about TCS in the last 3 days".
+const STOCKS = config("stocks.json")?.list || [];
+const anyStock = wordTest(STOCKS.flatMap((s) => s.k), { names: true }); // quick first look, then company by company
+const stockTests = STOCKS.map((s) => [s.s, wordTest(s.k, { names: true })]);
+index.stocks = {};
+for (const lang of ["hi", "en"]) {
+  const found = new Map();
+  for (const it of items) {
+    if (!(it.ok || it.s.l === lang)) continue;
+    const v = it[lang];
+    const text = [v.h, v.x || "", ...(v.q || [])].join(" \n ");
+    if (!anyStock?.(text)) continue;
+    for (const [sym, test] of stockTests) if (test?.(text)) (found.get(sym) || found.set(sym, []).get(sym)).push(v);
+  }
+  index.stocks[lang] = {};
+  for (const [sym, arr] of found) {
+    writeJSON(`data/${lang}/stock/${stockFile(sym)}.json`, arr.slice(0, 100));
+    index.stocks[lang][sym] = Math.min(arr.length, 100);
+  }
+}
+index.span = Math.min(site.keepDays || 7, new Set(items.map((it) => it.day)).size);
 writeJSON("data/index.json", index);
 writeJSON("data/places.json", placesForBrowser(db.names));
 writeJSON("data/stocks.json", config("stocks.json")?.list || []); // names for the Stocks box
