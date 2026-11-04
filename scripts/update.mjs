@@ -2,8 +2,9 @@
 //  1. reads all due news feeds and keeps the new stories (last 48 hours)
 //  2. reads the full article of the most important new stories (only where robots.txt allows)
 //  3. Google Gemini writes the shortest headline + 9 answers in Hindi and English
-//  4. updates movie trailers/songs (YouTube) and gold/silver rates
-//  5. forgets stories older than 7 days, and saves everything in .data/db.json.gz
+//  4. updates movie trailers/songs (YouTube), gold/silver rates and "Trending now" (Google Trends India)
+//  5. forgets stories older than 7 days (written or not, so the search finds a whole week), and saves
+//     everything in .data/db.json.gz
 // Options: --no-fetch (skip feeds), --no-ai (skip Gemini), MOCK_AI=1 (fake answers, for testing the site only)
 import { readArticle, allowedByRobots } from "./lib/article.mjs";
 import { loadDB, saveDB, similarity, words } from "./lib/db.mjs";
@@ -12,8 +13,10 @@ import { NOT_SAID, QUESTIONS, QuotaError, hasKey, summarize } from "./lib/gemini
 import { updateMetals } from "./lib/metals.mjs";
 import { pickForAI } from "./lib/pick.mjs";
 import { COVERED, districtSlug, placeSlug, stateCode } from "./lib/places.mjs";
+import { updateTrends } from "./lib/trends.mjs";
 import { clip, config, get, hash, log, plain, pool, sleep, TZ } from "./lib/util.mjs";
 import { updateVideos } from "./lib/youtube.mjs";
+import { AI_HOURS } from "../src/assets/js/ui.js";
 
 const args = new Set(process.argv.slice(2));
 const site = config("site.json");
@@ -21,8 +24,7 @@ const FEEDS = config("sources.json").feeds;
 const STATE_NAMES = config("places.json").states;
 const KEEP_MS = (site.keepDays || 7) * 86400e3;
 const NEW_MS = 48 * 3600e3; // stories older than this are not added
-const AI_MAX_AGE = 36 * 3600e3; // older stories are not sent to Gemini any more
-const UNSUMMARIZED_KEEP = 48 * 3600e3; // stories Gemini never wrote are forgotten after this
+const AI_MAX_AGE = AI_HOURS * 3600e3; // older stories are not sent to Gemini any more (they show without a summary)
 const MOCK = process.env.MOCK_AI === "1";
 const started = Date.now();
 const RUN_BUDGET_MS = Number(process.env.RUN_BUDGET_MS || 18 * 60e3);
@@ -334,6 +336,13 @@ async function extras() {
     db.metals = await updateMetals(db.metals || {});
     log(`[metals] IBJA ${db.metals.ibja ? `${db.metals.ibja.date} ${db.metals.ibja.session}` : "not available"}, history ${db.metals.intl ? "ok" : "not available"}`);
   }
+  try {
+    const r = await updateTrends(db.trends?.list || []);
+    db.trends = { at: now, list: r.list };
+    log(`[trends] ${r.fresh} topics from Google Trends, ${r.list.length} shown`);
+  } catch (err) {
+    log(`[trends] ${err.message} — the last topics stay`);
+  }
 }
 
 // ---------- 5. forget old stories ----------
@@ -341,8 +350,7 @@ function prune() {
   const before = db.stories.length;
   const ids = new Set();
   db.stories = db.stories.filter((s) => {
-    const age = now - s.p;
-    const keep = s.s === "ok" || s.s === "dup" ? age < KEEP_MS : age < UNSUMMARIZED_KEEP;
+    const keep = now - s.p < KEEP_MS;
     if (keep) ids.add(s.id);
     return keep;
   });

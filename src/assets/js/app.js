@@ -1,5 +1,6 @@
 // The Simplest News — everything that happens in the browser. Small and without frameworks, so it stays fast.
 import { T, PLACE_TABS, ago, esc, istDay, itemHTML, qaHTML, slug, stockFile, thumb } from "./ui.js";
+import { foldText, gdeltItems, gdeltQuery, gdeltUrl, googleNewsUrl, parseQuery, rank } from "./search.js";
 
 const D = document;
 const H = D.documentElement;
@@ -46,6 +47,9 @@ function setLang(l) {
   showPlace();
   drawWatch();
   searchBox();
+  // the buttons' words have another width in the other language
+  fitGroups();
+  showTrends();
 }
 $$("[data-set-lang]").forEach((b) => {
   b.setAttribute("aria-pressed", String(b.dataset.setLang === lang));
@@ -204,7 +208,7 @@ async function showPlace() {
 }
 
 // ---------- lists: which stories, in what order ----------
-const list = { ready: false, dynamic: false, tab: view?.tab, groups: [], q: "", qWords: [], sort: store.get("sort", "newest"), day: "all", date: "", from: "", to: "", keys: [], loaded: [], ids: new Set(), days: [], next: 0, shown: 30, items: [] };
+const list = { ready: false, dynamic: false, loading: 0, tab: view?.tab, groups: [], q: "", query: null, rank: null, sort: store.get("sort", "newest"), day: "all", date: "", from: "", to: "", keys: [], loaded: [], ids: new Set(), days: [], next: 0, shown: 30, items: [] };
 const LOCAL_SCOPES = ["local", "tehsil", "district"];
 const PLACE_KEY_TABS = new Set(["district", "tehsil", "local"]); // these tabs read the district's list and filter it here
 
@@ -229,14 +233,11 @@ const pageGroups = view?.group && view.group !== "all" ? [view.group] : [];
 // The Stocks box: the reader's own stocks, e.g. [{ s: "RELIANCE" }, { t: "Suzlon" }] (kept only on this phone)
 let watch = store.get("stocks", []).filter((w) => w && (w.s || w.t));
 const watching = () => !list.q && list.groups.length === 1 && list.groups[0] === "stock-market" && watch.length > 0;
-// Search (the box on Home, or 🔍 in the top bar): every story of the last days, by words in its headline and summary
+// Search (the box on Home, or 🔍 in the top bar): every story of the last days, by words in its headline and
+// summary. Spellings are forgiven and rare words count most (src/assets/js/search.js).
 const searching = () => !!list.q;
-const fold = (s) => String(s || "").toLowerCase().normalize("NFC");
-const queryWords = (q) => fold(q).split(/[\s,.;:!?"“”'‘’()]+/).filter((w) => w.length > 1 || /[^\x00-\x7f]/.test(w));
-function matchesQuery(it) {
-  it._s ??= fold(`${it.h} ${it.s || ""} ${it.pn || ""}`);
-  return list.qWords.length > 0 && list.qWords.every((w) => it._s.includes(w));
-}
+const found = (it) => !!list.rank?.tiers.has(it);
+const reRank = () => (list.rank = rank(list.loaded, list.query || (list.query = parseQuery(list.q))));
 // company news is often in Business, so the Stocks box looks there too
 const loadGroups = () => (watching() ? ["stock-market", "business"] : list.groups);
 
@@ -275,7 +276,7 @@ function inTab(it, tab) {
 
 function keep(it) {
   const { tab } = list;
-  if (searching()) return matchesQuery(it) && inTab(it, tab);
+  if (searching()) return found(it) && inTab(it, tab);
   if (watching()) {
     // the reader's own stocks: news from every group; Country and World both show India + world news,
     // the place tabs only news from the reader's state / district
@@ -381,6 +382,17 @@ function order(items) {
       return arr.sort((a, b) => b.t - a.t);
   }
 }
+// A search: the stories with more of the words first, each part in the reader's order (newest first, …)
+function arrange(items) {
+  if (!searching() || !list.rank) return order(items);
+  const by = new Map();
+  for (const it of items) {
+    const t = list.rank.tiers.get(it) || 0;
+    if (!by.has(t)) by.set(t, []);
+    by.get(t).push(it);
+  }
+  return [...by.keys()].sort((a, b) => b - a).flatMap((t) => order(by.get(t)));
+}
 
 const today = () => istDay(Date.now());
 const shiftDay = (day, n) => istDay(Date.parse(`${day}T12:00:00+05:30`) + n * 86400e3);
@@ -402,9 +414,13 @@ async function loadDays() {
   // one day first (small and fast); a second one only when the first is nearly empty.
   // For the reader's own stocks: older days too, until enough news about them is found.
   await loadMore(1);
+  if (searching()) {
+    // a search keeps reading older days until it has a page of results (the words are weighed again each time)
+    for (reRank(); list.loaded.filter(keep).length < 30 && list.next < list.days.length; reRank()) await loadMore(1);
+    return;
+  }
   const want = watching() ? 15 : 40;
-  // a search keeps reading older days until it has a page of results
-  while (list.loaded.filter(keep).length < (searching() ? 30 : want) && list.next < list.days.length && (watching() || searching() || list.next < 2)) await loadMore(1);
+  while (list.loaded.filter(keep).length < want && list.next < list.days.length && (watching() || list.next < 2)) await loadMore(1);
 }
 
 async function loadMore(n = 1) {
@@ -425,6 +441,7 @@ async function loadMore(n = 1) {
 }
 
 function emptyText() {
+  if (list.loading) return T[lang].searching;
   if (!loc && PLACE_TABS.has(list.tab)) return T[lang].finding;
   if (searching()) return T[lang].noResults(list.q, list.span || 1);
   // "No news about TCS in the last 3 days."
@@ -469,7 +486,8 @@ function render() {
   const el = ensureDynamicList();
   el.lang = lang;
   const chunks = $$(".list__chunk", el);
-  const shown = list.items.slice(0, list.shown);
+  // while a search reads its files: "Searching…" (not the old stories, and not "No news" yet)
+  const shown = list.loading ? [] : list.items.slice(0, list.shown);
   const ctx = rctx();
   const html = (a) => a.map((it) => itemHTML(it, lang, ctx)).join("");
   chunks[0].innerHTML = shown.length ? html(shown.slice(0, 6)) : `<p class="empty">${esc(emptyText())}</p>`;
@@ -477,7 +495,7 @@ function render() {
   chunks[2].innerHTML = html(shown.slice(18));
   $$(".ad", el).forEach((a, i) => (a.style.display = shown.length > (i === 0 ? 6 : 18) ? "" : "none"));
   const more = $("[data-more]");
-  if (more) more.hidden = !(list.items.length > list.shown || list.next < list.days.length);
+  if (more) more.hidden = !!list.loading || (searching() && !shown.length) || !(list.items.length > list.shown || list.next < list.days.length);
   seeMore();
 }
 
@@ -490,11 +508,16 @@ async function loadAndRender() {
     await guessFromInternet();
     showPlace();
   }
+  outside(); // other news websites (slow), at the same time as our own files; hidden when not searching
   if (searching()) {
-    list.qWords = queryWords(list.q);
-    list.span = (await index())?.span || 0;
+    list.query = parseQuery(list.q);
+    list.rank = null;
     watchTests = [];
+    list.loading = my;
+    render();
+    list.span = (await index())?.span || 0;
     await loadDays();
+    if (list.loading === my) list.loading = 0;
   } else if (watching()) {
     const entries = await watchEntries();
     watchTests = wordTests(entries.flatMap((w) => w.k));
@@ -506,7 +529,8 @@ async function loadAndRender() {
     await loadDays();
   }
   if (my !== gen) return;
-  list.items = order(list.loaded.filter(keep));
+  list.loading = 0;
+  list.items = arrange(list.loaded.filter(keep));
   list.shown = 30;
   list.ready = true;
   render();
@@ -530,7 +554,7 @@ async function seeMore() {
   let count;
   if (searching()) {
     // the search results of the other tabs are already here
-    count = (tab) => list.loaded.filter((it) => matchesQuery(it) && inTab(it, tab)).length;
+    count = (tab) => list.loaded.filter((it) => found(it) && inTab(it, tab)).length;
   } else {
     const idx = await index();
     const n = idx?.n?.[lang];
@@ -563,20 +587,21 @@ D.addEventListener("click", (e) => {
 async function more() {
   if (list.items.length <= list.shown && list.next < list.days.length) {
     await loadMore(1);
+    if (searching()) reRank();
     // newly loaded (older) stories go below the ones already shown
     const known = new Set(list.items.map((i) => i.i));
-    list.items.push(...order(list.loaded.filter((it) => !known.has(it.i) && keep(it))));
+    list.items.push(...arrange(list.loaded.filter((it) => !known.has(it.i) && keep(it))));
   }
   list.shown += 30;
   render();
 }
 let busy = false;
 async function onMore() {
-  if (busy) return;
+  if (busy || list.loading) return;
   busy = true;
   if (!list.dynamic) {
     // the page's own list becomes a list drawn from the data files, then grows
-    list.items = order(list.loaded.filter(keep));
+    list.items = arrange(list.loaded.filter(keep));
     list.shown = 30;
     render();
   }
@@ -614,7 +639,7 @@ $$("[data-sort]").forEach((s) =>
     list.sort = s.value;
     store.set("sort", list.sort);
     syncControls();
-    list.items = order(list.loaded.filter(keep));
+    list.items = arrange(list.loaded.filter(keep));
     list.shown = 30;
     render();
   }),
@@ -717,6 +742,7 @@ function showGroups() {
   stockBox();
   searchBox();
   fitGroups();
+  showTrends();
 }
 // the address of a list, or of a search: /?q=cockroach%20janta%20party
 const pathFor = (tab) => (searching() ? `${pagePath([], tab)}?q=${encodeURIComponent(list.q)}` : pagePath(list.groups, tab));
@@ -743,46 +769,82 @@ if (view?.tab) {
   }
 }
 
-// One line of group buttons; "More" shows all of them, "Less" one line again. Picked groups always show.
-const gnav = $(".gnav__in");
-const moreGroupsBtn = $("[data-more-groups]");
-let groupsOpen = false;
-function fitGroups() {
-  if (!gnav || !moreGroupsBtn || !chipEls.length) return;
-  chipEls.forEach((a) => (a.hidden = false));
-  moreGroupsBtn.hidden = false;
-  moreGroupsBtn.setAttribute("aria-expanded", String(groupsOpen));
-  gnav.classList.toggle("is-open", groupsOpen);
-  if (groupsOpen) return;
-  const cs = getComputedStyle(gnav);
+// One line of buttons; "More" shows all of them, "Less" one line again. Picked buttons always show.
+// Used for the group buttons and for the "Trending" topics. `fixed`: things on the line that always stay.
+function fitRow(row, chips, btn, open, fixed = []) {
+  if (!row || !btn || !chips.length) return;
+  chips.forEach((a) => (a.hidden = false));
+  btn.hidden = false;
+  btn.setAttribute("aria-expanded", String(open));
+  row.classList.toggle("is-open", open);
+  if (open) return;
+  const cs = getComputedStyle(row);
   const gap = parseFloat(cs.columnGap) || 6;
-  const room0 = gnav.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-  const w = new Map(chipEls.map((a) => [a, a.offsetWidth]));
-  if (chipEls.reduce((s, a) => s + w.get(a) + gap, -gap) <= room0) {
-    moreGroupsBtn.hidden = true; // all of them fit on one line
+  const room0 = row.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - fixed.reduce((s, f) => s + (f?.offsetWidth || 0) + gap, 0);
+  const w = new Map(chips.map((a) => [a, a.offsetWidth]));
+  if (chips.reduce((s, a) => s + w.get(a) + gap, -gap) <= room0) {
+    btn.hidden = true; // all of them fit on one line
     return;
   }
-  let room = room0 - moreGroupsBtn.offsetWidth - gap;
-  const show = new Set(chipEls.filter((a) => a.classList.contains("is-on")));
+  let room = room0 - btn.offsetWidth - gap;
+  const show = new Set(chips.filter((a) => a.classList.contains("is-on")));
   for (const a of show) room -= w.get(a) + gap;
-  for (const a of chipEls) {
+  for (const a of chips) {
     if (show.has(a)) continue;
     if (w.get(a) + gap > room) break;
     room -= w.get(a) + gap;
     show.add(a);
   }
-  chipEls.forEach((a) => (a.hidden = !show.has(a)));
+  chips.forEach((a) => (a.hidden = !show.has(a)));
 }
+const gnav = $(".gnav__in");
+const moreGroupsBtn = $("[data-more-groups]");
+let groupsOpen = false;
+const fitGroups = () => fitRow(gnav, chipEls, moreGroupsBtn, groupsOpen);
 moreGroupsBtn?.addEventListener("click", () => {
   groupsOpen = !groupsOpen;
   fitGroups();
 });
+
+// "🔥 Trending": what India searches on Google right now (from the build); a tap searches our news for it
+const trendRow = $(".trend__in");
+const trendChips = $$("[data-trend]");
+const moreTrendsBtn = $("[data-more-trends]");
+let trendsOpen = false;
+function showTrends() {
+  if (!trendChips.length) return;
+  const q = list.q ? foldText(list.q) : "";
+  for (const a of trendChips) {
+    const on = !!q && foldText(a.dataset.trend) === q;
+    a.classList.toggle("is-on", on);
+    on ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current");
+  }
+  fitRow(trendRow, trendChips, moreTrendsBtn, trendsOpen, [$(".trend__label", trendRow)]);
+}
+for (const a of trendChips) {
+  a.addEventListener("click", (e) => {
+    if (!view?.tab || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+    e.preventDefault();
+    runSearch(a.dataset.trend);
+  });
+}
+moreTrendsBtn?.addEventListener("click", () => {
+  trendsOpen = !trendsOpen;
+  showTrends();
+});
+
 let fitFrame = 0;
 addEventListener("resize", () => {
   cancelAnimationFrame(fitFrame);
-  fitFrame = requestAnimationFrame(fitGroups);
+  fitFrame = requestAnimationFrame(() => {
+    fitGroups();
+    showTrends();
+  });
 });
-D.fonts?.ready.then(fitGroups);
+D.fonts?.ready.then(() => {
+  fitGroups();
+  showTrends();
+});
 
 // ---------- the Stocks box (when Stocks is the only group picked) ----------
 function stockBox() {
@@ -942,6 +1004,129 @@ $("[data-search-open]")?.addEventListener("click", (e) => {
   box.hidden = false;
   scrollTo({ top: 0, behavior: "smooth" });
   $("[data-search-in]", box).focus();
+});
+
+// ---------- a search on other news websites (below our own results) ----------
+// 1. the topic's own news links when it is in "Trending" (Google Trends), 2. headlines from the GDELT Project
+// (a free, open news database; slow, and only for English words), 3. a link to the same search on Google News.
+const ox = { key: "", state: "", items: [], trend: null, ctrl: null, last: 0, shown: 10, cache: new Map() };
+const trendsData = () => getJSON("/data/trends.json");
+function oxBox() {
+  let el = $("[data-ox]");
+  if (!el) {
+    const after = $("[data-more]") || $("[data-lists]");
+    if (!after) return null;
+    el = D.createElement("section");
+    el.className = "ox";
+    el.dataset.ox = "";
+    el.hidden = true;
+    after.after(el);
+  }
+  return el;
+}
+// GDELT's dates: all days = the last 3 months; Today, Yesterday, a day or a range = those days (India time)
+function gdeltSpan() {
+  const at = (day, add = 0) => new Date(Date.parse(`${day}T00:00:00+05:30`) + add * 86400e3).toISOString().replace(/[-:T]/g, "").slice(0, 14);
+  const range = (from, to) => `&startdatetime=${at(from)}&enddatetime=${at(to, 1)}`;
+  if (list.day === "today") return range(today(), today());
+  if (list.day === "yesterday") return range(shiftDay(today(), -1), shiftDay(today(), -1));
+  if (list.day === "pick" && list.date) return range(list.date, list.date);
+  if (list.day === "range" && (list.from || list.to)) return range(list.from || shiftDay(today(), -6), list.to || today());
+  return "&timespan=3m";
+}
+async function outside(again = false) {
+  const box = oxBox();
+  if (!box) return;
+  if (!searching()) {
+    box.hidden = true;
+    ox.ctrl?.abort();
+    ox.key = "";
+    return;
+  }
+  const query = parseQuery(list.q);
+  const gq = gdeltQuery(query, lang);
+  const span = gdeltSpan();
+  const key = `${lang}|${list.q}|${span}`;
+  if (key === ox.key && !again) return drawOx(); // the same search (another tab): nothing new to fetch
+  ox.key = key;
+  ox.shown = 10;
+  ox.ctrl?.abort();
+  ox.items = [];
+  ox.state = gq ? "wait" : "hindi";
+  if (gq && ox.cache.has(key)) {
+    ox.items = ox.cache.get(key);
+    ox.state = "done";
+  }
+  const tq = foldText(list.q);
+  ox.trend = ((await trendsData()) || []).find((t) => foldText(t.q) === tq) || null;
+  if (key !== ox.key) return;
+  drawOx();
+  if (ox.state !== "wait") return;
+  const ctrl = (ox.ctrl = new AbortController()); // aborted when the reader searches something else
+  for (let tries = 0; tries < 2; tries++) {
+    // GDELT asks for at most one search every 5 seconds from one computer. Its "too many" answer can't be
+    // read by the browser (no CORS header), so any failure is tried once more, 5 seconds later.
+    const wait = ox.last + 5500 - Date.now();
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    if (ctrl.signal.aborted) return;
+    ox.last = Date.now();
+    const one = new AbortController();
+    const stop = () => one.abort();
+    ctrl.signal.addEventListener("abort", stop);
+    const timer = setTimeout(stop, 25000);
+    try {
+      const r = await fetch(gdeltUrl(gq, span), { signal: one.signal });
+      if (!r.ok) continue;
+      const items = gdeltItems(JSON.parse(await r.text()), query);
+      if (ctrl.signal.aborted) return;
+      ox.cache.set(key, items);
+      ox.items = items;
+      ox.state = "done";
+      return drawOx();
+    } catch {
+      if (ctrl.signal.aborted) return;
+    } finally {
+      clearTimeout(timer);
+      ctrl.signal.removeEventListener("abort", stop);
+    }
+  }
+  if (ctrl.signal.aborted) return;
+  ox.state = "fail";
+  drawOx();
+}
+function drawOx() {
+  const box = oxBox();
+  if (!box) return;
+  box.hidden = !searching();
+  if (box.hidden) return;
+  const L = T[lang];
+  const trend = ox.trend?.news || [];
+  const seen = new Set(trend.map((n) => n.u));
+  const items = ox.items.filter((n) => !seen.has(n.u));
+  const li = (n, tag = "") =>
+    `<li class="ox__it"><a href="${esc(n.u)}" target="_blank" rel="noopener nofollow">${esc(n.h)}</a><span class="ox__meta">${tag}${esc(n.src)}${n.t ? ` · ${esc(ago(n.t, lang))}` : ""}</span></li>`;
+  const rows = [...trend.map((n) => li(n, `<span class="ox__tag">🔥 Google Trends</span> · `)), ...items.slice(0, ox.shown).map((n) => li(n))];
+  const msg = {
+    wait: `<p class="ox__msg ox__msg--wait">${esc(L.oxWait)}</p>`,
+    fail: `<p class="ox__msg">${esc(L.oxFail)} <button type="button" class="btn btn--small" data-ox-retry>${esc(L.retry)}</button></p>`,
+    hindi: `<p class="ox__msg">${esc(L.oxHindi)}</p>`,
+    done: rows.length ? "" : `<p class="ox__msg">${esc(L.oxNone)}</p>`,
+  }[ox.state] || "";
+  const left = items.length - ox.shown;
+  box.lang = lang;
+  box.innerHTML = `<h2 class="ox__h">🌐 ${esc(L.ox)}</h2>
+${rows.length ? `<ol class="ox__list">${rows.join("")}</ol>` : ""}
+${left > 0 ? `<button type="button" class="btn btn--small ox__more" data-ox-more>${esc(L.oxMore(Math.min(20, left)))}</button>` : ""}
+${msg}
+${items.length ? `<p class="ox__credit">${L.oxCredit('<a href="https://www.gdeltproject.org/" target="_blank" rel="noopener">GDELT Project</a>')}</p>` : ""}
+<p class="ox__gn"><a class="btn" href="${esc(googleNewsUrl(list.q, lang))}" target="_blank" rel="noopener">${esc(L.googleNews(list.q))}</a></p>`;
+}
+D.addEventListener("click", (e) => {
+  if (e.target.closest("[data-ox-retry]")) outside(true);
+  else if (e.target.closest("[data-ox-more]")) {
+    ox.shown += 20;
+    drawOx();
+  }
 });
 
 // ---------- one story: data for the answers ----------

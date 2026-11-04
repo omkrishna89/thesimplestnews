@@ -26,7 +26,18 @@ export const T = {
     search: "खोजें",
     searchPh: "खबर खोजें, जैसे: कॉकरोच जनता पार्टी",
     searchTitle: (q) => `“${q}” की खबरें`,
-    noResults: (q, n) => `${n > 1 ? `पिछले ${n} दिनों में` : "आज"} “${q}” की कोई खबर नहीं मिली। दूसरे शब्द आज़माएं।`,
+    searching: "खोज रहे हैं…",
+    noResults: (q, n) => `${n > 1 ? `पिछले ${n} दिनों में` : "आज"} हमारी साइट पर “${q}” की कोई खबर नहीं मिली। दूसरे शब्द आज़माएं, या नीचे दूसरी वेबसाइटों की खबरें देखें।`,
+    trending: "ट्रेंडिंग",
+    ox: "दूसरी न्यूज़ वेबसाइटों पर",
+    oxWait: "दूसरी वेबसाइटों पर खोज रहे हैं… इसमें 10–20 सेकंड लग सकते हैं।",
+    oxFail: "दूसरी वेबसाइटों से अभी जवाब नहीं आया।",
+    oxNone: "दूसरी वेबसाइटों पर भी इसकी कोई खबर नहीं मिली।",
+    oxHindi: "दूसरी वेबसाइटों पर खोजने के लिए अंग्रेज़ी शब्द लिखें, जैसे: cockroach janta party",
+    oxMore: (n) => `और ${n} खबरें दिखाएं`,
+    oxCredit: (a) => `दूसरी वेबसाइटों की ये खबरें ${a} ने ढूंढीं। लिंक उन्हीं वेबसाइटों पर खुलते हैं।`,
+    retry: "फिर कोशिश करें",
+    googleNews: (q) => `“${q}” की सारी खबरें Google News पर देखें ↗`,
     coming: "छोटा सार जल्द आएगा",
     readAt: "पूरी खबर पढ़ें:",
     sources: "सभी स्रोत",
@@ -88,7 +99,18 @@ export const T = {
     search: "Search",
     searchPh: "Search news, e.g. cockroach janta party",
     searchTitle: (q) => `News about “${q}”`,
-    noResults: (q, n) => `No news about “${q}” ${n > 1 ? `in the last ${n} days` : "today"}. Try other words.`,
+    searching: "Searching…",
+    noResults: (q, n) => `No news about “${q}” on our site ${n > 1 ? `in the last ${n} days` : "today"}. Try other words, or see other websites below.`,
+    trending: "Trending",
+    ox: "On other news websites",
+    oxWait: "Looking on other news websites… this can take 10–20 seconds.",
+    oxFail: "Other news websites did not answer just now.",
+    oxNone: "No news about it on other websites either.",
+    oxHindi: "To search other websites, type English words, e.g. cockroach janta party",
+    oxMore: (n) => `Show ${n} more`,
+    oxCredit: (a) => `These stories from other websites were found by ${a}. Links open on those websites.`,
+    retry: "Try again",
+    googleNews: (q) => `See all news about “${q}” on Google News ↗`,
     coming: "Short summary coming soon",
     readAt: "Read the full story:",
     sources: "All sources",
@@ -145,6 +167,11 @@ export function slug(s = "") {
 // The file with the news about one company: "M&M" -> "m-m" (build and browser must agree)
 export const stockFile = (symbol) => String(symbol).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
+// The AI writes a story only in its first 36 hours; older stories stay as they are (headline + link), and
+// must not say "summary coming soon".
+export const AI_HOURS = 36;
+const young = (item, now = Date.now()) => !item.t || now - item.t * 1000 < AI_HOURS * 3600e3;
+
 export const TABS = ["local", "tehsil", "district", "state", "country", "world"];
 export const PLACE_TABS = new Set(["local", "tehsil", "district", "state"]);
 
@@ -180,7 +207,10 @@ export function thumb(url, w, h, proxy) {
 // Answers, as a list of 9 rows. Rows Gemini could not fill are left out to keep it short.
 export function qaHTML(item, lang) {
   const L = T[lang];
-  if (!item.q) return `<p class="qa__coming">${esc(L.coming)}${item.x ? `<span class="qa__snip">${esc(item.x)}</span>` : ""}</p>`;
+  if (!item.q) {
+    const snip = item.x ? `<span class="qa__snip">${esc(item.x)}</span>` : "";
+    return young(item) ? `<p class="qa__coming">${esc(L.coming)}${snip}</p>` : snip ? `<p class="qa__coming">${snip}</p>` : "";
+  }
   const NOT = lang === "hi" ? "जानकारी नहीं" : "Not mentioned";
   const rows = item.q
     .map((a, i) => (a && a !== NOT ? `<div class="qa__row"><dt>${L.q[i]}?</dt><dd>${esc(a)}</dd></div>` : ""))
@@ -196,7 +226,7 @@ export function itemHTML(item, lang, ctx) {
   const ext = done ? "" : ` target="_blank" rel="noopener nofollow"`;
   const img = item.img ? `<img class="it__img" src="${esc(thumb(item.img, 144, 144, ctx.proxy))}" data-full="${esc(item.img)}" alt="" loading="lazy" decoding="async" width="72" height="72">` : `<span class="it__img it__img--icon" aria-hidden="true">${ctx.icon(item.g?.[0])}</span>`;
   const big = item.big ? `<span class="badge badge--big">${L.big}</span>` : "";
-  const coming = done ? "" : `<span class="badge">${L.coming}</span>`;
+  const coming = done || !young(item, ctx.now) ? "" : `<span class="badge">${L.coming}</span>`;
   const place = item.pn ? `<span class="it__place">${esc(item.pn)}</span>` : "";
   const also = item.n ? `<span class="it__also">${esc(L.alsoN(item.n))}</span>` : "";
   return `<article class="it" data-id="${item.i}">

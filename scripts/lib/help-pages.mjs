@@ -71,6 +71,8 @@ export function HELP_PAGES(site) {
 </ul>
 <h2>आपकी पसंद</h2>
 <p>भाषा, लाइट/डार्क, और "आपकी पसंद" क्रम के लिए आपने कौन-सी खबरें खोलीं — यह सब सिर्फ़ आपके ब्राउज़र में रहता है।</p>
+<h2>खोज (Search)</h2>
+<p>आप जो शब्द खोजते हैं, उनसे हमारी अपनी खबरें आपके ब्राउज़र में ही खोजी जाती हैं। दूसरी न्यूज़ वेबसाइटों की खबरें दिखाने के लिए आपके खोजे गए अंग्रेज़ी शब्द GDELT Project (api.gdeltproject.org, एक मुफ़्त और खुला समाचार डेटाबेस) को भी भेजे जाते हैं; हर वेबसाइट की तरह वह आपका इंटरनेट पता (IP) देख सकता है। "Google News पर देखें" दबाने पर वही शब्द Google News पर खुलते हैं। हम आपकी खोजें अपने पास नहीं रखते।</p>
 <h2>फ़ोटो और वीडियो</h2>
 <p>खबरों की फ़ोटो मूल समाचार वेबसाइटों की हैं और छोटे आकार में wsrv.nl सेवा से लोड होती हैं। YouTube वीडियो आपके टैप करने पर ही youtube-nocookie.com से चलता है। वेबसाइट का फ़ॉन्ट (Mukta) Google Fonts से लोड होता है।</p>
 <h2>विज्ञापन (Google AdSense)</h2>
@@ -92,6 +94,8 @@ ${gaHi}<h2>होस्टिंग</h2>
 </ul>
 <h2>Your preferences</h2>
 <p>Your language, light/dark choice, and the stories you open (used for the "Relevant" order) stay only in your browser.</p>
+<h2>Search</h2>
+<p>The words you search for are looked up in our own news inside your browser. To show news from other news websites, your English search words are also sent to the GDELT Project (api.gdeltproject.org, a free and open news database); like any website, it can see your internet (IP) address. Tapping "See all news … on Google News" opens the same words on Google News. We don't keep your searches.</p>
 <h2>Photos and videos</h2>
 <p>Story photos belong to the original news websites and load in a small size through the wsrv.nl service. A YouTube video plays from youtube-nocookie.com only when you tap it. The website's font (Mukta) loads from Google Fonts.</p>
 <h2>Advertising (Google AdSense)</h2>

@@ -16,13 +16,16 @@ It costs nothing to run:
 
 | Feature | How it works |
 | --- | --- |
-| News from many websites | 403 free news feeds: national, world, 25 groups, 10 states and **277 districts** (UP, Bihar, MP, Rajasthan, Delhi, Haryana, Jharkhand, Uttarakhand, Chhattisgarh, Himachal). List: `config/sources.json` |
+| News from many websites | 410 free news feeds: national (NDTV, The Hindu, ThePrint, India Today, BBC Hindi, Aaj Tak…), world, 25 groups, 10 states and **277 districts** (UP, Bihar, MP, Rajasthan, Delhi, Haryana, Jharkhand, Uttarakhand, Chhattisgarh, Himachal). List: `config/sources.json` |
 | Shortest, simplest headline + 9 answers | Gemini reads the full article (only where the website's robots.txt allows) and writes both languages |
 | 25 groups | Local, Startups, AI, Movies, Good News, Road Accidents, Business, Cricket, Sports, Entertainment, Auto, Stock Market, Politics, Govt Schemes, Jobs & Results, Weather, Crime, Health, Education, Gold & Silver, Bank & Money, Farming & Mandi, Tech & Mobiles, Science & Space, Religion & Horoscope |
 | Group buttons | One line of buttons; **More ▾** shows all of them, **Less ▴** one line again. Tap one group, then more: the news of **all picked groups** shows together (tap again to remove one, **Home** = all news). The reader's picks are remembered on their phone |
 | A story's groups | The AI picks them. Before the AI has written a story, its news feed's group and clear words in the headline decide (सेंसेक्स, IPO → Stocks; सड़क हादसा → Road Accidents…). Words: `config/words.json` |
 | Stocks box | On Stock Market: type a stock name (Hindi or English, about 145 big companies suggested, e.g. Reliance = रिलायंस). Only news about those stocks shows, from Stock Market and Business. Remembered as the reader's watchlist |
 | Area tabs on every group | Local · Tehsil · District · State · Country · World. The reader's place comes from **GPS (one tap)**; without GPS it is guessed from their internet connection. A nearly empty tab shows a link like "See 94 stories in Country →" |
+| Search | The search box on Home (and 🔍 in the top bar of every page) looks through every story of the last 7 days, in both languages, with the same tabs, sort and day choices. Spellings are forgiven (janata = janta, bharatiya = bhartiya, हिन्दी = हिंदी, कॉकरोच = कोकरोच) and small typing mistakes too; rare words count most (a common word like "party" may be missing); short forms work both ways (Cockroach Janta Party = CJP). Code: `src/assets/js/search.js` |
+| Other news websites | Below our own search results: the same search on other news websites through the free **GDELT Project** (slow: 10–20 seconds; English words only), the topic's news links from Google Trends, and a **Google News** button with the same words |
+| 🔥 Trending | Under the Home search box: what India searches on Google right now (Google Trends' free feed, every 30 minutes; Hindi and English topics). One line; **More ▾** shows the rest. Tap a topic to search it |
 | Click a headline | 1st click: the 9 answers open right there (open as many as you like). 2nd click: the story's own page with **all sources** |
 | Hover 1 second (computer) / hold 1 second (phone) | A pop-up box with the whole story and all 9 answers |
 | Sort and day | Newest (default) · Big stories · Most important · Relevant (what this reader opens most) — and All days / Today / Yesterday / pick a day / pick dates (from … to) |
@@ -30,7 +33,7 @@ It costs nothing to run:
 | Gold & silver | Today's IBJA rates and 5-year charts, like on IFC knowledge |
 | Look | Dark by default, **Light** button next to हिंदी / English. The language follows the phone; the reader's choice is remembered |
 | Ads | Google AdSense spots on every page (banner, in the lists, beside the news, end of story) + Auto ads |
-| Stories kept | 7 days. Stories Gemini has not written yet show "summary coming soon" for 2 days |
+| Stories kept | 7 days, also the ones Gemini has not written (so the search finds a whole week). Gemini writes a story only in its first 36 hours; until then it shows "summary coming soon", after that just its headline and link |
 | Search engines | Sitemaps for Google and Bing; after every update the new story pages are sent to Bing, Yahoo, Yandex and others through **IndexNow**, so they appear within minutes |
 | Visitor statistics | Google Analytics, once its Measurement ID is in `config/site.json` (Step 9). It loads after the page, so reading is not slowed |
 

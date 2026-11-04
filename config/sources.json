@@ -158,6 +158,93 @@
    "level": "country"
   },
   {
+   "id": "feedburner-com-ndtvnews-india-news",
+   "every": 30,
+   "priority": 7,
+   "url": "https://feeds.feedburner.com/ndtvnews-india-news",
+   "source": {
+    "en": "NDTV",
+    "hi": "एनडीटीवी"
+   },
+   "lang": "en",
+   "level": "country"
+  },
+  {
+   "id": "feedburner-com-ndtvkhabar-latest",
+   "every": 30,
+   "priority": 7,
+   "url": "https://feeds.feedburner.com/ndtvkhabar-latest",
+   "source": {
+    "en": "NDTV India",
+    "hi": "एनडीटीवी इंडिया"
+   },
+   "lang": "hi",
+   "level": "country"
+  },
+  {
+   "id": "theprint-in-category-india-feed",
+   "every": 30,
+   "priority": 7,
+   "url": "https://theprint.in/category/india/feed/",
+   "source": {
+    "en": "ThePrint",
+    "hi": "दिप्रिंट"
+   },
+   "lang": "en",
+   "level": "country"
+  },
+  {
+   "id": "theprint-in-category-politics-feed",
+   "every": 60,
+   "priority": 6,
+   "url": "https://theprint.in/category/politics/feed/",
+   "source": {
+    "en": "ThePrint",
+    "hi": "दिप्रिंट"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "politics"
+   ]
+  },
+  {
+   "id": "rss-dw-com-rdf-rss-en-asia",
+   "every": 60,
+   "priority": 6,
+   "url": "https://rss.dw.com/rdf/rss-en-asia",
+   "source": {
+    "en": "DW",
+    "hi": "डीडब्ल्यू"
+   },
+   "lang": "en",
+   "level": "world"
+  },
+  {
+   "id": "thesouthfirst-com-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://thesouthfirst.com/feed/",
+   "source": {
+    "en": "The South First",
+    "hi": "द साउथ फर्स्ट"
+   },
+   "lang": "en",
+   "level": "country"
+  },
+  {
+   "id": "siasat-com-feed",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.siasat.com/feed/",
+   "source": {
+    "en": "The Siasat Daily",
+    "hi": "सियासत"
+   },
+   "lang": "en",
+   "level": "country"
+  },
+  {
    "id": "indiatoday-in-rss-home",
    "every": 30,
    "priority": 7,
