@@ -98,8 +98,9 @@ GitHub's own timer often starts hours late, or not at all. A free outside timer 
 2. **The timer:** sign up at <https://console.cron-job.org/signup> → **CREATE CRONJOB**
    - COMMON: Title `The Simplest News update` · URL
      `https://api.github.com/repos/omkrishna89/thesimplestnews/actions/workflows/update.yml/dispatches` · Schedule **Every 30 minutes**
-   - ADVANCED: Request method **POST** · Headers `Accept` = `application/vnd.github+json`, `Authorization` = `Bearer github_pat_…` (your key),
-     `X-GitHub-Api-Version` = `2022-11-28` · Request body `{"ref":"main"}`
+   - ADVANCED: Request method **POST** · Headers `Accept` = `application/vnd.github+json` and `Authorization` = `Bearer github_pat_…` (your key)
+     · Request body `{"ref":"main"}`. (No `X-GitHub-Api-Version` header: GitHub then uses its current default version, so the timer
+     keeps working when an old version is switched off — version 2022-11-28 announces its end for 10 March 2028.)
    - **TEST RUN** → it should answer **204**; then **CREATE**. A new **Update news** run appears on the Actions tab.
 3. If the key ever expires, make a new one (point 1) and paste it into the `Authorization` header.
 
