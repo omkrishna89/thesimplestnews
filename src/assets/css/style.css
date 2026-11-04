@@ -79,7 +79,17 @@ b, strong { font-weight: 600; }
 .hd__loc > span:not([aria-hidden]) { overflow: hidden; text-overflow: ellipsis; }
 .hd__loc.is-approx { border-style: dashed; color: var(--muted); }
 .hd__loc.is-busy { opacity: .6; }
-.hd__loc:hover, .theme:hover { border-color: var(--accent); }
+.hd__loc:hover, .theme:hover, .hd__search:hover { border-color: var(--accent); }
+/* 🔍 in the top bar */
+.hd__search { flex: none; display: inline-grid; place-items: center; width: 32px; height: 30px; border: 1px solid var(--line); background: var(--card-2); color: var(--text); border-radius: 999px; text-decoration: none; }
+/* the search box */
+.srch { display: flex; align-items: center; gap: 8px; margin: 10px 0 2px; background: var(--card-2); border: 1px solid var(--line); border-radius: 12px; padding: 4px 4px 4px 12px; }
+.srch[hidden] { display: none; }
+.srch:focus-within { border-color: var(--accent); }
+.srch__icon { display: inline-flex; color: var(--muted); }
+.srch__in { flex: 1; min-width: 0; border: 0; background: none; color: var(--text); font: inherit; font-size: 1rem; padding: 6px 0; outline: none; }
+.srch__in::placeholder { color: var(--muted); }
+.srch__go { flex: none; border: 0; border-radius: 9px; background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 600; font-size: .92rem; padding: 6px 14px; cursor: pointer; }
 @media (max-width: 760px) {
   .loc__full { display: none; }
   .loc__short { display: inline; }
@@ -101,10 +111,14 @@ b, strong { font-weight: 600; }
   .theme, .hd__loc { padding: 4px 9px; }
 }
 @media (max-width: 370px) {
-  .hd__in { gap: 5px; padding: 7px 8px; }
-  .logo img { width: 24px; height: 24px; }
-  .logo__t { font-size: .92rem; }
-  .seg button, .theme, .hd__loc { padding: 4px 7px; }
+  .hd__in { gap: 4px; padding: 7px 8px; }
+  .hd__tools { gap: 4px; }
+  .logo { gap: 5px; }
+  .logo img { width: 22px; height: 22px; }
+  .logo__t { font-size: .86rem; }
+  .seg button, .theme { padding: 4px 6px; }
+  .hd__loc { padding: 4px 7px; }
+  .hd__search { width: 28px; height: 28px; }
 }
 
 /* group buttons: all of them, on rows (no sideways scrolling) */

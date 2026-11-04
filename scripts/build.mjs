@@ -186,6 +186,26 @@ for (const lang of ["hi", "en"]) {
   }
 }
 index.span = Math.min(site.keepDays || 7, new Set(items.map((it) => it.day)).size);
+
+// Search: every story of a day in a small form (data/<lang>/search/<day>.json). "s" = the extra words to search in:
+// the other language's headline and both "what happened" answers (or the feed's own short text). The 9 answers
+// themselves are not in it; the browser fetches them from the story's list when a result is opened ("k" = written).
+index.days.search = [...new Set(items.map((it) => it.day))].sort().reverse();
+for (const day of index.days.search) {
+  const ofDay = items.filter((it) => it.day === day);
+  for (const lang of ["hi", "en"]) {
+    const other = lang === "hi" ? "en" : "hi";
+    const out = ofDay
+      .filter((it) => it.ok || it.s.l === lang)
+      .map((it) => {
+        const { q, x, u, ...v } = it[lang];
+        // kept small for phones: a written story's link is its own page, so no original link (u) here
+        const s = (it.ok ? [it[other].h, q?.[0], it[other].q?.[0]].filter(Boolean).join(" ").slice(0, 300) : (x || "").slice(0, 80)).replace(/\s+/g, " ");
+        return { ...v, ...(it.ok ? { k: 1 } : { u }), s };
+      });
+    writeJSON(`data/${lang}/search/${day}.json`, out);
+  }
+}
 writeJSON("data/index.json", index);
 writeJSON("data/places.json", placesForBrowser(db.names));
 writeJSON("data/stocks.json", config("stocks.json")?.list || []); // names for the Stocks box

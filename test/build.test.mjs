@@ -52,6 +52,15 @@ test("the website builds and has the key pages", () => {
   assert.equal(idx.stocks.hi.RELIANCE, 1);
   assert.equal(idx.stocks.en.RELIANCE, undefined, "a Hindi story without its summary yet is not in the English files");
   assert.ok(idx.span >= 1, "how many days of news the site has");
+  // search: every story of the day in a small form; a written story carries "k" and the other language's words
+  assert.ok(idx.days.search.includes(day));
+  const sHi = JSON.parse(read(`data/hi/search/${day}.json`));
+  assert.deepEqual(sHi.map((s) => s.i).sort(), ["aaa111", "bbb222", "ccc333", "ddd444"]);
+  const written = sHi.find((s) => s.i === "aaa111");
+  assert.equal(written.k, 1);
+  assert.equal(written.q, undefined, "no answers in the search file (they load when a result is opened)");
+  assert.match(written.s, /English headline/, "an English search also finds the Hindi version");
+  assert.deepEqual(JSON.parse(read(`data/en/search/${day}.json`)).map((s) => s.i), ["aaa111"], "English: only stories that have English");
   assert.ok(idx.days["s-up/stock-market"], "a headline with सेंसेक्स puts the story into Stock Market before the AI has written it");
   assert.deepEqual(JSON.parse(read(`data/hi/s-up/stock-market/${day}.json`)).map((s) => s.i), ["ccc333"]);
   assert.ok(JSON.parse(read("data/stocks.json")).some((s) => s.s === "RELIANCE"), "names for the Stocks box");
