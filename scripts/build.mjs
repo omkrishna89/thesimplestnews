@@ -10,9 +10,9 @@ import { makePages } from "./lib/pages.mjs";
 import { STATES, placesForBrowser } from "./lib/places.mjs";
 import { ROOT, config, log } from "./lib/util.mjs";
 import { metalsBox, videosStrip } from "./lib/widgets.mjs";
-import { istDay } from "../src/assets/js/ui.js";
+import { istDay, stockFile } from "../src/assets/js/ui.js";
 import { HELP_PAGES } from "./lib/help-pages.mjs";
-import { groupsFromWords } from "./lib/words.mjs";
+import { groupsFromWords, wordTest } from "./lib/words.mjs";
 
 const OUT = path.resolve(ROOT, process.env.OUT_DIR || "_site");
 const site = config("site.json");
@@ -161,6 +161,49 @@ for (const [key, days] of lists) {
       writeJSON(`data/${lang}/${key}/${day}.json`, out);
       index.n[lang][key].push(out.length);
     }
+  }
+}
+// The Stocks box: every story that mentions a listed company (any group, India or world), one small file per
+// company, so a phone loads only the news about the reader's own stocks. index.stocks[lang][SYMBOL] = how many.
+// index.span = how many days of news the site has (at most 7), for "No news about TCS in the last 3 days".
+const STOCKS = config("stocks.json")?.list || [];
+const anyStock = wordTest(STOCKS.flatMap((s) => s.k), { names: true }); // quick first look, then company by company
+const stockTests = STOCKS.map((s) => [s.s, wordTest(s.k, { names: true })]);
+index.stocks = {};
+for (const lang of ["hi", "en"]) {
+  const found = new Map();
+  for (const it of items) {
+    if (!(it.ok || it.s.l === lang)) continue;
+    const v = it[lang];
+    const text = [v.h, v.x || "", ...(v.q || [])].join(" \n ");
+    if (!anyStock?.(text)) continue;
+    for (const [sym, test] of stockTests) if (test?.(text)) (found.get(sym) || found.set(sym, []).get(sym)).push(v);
+  }
+  index.stocks[lang] = {};
+  for (const [sym, arr] of found) {
+    writeJSON(`data/${lang}/stock/${stockFile(sym)}.json`, arr.slice(0, 100));
+    index.stocks[lang][sym] = Math.min(arr.length, 100);
+  }
+}
+index.span = Math.min(site.keepDays || 7, new Set(items.map((it) => it.day)).size);
+
+// Search: every story of a day in a small form (data/<lang>/search/<day>.json). "s" = the extra words to search in:
+// the other language's headline and both "what happened" answers (or the feed's own short text). The 9 answers
+// themselves are not in it; the browser fetches them from the story's list when a result is opened ("k" = written).
+index.days.search = [...new Set(items.map((it) => it.day))].sort().reverse();
+for (const day of index.days.search) {
+  const ofDay = items.filter((it) => it.day === day);
+  for (const lang of ["hi", "en"]) {
+    const other = lang === "hi" ? "en" : "hi";
+    const out = ofDay
+      .filter((it) => it.ok || it.s.l === lang)
+      .map((it) => {
+        const { q, x, u, ...v } = it[lang];
+        // kept small for phones: a written story's link is its own page, so no original link (u) here
+        const s = (it.ok ? [it[other].h, q?.[0], it[other].q?.[0]].filter(Boolean).join(" ").slice(0, 300) : (x || "").slice(0, 80)).replace(/\s+/g, " ");
+        return { ...v, ...(it.ok ? { k: 1 } : { u }), s };
+      });
+    writeJSON(`data/${lang}/search/${day}.json`, out);
   }
 }
 writeJSON("data/index.json", index);

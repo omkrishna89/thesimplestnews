@@ -18,6 +18,7 @@ test("the website builds and has the key pages", () => {
       story("aaa111", { s: "ok", a: { hi: { h: "हिंदी शीर्षक", q: nine("जवाब") }, en: { h: "English headline", q: nine("answer") }, g: ["cricket"], good: false, imp: 8, scope: "country", place: { country: "India", state: "Uttar Pradesh", district: "Barabanki", local: "Zaidpur", local_hi: "जैदपुर" }, at: now - 60e3 }, loc: { c: "in", s: "up", d: "barabanki", l: "zaidpur" }, sc: "country" }),
       story("bbb222"),
       story("ccc333", { t: "सेंसेक्स 500 अंक चढ़ा, निफ्टी भी उछला" }),
+      story("ddd444", { t: "रिलायंस के शेयर 3% चढ़े, टीसीएस में गिरावट" }),
     ],
   };
   fs.mkdirSync(path.join(tmp, "data"));
@@ -42,9 +43,24 @@ test("the website builds and has the key pages", () => {
   const day = idx.days["d/up/barabanki"][0];
   const hi = JSON.parse(read(`data/hi/d/up/barabanki/${day}.json`));
   const en = JSON.parse(read(`data/en/d/up/barabanki/${day}.json`));
-  assert.equal(hi.length, 3, "Hindi list: all stories");
+  assert.equal(hi.length, 4, "Hindi list: all stories");
   assert.equal(en.length, 1, "English list: only the summarized one (the others are Hindi stories without their summary yet)");
-  assert.deepEqual(idx.n.hi["d/up/barabanki"], [3], "story counts per day, for 'See N stories in …'");
+  assert.deepEqual(idx.n.hi["d/up/barabanki"], [4], "story counts per day, for 'See N stories in …'");
+  // the Stocks box: one file per company, found from any group
+  assert.deepEqual(JSON.parse(read("data/hi/stock/reliance.json")).map((s) => s.i), ["ddd444"]);
+  assert.deepEqual(JSON.parse(read("data/hi/stock/tcs.json")).map((s) => s.i), ["ddd444"]);
+  assert.equal(idx.stocks.hi.RELIANCE, 1);
+  assert.equal(idx.stocks.en.RELIANCE, undefined, "a Hindi story without its summary yet is not in the English files");
+  assert.ok(idx.span >= 1, "how many days of news the site has");
+  // search: every story of the day in a small form; a written story carries "k" and the other language's words
+  assert.ok(idx.days.search.includes(day));
+  const sHi = JSON.parse(read(`data/hi/search/${day}.json`));
+  assert.deepEqual(sHi.map((s) => s.i).sort(), ["aaa111", "bbb222", "ccc333", "ddd444"]);
+  const written = sHi.find((s) => s.i === "aaa111");
+  assert.equal(written.k, 1);
+  assert.equal(written.q, undefined, "no answers in the search file (they load when a result is opened)");
+  assert.match(written.s, /English headline/, "an English search also finds the Hindi version");
+  assert.deepEqual(JSON.parse(read(`data/en/search/${day}.json`)).map((s) => s.i), ["aaa111"], "English: only stories that have English");
   assert.ok(idx.days["s-up/stock-market"], "a headline with सेंसेक्स puts the story into Stock Market before the AI has written it");
   assert.deepEqual(JSON.parse(read(`data/hi/s-up/stock-market/${day}.json`)).map((s) => s.i), ["ccc333"]);
   assert.ok(JSON.parse(read("data/stocks.json")).some((s) => s.s === "RELIANCE"), "names for the Stocks box");

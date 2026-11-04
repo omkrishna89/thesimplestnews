@@ -22,6 +22,11 @@ export const T = {
     stockRemove: "हटाएं",
     stockOnly: "सिर्फ़ इन शेयरों की खबरें:",
     noStockNews: "इन शेयरों की कोई खबर अभी नहीं मिली। और नाम जोड़ें या बाद में देखें।",
+    noStockNewsDays: (names, n) => `${n > 1 ? `पिछले ${n} दिनों में` : "आज"} ${names} की कोई खबर नहीं मिली। जैसे ही कोई खबर आएगी, यहां दिखेगी।`,
+    search: "खोजें",
+    searchPh: "खबर खोजें, जैसे: कॉकरोच जनता पार्टी",
+    searchTitle: (q) => `“${q}” की खबरें`,
+    noResults: (q, n) => `${n > 1 ? `पिछले ${n} दिनों में` : "आज"} “${q}” की कोई खबर नहीं मिली। दूसरे शब्द आज़माएं।`,
     coming: "छोटा सार जल्द आएगा",
     readAt: "पूरी खबर पढ़ें:",
     sources: "सभी स्रोत",
@@ -79,6 +84,11 @@ export const T = {
     stockRemove: "Remove",
     stockOnly: "Only news about:",
     noStockNews: "No news about these stocks yet. Add more names or check again later.",
+    noStockNewsDays: (names, n) => `No news about ${names} ${n > 1 ? `in the last ${n} days` : "today"}. It will show here as soon as there is some.`,
+    search: "Search",
+    searchPh: "Search news, e.g. cockroach janta party",
+    searchTitle: (q) => `News about “${q}”`,
+    noResults: (q, n) => `No news about “${q}” ${n > 1 ? `in the last ${n} days` : "today"}. Try other words.`,
     coming: "Short summary coming soon",
     readAt: "Read the full story:",
     sources: "All sources",
@@ -132,6 +142,9 @@ export function slug(s = "") {
     .replace(/^-+|-+$/g, "");
 }
 
+// The file with the news about one company: "M&M" -> "m-m" (build and browser must agree)
+export const stockFile = (symbol) => String(symbol).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
 export const TABS = ["local", "tehsil", "district", "state", "country", "world"];
 export const PLACE_TABS = new Set(["local", "tehsil", "district", "state"]);
 
@@ -178,11 +191,12 @@ export function qaHTML(item, lang) {
 // One story in a list. `href` = our story page (or the original website when Gemini hasn't written it yet).
 export function itemHTML(item, lang, ctx) {
   const L = T[lang];
-  const href = item.q ? `${ctx.base}/story/${item.i}/` : item.u;
-  const ext = item.q ? "" : ` target="_blank" rel="noopener nofollow"`;
+  const done = !!(item.q || item.k); // k: written by the AI (search results carry the answers separately)
+  const href = done ? `${ctx.base}/story/${item.i}/` : item.u;
+  const ext = done ? "" : ` target="_blank" rel="noopener nofollow"`;
   const img = item.img ? `<img class="it__img" src="${esc(thumb(item.img, 144, 144, ctx.proxy))}" data-full="${esc(item.img)}" alt="" loading="lazy" decoding="async" width="72" height="72">` : `<span class="it__img it__img--icon" aria-hidden="true">${ctx.icon(item.g?.[0])}</span>`;
   const big = item.big ? `<span class="badge badge--big">${L.big}</span>` : "";
-  const coming = item.q ? "" : `<span class="badge">${L.coming}</span>`;
+  const coming = done ? "" : `<span class="badge">${L.coming}</span>`;
   const place = item.pn ? `<span class="it__place">${esc(item.pn)}</span>` : "";
   const also = item.n ? `<span class="it__also">${esc(L.alsoN(item.n))}</span>` : "";
   return `<article class="it" data-id="${item.i}">

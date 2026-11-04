@@ -76,6 +76,7 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
 <div class="hd__in">
 <a class="logo" href="${url("/")}" aria-label="${esc(site.name.en)}"><img src="${url("/assets/img/icon.svg")}" alt="" width="30" height="30"><span class="logo__t">The Simplest <b>News</b></span></a>
 <div class="hd__tools">
+<a class="hd__search" href="${url("/?s=1")}" data-search-open aria-label="खोजें · Search" title="खोजें · Search"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></a>
 <div class="seg" role="group" aria-label="भाषा · Language"><button type="button" data-set-lang="hi" lang="hi">हिंदी</button><button type="button" data-set-lang="en" lang="en"><span class="lg">English</span><span class="sm">EN</span></button></div>
 <button type="button" class="theme" data-toggle-theme aria-label="Light / Dark"><span class="theme--to-light">☀︎<span class="lg"> ${biT("light")}</span></span><span class="theme--to-dark">☾<span class="lg"> ${biT("dark")}</span></span></button>
 <button type="button" class="hd__loc" data-loc-chip hidden><span aria-hidden="true">📍</span><span class="loc__short" data-loc-short></span><span class="loc__full" data-loc-full></span></button>

@@ -1,5 +1,5 @@
 // The Simplest News — everything that happens in the browser. Small and without frameworks, so it stays fast.
-import { T, PLACE_TABS, ago, esc, istDay, itemHTML, qaHTML, slug, thumb } from "./ui.js";
+import { T, PLACE_TABS, ago, esc, istDay, itemHTML, qaHTML, slug, stockFile, thumb } from "./ui.js";
 
 const D = document;
 const H = D.documentElement;
@@ -45,6 +45,7 @@ function setLang(l) {
   else seeMore();
   showPlace();
   drawWatch();
+  searchBox();
 }
 $$("[data-set-lang]").forEach((b) => {
   b.setAttribute("aria-pressed", String(b.dataset.setLang === lang));
@@ -203,7 +204,7 @@ async function showPlace() {
 }
 
 // ---------- lists: which stories, in what order ----------
-const list = { ready: false, dynamic: false, tab: view?.tab, groups: [], sort: store.get("sort", "newest"), day: "all", date: "", from: "", to: "", keys: [], loaded: [], ids: new Set(), days: [], next: 0, shown: 30, items: [] };
+const list = { ready: false, dynamic: false, tab: view?.tab, groups: [], q: "", qWords: [], sort: store.get("sort", "newest"), day: "all", date: "", from: "", to: "", keys: [], loaded: [], ids: new Set(), days: [], next: 0, shown: 30, items: [] };
 const LOCAL_SCOPES = ["local", "tehsil", "district"];
 const PLACE_KEY_TABS = new Set(["district", "tehsil", "local"]); // these tabs read the district's list and filter it here
 
@@ -213,13 +214,29 @@ const GROUP_OK = new Set(chipEls.map((a) => a.dataset.g).filter((g) => g !== "al
 const cleanGroups = (arr) => [...new Set((Array.isArray(arr) ? arr : []).filter((g) => GROUP_OK.has(g)))];
 const pageGroups = view?.group && view.group !== "all" ? [view.group] : [];
 {
-  const fromUrl = new URLSearchParams(location.search).get("g");
+  const params = new URLSearchParams(location.search);
+  const fromUrl = params.get("g");
   list.groups = fromUrl !== null ? cleanGroups(fromUrl.split(",")) : view?.group === "all" ? cleanGroups(store.get("groups", [])) : pageGroups;
+  // a search address: /?q=cockroach%20janta%20party
+  const q = (params.get("q") || "").trim().slice(0, 80);
+  if (q && view?.tab) {
+    list.groupsBefore = list.groups;
+    list.groups = [];
+    list.q = q;
+  }
 }
 
 // The Stocks box: the reader's own stocks, e.g. [{ s: "RELIANCE" }, { t: "Suzlon" }] (kept only on this phone)
 let watch = store.get("stocks", []).filter((w) => w && (w.s || w.t));
-const watching = () => list.groups.length === 1 && list.groups[0] === "stock-market" && watch.length > 0;
+const watching = () => !list.q && list.groups.length === 1 && list.groups[0] === "stock-market" && watch.length > 0;
+// Search (the box on Home, or 🔍 in the top bar): every story of the last days, by words in its headline and summary
+const searching = () => !!list.q;
+const fold = (s) => String(s || "").toLowerCase().normalize("NFC");
+const queryWords = (q) => fold(q).split(/[\s,.;:!?"“”'‘’()]+/).filter((w) => w.length > 1 || /[^\x00-\x7f]/.test(w));
+function matchesQuery(it) {
+  it._s ??= fold(`${it.h} ${it.s || ""} ${it.pn || ""}`);
+  return list.qWords.length > 0 && list.qWords.every((w) => it._s.includes(w));
+}
 // company news is often in Business, so the Stocks box looks there too
 const loadGroups = () => (watching() ? ["stock-market", "business"] : list.groups);
 
@@ -231,6 +248,7 @@ function keyFor(tab, group) {
   return loc.d ? `d/${loc.s}/${loc.d}` : null;
 }
 function keysFor(tab) {
+  if (searching()) return ["search"]; // data/<lang>/search/<day>.json: all stories of a day
   if (PLACE_KEY_TABS.has(tab)) {
     const k = keyFor(tab, "all");
     return k ? [k] : [];
@@ -243,14 +261,54 @@ const inGroups = (it) => {
   return !gs.length || gs.some((g) => (g === "local" ? LOCAL_SCOPES.includes(it.sc) : it.g?.includes(g)));
 };
 
+// Search results by tab: World = news from outside India, Country = all of India, State/District/… = the reader's area
+function inTab(it, tab) {
+  if (tab === "world") return it.sc === "world";
+  if (tab === "country") return it.sc !== "world";
+  if (!loc || loc.c !== "in" || it.p[0] !== loc.s) return false;
+  if (tab === "state") return true;
+  if (it.p[1] !== loc.d) return false;
+  if (tab === "district") return true;
+  if (tab === "tehsil") return !!loc.t && (it.p[2] === loc.t || it.p[3] === loc.t);
+  return !!it.p[3] && (it.p[3] === loc.l || it.p[3] === loc.t || it.p[2] === loc.l);
+}
+
 function keep(it) {
   const { tab } = list;
-  if (PLACE_KEY_TABS.has(tab)) {
+  if (searching()) return matchesQuery(it) && inTab(it, tab);
+  if (watching()) {
+    // the reader's own stocks: news from every group; Country and World both show India + world news,
+    // the place tabs only news from the reader's state / district
+    if (!dayWanted(istDay(it.t * 1000))) return false;
+    if (PLACE_TABS.has(tab) && !(loc?.c === "in" && it.p[0] === loc.s)) return false;
+    if (PLACE_KEY_TABS.has(tab) && it.p[1] !== loc.d) return false;
+  } else if (PLACE_KEY_TABS.has(tab)) {
     if (!inGroups(it)) return false;
-    if (tab === "tehsil" && !(loc.t && (it.p[2] === loc.t || it.p[3] === loc.t))) return false;
-    if (tab === "local" && !(it.p[3] && (it.p[3] === loc.l || it.p[3] === loc.t || it.p[2] === loc.l))) return false;
   }
+  if (tab === "tehsil" && PLACE_KEY_TABS.has(tab) && !(loc.t && (it.p[2] === loc.t || it.p[3] === loc.t))) return false;
+  if (tab === "local" && !(it.p[3] && (it.p[3] === loc.l || it.p[3] === loc.t || it.p[2] === loc.l))) return false;
   return !watching() || matchesWatch(it);
+}
+
+// All news about the reader's stocks at once: one small file per listed company (made by the build), and for names
+// typed by the reader that aren't in the list, the day files of all groups, India and world.
+const WIDE = ["all", "stock-market", "business", "tech", "ai", "startup", "money", "auto", "jobs"];
+async function loadWatch() {
+  const idx = await index();
+  Object.assign(list, { keys: [], loaded: [], ids: new Set(), next: 0, days: [] });
+  if (!idx) return;
+  const have = idx.stocks?.[lang] || {};
+  const jobs = watch.filter((w) => w.s && have[w.s]).map((w) => getJSON(`/data/${lang}/stock/${stockFile(w.s)}.json`));
+  if (watch.some((w) => !w.s)) {
+    for (const k of WIDE.flatMap((g) => [`in/${g}`, `world/${g}`])) for (const d of (idx.days[k] || []).filter(dayWanted)) jobs.push(getJSON(`/data/${lang}/${k}/${d}.json`));
+  }
+  for (const f of await Promise.all(jobs)) {
+    for (const it of f || []) {
+      if (list.ids.has(it.i)) continue;
+      list.ids.add(it.i);
+      list.loaded.push(it);
+    }
+  }
 }
 
 // Stock names must stand on their own ("Tata" is not found inside "Tatanagar").
@@ -262,7 +320,8 @@ function wordTests(words) {
   const loose = words.filter((w) => !exact.includes(w));
   const mk = (ws, flags) => {
     try {
-      return new RegExp(`(?:^|${EDGE})(?:${ws.join("|")})(?=$|${EDGE})`, flags);
+      // in front: not a letter, digit or hyphen ("self-reliance" is not Reliance); after: not a letter or digit
+      return new RegExp(`(?:^|[^\\p{L}\\p{M}\\p{N}-])(?:${ws.join("|")})(?=$|${EDGE})`, flags);
     } catch {
       return null;
     }
@@ -344,7 +403,8 @@ async function loadDays() {
   // For the reader's own stocks: older days too, until enough news about them is found.
   await loadMore(1);
   const want = watching() ? 15 : 40;
-  while (list.loaded.filter(keep).length < want && list.next < list.days.length && (watching() || list.next < 2)) await loadMore(1);
+  // a search keeps reading older days until it has a page of results
+  while (list.loaded.filter(keep).length < (searching() ? 30 : want) && list.next < list.days.length && (watching() || searching() || list.next < 2)) await loadMore(1);
 }
 
 async function loadMore(n = 1) {
@@ -366,7 +426,9 @@ async function loadMore(n = 1) {
 
 function emptyText() {
   if (!loc && PLACE_TABS.has(list.tab)) return T[lang].finding;
-  if (watching()) return T[lang].noStockNews;
+  if (searching()) return T[lang].noResults(list.q, list.span || 1);
+  // "No news about TCS in the last 3 days."
+  if (watching()) return list.watchNames && list.span ? T[lang].noStockNewsDays(list.watchNames, list.span) : T[lang].noStockNews;
   if (list.tab === "local") return T[lang].emptyLocal;
   return T[lang].empty;
 }
@@ -428,8 +490,21 @@ async function loadAndRender() {
     await guessFromInternet();
     showPlace();
   }
-  watchTests = watching() ? wordTests((await watchEntries()).flatMap((w) => w.k)) : [];
-  await loadDays();
+  if (searching()) {
+    list.qWords = queryWords(list.q);
+    list.span = (await index())?.span || 0;
+    watchTests = [];
+    await loadDays();
+  } else if (watching()) {
+    const entries = await watchEntries();
+    watchTests = wordTests(entries.flatMap((w) => w.k));
+    list.watchNames = entries.map((w) => (lang === "hi" ? w.hi || w.en : w.en || w.hi)).join(", ");
+    list.span = (await index())?.span || 0;
+    await loadWatch();
+  } else {
+    watchTests = [];
+    await loadDays();
+  }
   if (my !== gen) return;
   list.items = order(list.loaded.filter(keep));
   list.shown = 30;
@@ -452,15 +527,21 @@ async function seeMore() {
   el.hidden = true;
   if (!list.ready || watching() || list.items.length >= 5 || list.next < list.days.length) return;
   if (PLACE_TABS.has(list.tab) && !loc) return;
-  const idx = await index();
-  const n = idx?.n?.[lang];
-  if (!n) return;
-  const gs = list.groups.length ? list.groups : ["all"];
-  const count = (tab) =>
-    gs
-      .map((g) => keyFor(tab, g))
-      .filter(Boolean)
-      .reduce((sum, k) => sum + (idx.days[k] || []).reduce((s, d, i) => s + (dayWanted(d) ? n[k]?.[i] || 0 : 0), 0), 0);
+  let count;
+  if (searching()) {
+    // the search results of the other tabs are already here
+    count = (tab) => list.loaded.filter((it) => matchesQuery(it) && inTab(it, tab)).length;
+  } else {
+    const idx = await index();
+    const n = idx?.n?.[lang];
+    if (!n) return;
+    const gs = list.groups.length ? list.groups : ["all"];
+    count = (tab) =>
+      gs
+        .map((g) => keyFor(tab, g))
+        .filter(Boolean)
+        .reduce((sum, k) => sum + (idx.days[k] || []).reduce((s, d, i) => s + (dayWanted(d) ? n[k]?.[i] || 0 : 0), 0), 0);
+  }
   let best = null;
   for (const tab of ["state", "country", "world"]) {
     if (tab === list.tab || (tab === "state" && loc?.c !== "in")) continue;
@@ -469,7 +550,7 @@ async function seeMore() {
   }
   if (!best) return;
   el.lang = lang;
-  el.innerHTML = `<a href="${esc(pagePath(list.groups, best.tab))}" data-tab-link="${best.tab}">${esc(T[lang].seeMore(best.c, T[lang].tabs[best.tab]))}</a>`;
+  el.innerHTML = `<a href="${esc(pathFor(best.tab))}" data-tab-link="${best.tab}">${esc(T[lang].seeMore(best.c, T[lang].tabs[best.tab]))}</a>`;
   el.hidden = false;
 }
 D.addEventListener("click", (e) => {
@@ -582,7 +663,7 @@ function setTab(tab, push = true) {
     t.classList.toggle("is-on", on);
     on ? t.setAttribute("aria-current", "page") : t.removeAttribute("aria-current");
   });
-  if (push) history.pushState({ tab, groups: list.groups }, "", pagePath(list.groups, tab));
+  if (push) history.pushState({ tab, groups: list.groups, q: list.q }, "", pathFor(tab));
   loadAndRender();
 }
 $$(".tab").forEach((t) =>
@@ -596,6 +677,7 @@ addEventListener("popstate", (e) => {
   if (!e.state?.tab) return;
   if (Array.isArray(e.state.groups)) {
     list.groups = cleanGroups(e.state.groups);
+    list.q = e.state.q || "";
     showGroups();
   }
   setTab(e.state.tab, false);
@@ -616,23 +698,28 @@ function showGroups() {
     a.setAttribute("aria-pressed", String(pressed));
     a.removeAttribute("aria-current");
   }
-  // the heading: "🏏 Cricket + 💼 Business"
-  const same = list.groups.join() === pageGroups.join();
+  // the heading: "🏏 Cricket + 💼 Business", or "🔍 News about “…”" for a search
+  const same = !searching() && list.groups.join() === pageGroups.join();
   const h1 = $(".pagehead h1");
   if (h1) {
     h1.dataset.orig ??= h1.innerHTML;
-    h1.innerHTML = same
-      ? h1.dataset.orig
-      : list.groups.length
-        ? list.groups.map(chipLabel).join(" + ")
-        : `<span class="l-hi" lang="hi">${esc(T.hi.all)}</span><span class="l-en" lang="en">${esc(T.en.all)}</span>`;
+    h1.innerHTML = searching()
+      ? `🔍 <span class="l-hi" lang="hi">${esc(T.hi.searchTitle(list.q))}</span><span class="l-en" lang="en">${esc(T.en.searchTitle(list.q))}</span>`
+      : same
+        ? h1.dataset.orig
+        : list.groups.length
+          ? list.groups.map(chipLabel).join(" + ")
+          : `<span class="l-hi" lang="hi">${esc(T.hi.all)}</span><span class="l-en" lang="en">${esc(T.en.all)}</span>`;
   }
   const about = $(".pagehead__about");
   if (about) about.hidden = !same;
-  $$(".tab").forEach((t) => t.setAttribute("href", pagePath(list.groups, t.dataset.tab)));
+  $$(".tab").forEach((t) => t.setAttribute("href", pathFor(t.dataset.tab)));
   stockBox();
+  searchBox();
   fitGroups();
 }
+// the address of a list, or of a search: /?q=cockroach%20janta%20party
+const pathFor = (tab) => (searching() ? `${pagePath([], tab)}?q=${encodeURIComponent(list.q)}` : pagePath(list.groups, tab));
 if (view?.tab) {
   for (const a of chipEls) {
     a.setAttribute("role", "button");
@@ -640,6 +727,12 @@ if (view?.tab) {
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
       e.preventDefault();
       const g = a.dataset.g;
+      if (searching()) {
+        // a group button during a search: leave the search and show that group
+        list.q = "";
+        list.groupsBefore = null;
+        list.groups = [];
+      }
       list.groups = g === "all" ? [] : list.groups.includes(g) ? list.groups.filter((x) => x !== g) : [...list.groups, g];
       store.set("groups", list.groups);
       showGroups();
@@ -796,22 +889,83 @@ function wireStockBox(box) {
   D.addEventListener("click", (e) => !box.contains(e.target) && close());
 }
 
+// ---------- the search box (always on Home; on other pages after 🔍 in the top bar) ----------
+function searchBox(show = false) {
+  if (!view?.tab) return null;
+  let box = $("[data-search]");
+  if (!box) {
+    box = D.createElement("form");
+    box.className = "srch";
+    box.dataset.search = "";
+    box.setAttribute("role", "search");
+    box.innerHTML = `<span class="srch__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="17" height="17"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span><input type="search" name="q" class="srch__in" data-search-in autocomplete="off" enterkeyhint="search" maxlength="80"><button type="submit" class="srch__go" data-search-go></button>`;
+    const head = $(".pagehead");
+    if (head) head.after(box);
+    else ($(".tabs") || $("[data-lists]"))?.before(box);
+    box.addEventListener("submit", (e) => {
+      e.preventDefault();
+      runSearch($("[data-search-in]", box).value);
+    });
+    // the ✕ inside the box (or an emptied box) ends the search
+    $("[data-search-in]", box).addEventListener("search", (e) => !e.target.value && searching() && runSearch(""));
+  }
+  const L = T[lang];
+  const input = $("[data-search-in]", box);
+  input.placeholder = L.searchPh;
+  input.setAttribute("aria-label", L.search);
+  $("[data-search-go]", box).textContent = L.search;
+  if (D.activeElement !== input) input.value = list.q;
+  box.hidden = !(show || searching() || view.group === "all" || !box.hidden);
+  return box;
+}
+function runSearch(q) {
+  q = String(q || "").trim().slice(0, 80);
+  if (q === list.q) return;
+  if (q && !searching()) {
+    list.groupsBefore = list.groups; // back to these when the search ends
+    list.groups = [];
+  }
+  if (!q) {
+    list.groups = cleanGroups(list.groupsBefore || []);
+    list.groupsBefore = null;
+  }
+  list.q = q;
+  showGroups();
+  history.replaceState({ tab: list.tab, groups: list.groups, q }, "", pathFor(list.tab));
+  closePop();
+  loadAndRender();
+}
+$("[data-search-open]")?.addEventListener("click", (e) => {
+  if (!view?.tab || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; // other pages: the link opens Home's search
+  e.preventDefault();
+  const box = searchBox(true);
+  box.hidden = false;
+  scrollTo({ top: 0, behavior: "smooth" });
+  $("[data-search-in]", box).focus();
+});
+
 // ---------- one story: data for the answers ----------
 async function findItem(id, el) {
   let it = list.loaded.find((x) => x.i === id);
-  if (it) return it;
+  // a search result written by the AI carries no answers: they are in the story's own lists
+  if (it && (it.q || !it.k)) return it;
+  const found = it;
   const art = el?.closest("[data-id]");
   const dt = art && $("time", art)?.getAttribute("datetime");
-  const day = dt ? istDay(Date.parse(dt)) : today();
-  const keys = [...new Set([...keysFor(list.tab), ...(view?.keys || []), "in/all", "world/all"].filter(Boolean))];
+  const day = found ? istDay(found.t * 1000) : dt ? istDay(Date.parse(dt)) : today();
+  const [st, dist] = found?.p || [];
+  const own = found ? ["in/all", "world/all", st && `s-${st}/all`, st && dist && `d/${st}/${dist}`, ...(found.g || []).flatMap((g) => [`in/${g}`, `world/${g}`, st && `s-${st}/${g}`])] : [];
+  const idx = await index();
+  const keys = [...new Set([...own, ...keysFor(list.tab), ...(view?.keys || []), "in/all", "world/all"].filter((k) => k && k !== "search"))];
   for (const k of keys) {
     for (const d of [day, shiftDay(day, -1), shiftDay(day, 1)]) {
+      if (idx && !idx.days[k]?.includes(d)) continue;
       const f = await getJSON(`/data/${lang}/${k}/${d}.json`);
       it = f?.find((x) => x.i === id);
       if (it) return it;
     }
   }
-  return null;
+  return found || null;
 }
 
 // ---------- first click: answers open in the list; second click: the full story page ----------
@@ -998,7 +1152,7 @@ syncControls();
 if (view?.tab) {
   showGroups();
   const samePage = list.groups.join() === pageGroups.join();
-  if (!samePage || PLACE_TABS.has(list.tab) || list.sort !== "newest" || watching()) loadAndRender();
+  if (!samePage || PLACE_TABS.has(list.tab) || list.sort !== "newest" || watching() || searching()) loadAndRender();
   else
     (window.requestIdleCallback || setTimeout)(async () => {
       // the page already shows the newest stories; get their answers ready so the first click is instant
@@ -1011,7 +1165,13 @@ if (view?.tab) {
       if (more_) more_.hidden = !(list.items.length > 30 || list.next < list.days.length);
       seeMore();
     });
-  history.replaceState({ tab: list.tab, groups: list.groups }, "");
+  history.replaceState({ tab: list.tab, groups: list.groups, q: list.q }, "");
+  // 🔍 on another page opens Home with the cursor in the search box (/?s=1)
+  if (new URLSearchParams(location.search).has("s")) {
+    const box = searchBox(true);
+    $("[data-search-in]", box)?.focus();
+    history.replaceState(history.state, "", pathFor(list.tab));
+  }
 } else fitGroups();
 if (!loc) guessFromInternet().then(showPlace);
 else showPlace();
