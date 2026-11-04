@@ -16,7 +16,7 @@ It costs nothing to run:
 
 | Feature | How it works |
 | --- | --- |
-| News from many websites | 407 free news feeds: national, world, 25 groups, 10 states and **277 districts** (UP, Bihar, MP, Rajasthan, Delhi, Haryana, Jharkhand, Uttarakhand, Chhattisgarh, Himachal). List: `config/sources.json` |
+| News from many websites | 403 free news feeds: national, world, 25 groups, 10 states and **277 districts** (UP, Bihar, MP, Rajasthan, Delhi, Haryana, Jharkhand, Uttarakhand, Chhattisgarh, Himachal). List: `config/sources.json` |
 | Shortest, simplest headline + 9 answers | Gemini reads the full article (only where the website's robots.txt allows) and writes both languages |
 | 25 groups | Local, Startups, AI, Movies, Good News, Road Accidents, Business, Cricket, Sports, Entertainment, Auto, Stock Market, Politics, Govt Schemes, Jobs & Results, Weather, Crime, Health, Education, Gold & Silver, Bank & Money, Farming & Mandi, Tech & Mobiles, Science & Space, Religion & Horoscope |
 | Group buttons | One line of buttons; **More ▾** shows all of them, **Less ▴** one line again. Tap one group, then more: the news of **all picked groups** shows together (tap again to remove one, **Home** = all news). The reader's picks are remembered on their phone |
@@ -50,7 +50,7 @@ Without the key the site still works: stories show their original headline with 
 
 ### Step 3 — Start it
 Merge the pull request into `main`. The **Update news** run starts by itself (Actions tab). After 10–15 minutes the site is live at
-`https://omkrishna89.github.io/thesimplestnews-/` (the address follows the repository's name). From then on it updates every 30 minutes
+`https://omkrishna89.github.io/thesimplestnews/` (the address follows the repository's name). From then on it updates every 30 minutes
 once the timer of Step 8 is set up.
 
 To run it by hand: **Actions** → **Update news** → **Run workflow**.
@@ -92,14 +92,15 @@ GitHub's own timer often starts hours late, or not at all. A free outside timer 
 
 1. **A GitHub key that can only press "Run workflow":** open <https://github.com/settings/personal-access-tokens/new>
    - Token name: `cron-job timer` · Expiration: **No expiration** (or the longest you can pick)
-   - Repository access: **Only select repositories** → `omkrishna89/thesimplestnews-`
+   - Repository access: **Only select repositories** → `omkrishna89/thesimplestnews`
    - Permissions → **Actions: Read and write** (nothing else)
    - **Generate token** and copy it (starts with `github_pat_`). Keep it secret.
 2. **The timer:** sign up at <https://console.cron-job.org/signup> → **CREATE CRONJOB**
    - COMMON: Title `The Simplest News update` · URL
-     `https://api.github.com/repos/omkrishna89/thesimplestnews-/actions/workflows/update.yml/dispatches` · Schedule **Every 30 minutes**
-   - ADVANCED: Request method **POST** · Headers `Accept` = `application/vnd.github+json`, `Authorization` = `Bearer github_pat_…` (your key),
-     `X-GitHub-Api-Version` = `2022-11-28` · Request body `{"ref":"main"}`
+     `https://api.github.com/repos/omkrishna89/thesimplestnews/actions/workflows/update.yml/dispatches` · Schedule **Every 30 minutes**
+   - ADVANCED: Request method **POST** · Headers `Accept` = `application/vnd.github+json` and `Authorization` = `Bearer github_pat_…` (your key)
+     · Request body `{"ref":"main"}`. (No `X-GitHub-Api-Version` header: GitHub then uses its current default version, so the timer
+     keeps working when an old version is switched off — version 2022-11-28 announces its end for 10 March 2028.)
    - **TEST RUN** → it should answer **204**; then **CREATE**. A new **Update news** run appears on the Actions tab.
 3. If the key ever expires, make a new one (point 1) and paste it into the `Authorization` header.
 
@@ -125,7 +126,9 @@ To check that all feeds still work: `node scripts/check-feeds.mjs` (see section 
 
 ## 4. Good to know
 
-- **Gemini's free limit:** about 1,000 requests a day (Google changes this). Each request writes 6 stories, and the biggest stories go first. If Google is busy ("high demand"), the robot stops and tries again in the next run.
+- **Gemini's free limit:** about 1,000 requests a day (Google changes this). Each request writes 6 stories, 96 a run. In each run the
+  24 biggest stories go first; the rest is shared out so every group, every state and every state's districts get some
+  (never more than 4 from one news feed). If Google is busy ("high demand"), the robot stops and tries again in the next run.
   When the limit is used up, new stories show "summary coming soon" until the next day's limit (around 1:30 pm India time).
   Settings: `config/site.json` → `gemini`.
 - **GitHub Pages limits:** the site must stay under 1 GB (it is about 40–200 MB) and about 100 GB of visits a month.

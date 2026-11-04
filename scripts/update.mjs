@@ -10,6 +10,7 @@ import { loadDB, saveDB, similarity, words } from "./lib/db.mjs";
 import { parseFeed } from "./lib/feeds.mjs";
 import { NOT_SAID, QUESTIONS, QuotaError, hasKey, summarize } from "./lib/gemini.mjs";
 import { updateMetals } from "./lib/metals.mjs";
+import { pickForAI } from "./lib/pick.mjs";
 import { COVERED, districtSlug, placeSlug, stateCode } from "./lib/places.mjs";
 import { clip, config, get, hash, log, plain, pool, sleep, TZ } from "./lib/util.mjs";
 import { updateVideos } from "./lib/youtube.mjs";
@@ -214,24 +215,15 @@ function scopeOf(story, loc) {
 // ---------- 2 + 3. read articles and let Gemini write ----------
 const istTime = (t) => new Intl.DateTimeFormat("en-IN", { timeZone: TZ, dateStyle: "medium", timeStyle: "short" }).format(new Date(t));
 
+// The biggest stories first, then a fair share for every group, state and district (scripts/lib/pick.mjs)
 function candidates() {
-  const list = db.stories.filter((s) => s.s === "new" && s.tr < 3 && now - s.p < AI_MAX_AGE);
-  const score = (s) => s.pr * 10 - (now - s.p) / 3600e3 * 1.5 + (s.lv === "country" ? 5 : 0) + (s.tr ? -15 : 0);
-  list.sort((a, b) => score(b) - score(a));
-  // share Gemini fairly: at most 2 stories per district in one run
-  const perDistrict = new Map();
-  const out = [];
-  for (const s of list) {
-    if (s.lv === "district") {
-      const k = `${s.st}/${s.d}`;
-      const n = perDistrict.get(k) || 0;
-      if (n >= 2) continue;
-      perDistrict.set(k, n + 1);
-    }
-    out.push(s);
-    if (out.length >= Number(process.env.GEMINI_PER_RUN || site.gemini.perRun)) break;
-  }
-  return out;
+  const waiting = db.stories.filter((s) => s.s === "new" && s.tr < 3 && now - s.p < AI_MAX_AGE);
+  return pickForAI(waiting, {
+    now,
+    perRun: Number(process.env.GEMINI_PER_RUN || site.gemini.perRun),
+    topFirst: site.gemini.topFirst ?? 24,
+    perFeed: site.gemini.perFeed ?? 4,
+  });
 }
 
 function mockAnswer(s) {
