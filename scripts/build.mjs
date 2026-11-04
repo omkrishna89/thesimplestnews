@@ -51,8 +51,14 @@ function copyDir(src, dst) {
   }
 }
 copyDir(path.join(ROOT, "src/assets"), path.join(OUT, "assets"));
-const ver = (rel) => crypto.createHash("sha1").update(fs.readFileSync(path.join(ROOT, "src", rel))).digest("hex").slice(0, 10);
-const assets = { css: `${base}/assets/css/style.css?v=${ver("assets/css/style.css")}`, js: `${base}/assets/js/app.js?v=${ver("assets/js/app.js")}` };
+const sha = (text) => crypto.createHash("sha1").update(text).digest("hex").slice(0, 10);
+const ver = (rel) => sha(fs.readFileSync(path.join(ROOT, "src", rel)));
+// app.js loads ui.js and search.js: their addresses get a version too, so a phone never mixes a new app.js
+// with an old ui.js from its cache (and app.js's own version changes when one of them changes)
+const appFile = path.join(OUT, "assets/js/app.js");
+const appJs = fs.readFileSync(appFile, "utf8").replace(/from "\.\/([\w-]+\.js)"/g, (m, f) => `from "./${f}?v=${ver(`assets/js/${f}`)}"`);
+fs.writeFileSync(appFile, appJs);
+const assets = { css: `${base}/assets/css/style.css?v=${ver("assets/css/style.css")}`, js: `${base}/assets/js/app.js?v=${sha(appJs)}` };
 
 // ---------- stories ----------
 const db = loadDB();
@@ -207,6 +213,9 @@ for (const day of index.days.search) {
   }
 }
 writeJSON("data/index.json", index);
+// "Trending" (Google Trends India): the topics of the last hours and their news links
+const trends = (db.trends?.list || []).filter((t) => now - t.p < 12 * 3600e3).map(({ q, t, n, news }) => ({ q, t, n, news }));
+writeJSON("data/trends.json", trends);
 writeJSON("data/places.json", placesForBrowser(db.names));
 writeJSON("data/stocks.json", config("stocks.json")?.list || []); // names for the Stocks box
 log(`[build] ${lists.size} lists, ${(jsonBytes / 1e6).toFixed(1)} MB of data files`);
@@ -258,7 +267,10 @@ for (const slug of ["all", ...groups.map((g) => g.slug)]) {
   let extraTop = "";
   let sideTop = "";
   if (slug === "movies") extraTop = videosStrip(db.videos, { limit: 12 });
-  if (slug === "all") sideTop = videosStrip(db.videos, { limit: 6, side: true });
+  if (slug === "all") {
+    sideTop = videosStrip(db.videos, { limit: 6, side: true });
+    extraTop = P.trendsRow(trends);
+  }
   if (slug === "gold-silver" && ctx.metalsBox) extraTop = ctx.metalsBox("top");
   for (const tab of ["country", "world", "state", "district", "tehsil", "local"]) {
     const key = tab === "world" ? `world/${slug}` : `in/${slug}`;

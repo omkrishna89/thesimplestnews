@@ -14,6 +14,7 @@ test("the website builds and has the key pages", () => {
   const story = (id, extra) => ({ id, u: `https://news.example/${id}`, src: "f", pub: { en: "Amar Ujala", hi: "अमर उजाला" }, l: "hi", t: `Title ${id}`, img: "", p: now - 3600e3, f: now, lv: "district", st: "up", d: "barabanki", pr: 4, s: "new", tr: 0, loc: { c: "in", s: "up", d: "barabanki" }, sc: "district", ...extra });
   const db = {
     v: 1, seen: {}, feeds: {}, names: { "up/barabanki": "बाराबंकी" }, videos: [{ id: "abcdefghijk", t: "New Song (Official Video)", ch: "T-Series", p: now, k: "song" }], metals: null,
+    trends: { at: now, list: [{ q: "cockroach janta party", t: "Cockroach Janta Party", n: 5000, p: now - 3600e3, news: [{ h: "CJP backs rally", u: "https://news.example/cjp", src: "The Hindu" }] }, { q: "old topic", t: "Old topic", n: 9000, p: now - 20 * 3600e3, news: [] }] },
     stories: [
       story("aaa111", { s: "ok", a: { hi: { h: "हिंदी शीर्षक", q: nine("जवाब") }, en: { h: "English headline", q: nine("answer") }, g: ["cricket"], good: false, imp: 8, scope: "country", place: { country: "India", state: "Uttar Pradesh", district: "Barabanki", local: "Zaidpur", local_hi: "जैदपुर" }, at: now - 60e3 }, loc: { c: "in", s: "up", d: "barabanki", l: "zaidpur" }, sc: "country" }),
       story("bbb222"),
@@ -74,5 +75,14 @@ test("the website builds and has the key pages", () => {
   if (!site.analytics?.ga4) assert.doesNotMatch(home, /googletagmanager/, "no Google Analytics without a Measurement ID");
   assert.ok(!fs.existsSync(path.join(out, "ads.txt")), "no ads.txt before AdSense is set up");
   assert.match(read("movies/index.html"), /abcdefghijk/, "trailers & songs on the Movies page");
+  // "Trending" (Google Trends) on Home: a tap searches our news; the topic's own news links are in data/trends.json
+  assert.match(home, /data-trend="cockroach janta party"/);
+  assert.match(home, /href="\/thesimplestnews\/\?q=cockroach%20janta%20party"/);
+  assert.doesNotMatch(home, /Old topic/, "topics older than 12 hours are left out");
+  assert.doesNotMatch(read("cricket/index.html"), /data-trends/, "only on Home");
+  assert.deepEqual(JSON.parse(read("data/trends.json")).map((t) => t.q), ["cockroach janta party"]);
+  // app.js loads ui.js and search.js with their versions, so a phone never mixes new and old files
+  assert.match(read("assets/js/app.js"), /from "\.\/ui\.js\?v=[0-9a-f]{10}"/);
+  assert.match(read("assets/js/app.js"), /from "\.\/search\.js\?v=[0-9a-f]{10}"/);
   fs.rmSync(tmp, { recursive: true, force: true });
 });

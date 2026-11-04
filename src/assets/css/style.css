@@ -41,6 +41,9 @@
 html[data-lang="hi"] .l-en,
 html[data-lang="en"] .l-hi { display: none !important; }
 
+/* "hidden" always hides, even when a rule below gives the element its own display (like the More news button) */
+[hidden] { display: none !important; }
+
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
@@ -134,8 +137,16 @@ b, strong { font-weight: 600; }
 /* "More ▾" / "Less ▴": one line of groups, or all of them */
 .chip--more { cursor: pointer; font-family: inherit; color: var(--accent); border-color: var(--line); background: none; }
 .chip--more:hover { border-color: var(--accent); }
-.chip--more__less, .gnav__in.is-open .chip--more__more { display: none; }
-.gnav__in.is-open .chip--more__less { display: inline; }
+.chip--more__less, .gnav__in.is-open .chip--more__more, .trend__in.is-open .chip--more__more { display: none; }
+.gnav__in.is-open .chip--more__less, .trend__in.is-open .chip--more__less { display: inline; }
+/* "🔥 Trending": one line under the search box on Home */
+.trend { margin: 9px 0 0; }
+.trend__in { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.trend__label { flex: none; font-size: .84rem; font-weight: 600; color: var(--muted); }
+.chip--trend { font-size: .84rem; padding: 3px 10px; border-color: var(--line); background: none; }
+.chip--trend:hover { border-color: var(--accent); }
+.chip--trend.is-on { border-color: transparent; }
+@media (max-width: 560px) { .chip--trend { font-size: .8rem; padding: 3px 8px; } }
 .chip[aria-pressed] { cursor: pointer; }
 @media (max-width: 560px) { .gnav__in { gap: 5px; padding: 7px 10px; } .chip { padding: 3px 8px; font-size: .82rem; } }
 @media (max-width: 370px) { .gnav__in { padding-left: 8px; padding-right: 8px; } }
@@ -218,6 +229,25 @@ b, strong { font-weight: 600; }
 .badge { display: inline-block; font-size: .72rem; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: var(--card-2); color: var(--warn); border: 1px solid var(--line); vertical-align: 1px; }
 .badge--big { background: var(--down); color: #fff; border-color: transparent; margin-right: 6px; }
 .empty { color: var(--muted); padding: 24px 6px; text-align: center; }
+
+/* a search on other news websites (GDELT, Google Trends, Google News), below our own results */
+.ox { margin: 26px 0 0; padding-top: 14px; border-top: 1px solid var(--line); }
+.ox[hidden] { display: none; }
+.ox__h { font-size: 1.05rem; margin: 0 0 4px; }
+.ox__list { list-style: none; margin: 0; padding: 0; }
+.ox__it { padding: 10px 6px; border-bottom: 1px solid var(--line); }
+.ox__it a { color: var(--text); text-decoration: none; font-weight: 600; line-height: 1.38; overflow-wrap: anywhere; }
+.ox__it a:hover { color: var(--accent); }
+.ox__meta { display: block; margin-top: 3px; font-size: .8em; color: var(--muted); }
+.ox__tag { color: var(--warn); font-weight: 600; }
+.ox__msg { color: var(--muted); margin: 12px 6px; }
+.ox__msg--wait::before { content: ""; display: inline-block; width: 12px; height: 12px; margin-right: 8px; vertical-align: -1px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: ox-spin .9s linear infinite; }
+@keyframes ox-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ox__msg--wait::before { animation: none; } }
+.ox__more { display: flex; margin: 12px auto 0; }
+.ox__credit { margin: 10px 6px 0; font-size: .78rem; color: var(--muted); }
+.ox__gn { margin: 16px 0 0; text-align: center; }
+.ox__gn .btn { white-space: normal; text-align: center; max-width: 100%; }
 
 /* the 9 answers */
 .qa { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 7px 12px; margin: 0; font-size: .96em; }

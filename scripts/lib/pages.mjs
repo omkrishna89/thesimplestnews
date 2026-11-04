@@ -147,6 +147,15 @@ ${footer()}
       })
       .join("");
 
+  // "🔥 Trending": topics India searches on Google right now (one line; "More" shows the rest).
+  // The search box goes above it (app.js puts it right under the page heading).
+  const trendsRow = (list = []) =>
+    list.length
+      ? `<div class="trend" data-trends><div class="trend__in"><span class="trend__label">🔥 ${biT("trending")}</span>${list
+          .map((t) => `<a class="chip chip--trend" href="${url(`/?q=${encodeURIComponent(t.q)}`)}" data-trend="${esc(t.q)}" rel="nofollow"${t.n ? ` title="Google: ${esc(t.n.toLocaleString("en-IN"))}+"` : ""}>${esc(t.t)}</a>`)
+          .join("")}<button type="button" class="chip chip--more" data-more-trends aria-expanded="false" hidden><span class="chip--more__more">${biT("moreGroups")}</span><span class="chip--more__less">${biT("lessGroups")}</span></button></div></div>`
+      : "";
+
   const sidebar = (extra = "", metals = true) => `<aside class="side">${extra}${metals && ctx.metalsBox ? ctx.metalsBox("side") : ""}${ad("side", "ad--side")}</aside>`;
 
   function listPage({ group, tab, items, path, title, description, extraTop = "", sideTop = "", noindex }) {
@@ -242,5 +251,5 @@ ${sidebar()}
     return page({ title, description: title, path, kind: "text" }, body, "");
   }
 
-  return { page, listPage, storyPage, placePage, textPage, bi, ad, url, abs };
+  return { page, listPage, storyPage, placePage, textPage, trendsRow, bi, ad, url, abs };
 }
