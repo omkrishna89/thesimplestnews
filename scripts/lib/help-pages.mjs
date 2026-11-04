@@ -2,7 +2,18 @@
 // Google AdSense asks for these pages. Change the text here if anything about the site changes.
 export function HELP_PAGES(site) {
   const mail = `<a href="mailto:${site.email}">${site.email}</a>`;
-  const updated = "3 November 2026";
+  const updated = site.analytics?.ga4 ? "4 November 2026" : "3 November 2026";
+  // only when Google Analytics is switched on in config/site.json
+  const gaHi = site.analytics?.ga4
+    ? `<h2>विज़िटर गिनती (Google Analytics)</h2>
+<p>यह जानने के लिए कि कितने लोग साइट पढ़ते हैं और कौन-सी खबरें खोलते हैं, हम Google Analytics इस्तेमाल करते हैं। यह कुकीज़ से आपके ब्राउज़र, डिवाइस, अनुमानित जगह (शहर/राज्य) और देखे गए पेजों की जानकारी Google को भेजता है। हम इससे किसी व्यक्ति को नहीं पहचानते। इसे बंद करने के लिए: <a href="https://tools.google.com/dlpage/gaoptout" rel="noopener">Google Analytics opt-out add-on</a>, या ब्राउज़र में कुकीज़ बंद करें। ज़्यादा जानकारी: <a href="https://policies.google.com/technologies/partner-sites" rel="noopener">Google हमारे पार्टनर की साइटों के डेटा का इस्तेमाल कैसे करता है</a>।</p>
+`
+    : "";
+  const gaEn = site.analytics?.ga4
+    ? `<h2>Visitor statistics (Google Analytics)</h2>
+<p>To know how many people read the site and which stories they open, we use Google Analytics. With cookies it sends Google information about your browser, device, approximate location (city/state) and the pages you view. We don't use it to identify anyone. To turn it off: the <a href="https://tools.google.com/dlpage/gaoptout" rel="noopener">Google Analytics opt-out add-on</a>, or block cookies in your browser. More: <a href="https://policies.google.com/technologies/partner-sites" rel="noopener">How Google uses information from sites that use its services</a>.</p>
+`
+    : "";
   return [
     {
       slug: "about",
@@ -64,7 +75,7 @@ export function HELP_PAGES(site) {
 <p>खबरों की फ़ोटो मूल समाचार वेबसाइटों की हैं और छोटे आकार में wsrv.nl सेवा से लोड होती हैं। YouTube वीडियो आपके टैप करने पर ही youtube-nocookie.com से चलता है। वेबसाइट का फ़ॉन्ट (Mukta) Google Fonts से लोड होता है।</p>
 <h2>विज्ञापन (Google AdSense)</h2>
 <p>हम Google AdSense से विज्ञापन दिखाते हैं। Google समेत तीसरे पक्ष के विक्रेता कुकीज़ का इस्तेमाल करके आपकी इस वेबसाइट या दूसरी वेबसाइटों पर पिछली विज़िट के आधार पर विज्ञापन दिखाते हैं। Google की विज्ञापन कुकीज़ से Google और उसके पार्टनर आपको इस साइट और इंटरनेट की दूसरी साइटों पर विज़िट के आधार पर विज्ञापन दिखा पाते हैं। आप <a href="https://www.google.com/settings/ads" rel="noopener">Google Ads Settings</a> पर जाकर पर्सनलाइज़्ड विज्ञापन बंद कर सकते हैं। ज़्यादा जानकारी: <a href="https://policies.google.com/technologies/partner-sites" rel="noopener">Google हमारे पार्टनर की साइटों के डेटा का इस्तेमाल कैसे करता है</a>।</p>
-<h2>होस्टिंग</h2>
+${gaHi}<h2>होस्टिंग</h2>
 <p>यह वेबसाइट GitHub Pages पर चलती है। GitHub सुरक्षा के लिए विज़िटर का IP पता लॉग कर सकता है।</p>
 <h2>बच्चे</h2>
 <p>हम जानबूझकर बच्चों की कोई निजी जानकारी नहीं लेते।</p>
@@ -85,7 +96,7 @@ export function HELP_PAGES(site) {
 <p>Story photos belong to the original news websites and load in a small size through the wsrv.nl service. A YouTube video plays from youtube-nocookie.com only when you tap it. The website's font (Mukta) loads from Google Fonts.</p>
 <h2>Advertising (Google AdSense)</h2>
 <p>We show ads from Google AdSense. Third-party vendors, including Google, use cookies to serve ads based on a user's prior visits to this website or other websites. Google's use of advertising cookies enables it and its partners to serve ads to users based on their visit to this site and/or other sites on the Internet. You can opt out of personalised advertising in <a href="https://www.google.com/settings/ads" rel="noopener">Google Ads Settings</a>. More: <a href="https://policies.google.com/technologies/partner-sites" rel="noopener">How Google uses information from sites that use its services</a>.</p>
-<h2>Hosting</h2>
+${gaEn}<h2>Hosting</h2>
 <p>This website runs on GitHub Pages. GitHub may log visitors' IP addresses for security.</p>
 <h2>Children</h2>
 <p>We don't knowingly collect personal information from children.</p>

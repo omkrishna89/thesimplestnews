@@ -20,5 +20,13 @@
     "perFeed": 4,
     "pauseMs": 6000
   },
+  "analytics": {
+    "about": "ga4: the Google Analytics Measurement ID (G-…). Empty = no visitor statistics.",
+    "ga4": ""
+  },
+  "indexNow": {
+    "about": "Tells Bing, Yahoo, Yandex and others about new story pages after every update (indexnow.org). key: any 32 letters/digits; the site publishes it as /<key>.txt so they know the pages are ours. Empty = off.",
+    "key": "f5032c1d2dca1898c799740cdc2a34e8"
+  },
   "social": { "whatsapp": "", "telegram": "", "facebook": "", "x": "", "instagram": "", "youtube": "" }
 }

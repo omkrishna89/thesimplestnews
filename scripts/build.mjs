@@ -296,6 +296,22 @@ write(
     .join("\n")}\n</urlset>\n`,
 );
 if (site.adsense?.client) write("ads.txt", `google.com, ${site.adsense.client.replace(/^ca-/, "")}, DIRECT, f08c47fec0942fa0\n`);
+
+// IndexNow: the key file proves the site is ours; the list of story pages written in this run is sent to
+// Bing, Yahoo, Yandex and others after the site is published (see .github/workflows/update.yml).
+const indexNowKey = site.indexNow?.key || "";
+if (/^[A-Za-z0-9-]{8,128}$/.test(indexNowKey)) {
+  write(`${indexNowKey}.txt`, indexNowKey);
+  const host = new URL(siteUrl).host;
+  const fresh = items.filter((it) => it.ok && it.s.a?.at && now - it.s.a.at < 40 * 60e3).map((it) => `${ctx.siteUrl}/story/${it.s.id}/`);
+  const listFile = process.env.INDEXNOW_OUT || path.join(ROOT, ".cache", "indexnow.json");
+  fs.rmSync(listFile, { force: true });
+  if (fresh.length && !/^(localhost|127\.)/.test(host)) {
+    fs.mkdirSync(path.dirname(listFile), { recursive: true });
+    fs.writeFileSync(listFile, JSON.stringify({ host, key: indexNowKey, keyLocation: `${ctx.siteUrl}/${indexNowKey}.txt`, urlList: fresh.slice(0, 10000) }));
+    log(`[build] IndexNow: ${fresh.length} new story pages listed`);
+  }
+}
 write(
   "manifest.webmanifest",
   JSON.stringify({ name: site.name.en, short_name: "Simplest News", start_url: `${base}/`, display: "standalone", background_color: "#0f1115", theme_color: "#0f1115", icons: [{ src: `${base}/assets/img/icon-192.png`, sizes: "192x192", type: "image/png" }, { src: `${base}/assets/img/icon-512.png`, sizes: "512x512", type: "image/png" }, { src: `${base}/assets/img/icon.svg`, sizes: "any", type: "image/svg+xml" }] }),

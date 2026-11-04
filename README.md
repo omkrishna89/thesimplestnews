@@ -31,6 +31,8 @@ It costs nothing to run:
 | Look | Dark by default, **Light** button next to हिंदी / English. The language follows the phone; the reader's choice is remembered |
 | Ads | Google AdSense spots on every page (banner, in the lists, beside the news, end of story) + Auto ads |
 | Stories kept | 7 days. Stories Gemini has not written yet show "summary coming soon" for 2 days |
+| Search engines | Sitemaps for Google and Bing; after every update the new story pages are sent to Bing, Yahoo, Yandex and others through **IndexNow**, so they appear within minutes |
+| Visitor statistics | Google Analytics, once its Measurement ID is in `config/site.json` (Step 9). It loads after the page, so reading is not slowed |
 
 ---
 
@@ -104,6 +106,12 @@ GitHub's own timer often starts hours late, or not at all. A free outside timer 
    - **TEST RUN** → it should answer **204**; then **CREATE**. A new **Update news** run appears on the Actions tab.
 3. If the key ever expires, make a new one (point 1) and paste it into the `Authorization` header.
 
+### Step 9 — Visitor statistics (Google Analytics, free)
+1. <https://analytics.google.com> → **Start measuring** → account `The Simplest News` → property `TheSimplestNews.com`
+   (time zone India, currency ₹) → business details → **Create** → platform **Web** → `thesimplestnews.com` → **Create stream**.
+2. Copy the **Measurement ID** (`G-…`), open `config/site.json` on GitHub (pencil icon) and put it in `"analytics": { "ga4": "G-…" }` → **Commit changes**.
+   The Privacy Policy page then explains Google Analytics by itself. Reports: <https://analytics.google.com> → **Reports** (live readers under **Realtime**).
+
 ---
 
 ## 3. Changing things
@@ -112,7 +120,7 @@ All settings are plain files in `config/`. Edit them on GitHub (pencil icon) and
 
 | File | What it holds |
 | --- | --- |
-| `config/site.json` | Name, address, email, AdSense ids, how many days to keep, Gemini settings |
+| `config/site.json` | Name, address, email, AdSense ids, Google Analytics id, IndexNow key, how many days to keep, Gemini settings |
 | `config/groups.json` | The 25 news groups (name in Hindi/English, icon) |
 | `config/words.json` | Clear words that put a story into a group before the AI has written it |
 | `config/stocks.json` | Companies the Stocks box suggests (Hindi and English names, and the words that find their news) |
