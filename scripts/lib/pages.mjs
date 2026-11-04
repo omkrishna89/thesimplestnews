@@ -8,10 +8,13 @@ const biT = (key) => bi(esc(T.hi[key]), esc(T.en[key]));
 
 // Google Analytics (visitor statistics), only when config/site.json has a Measurement ID.
 // Its script loads 1 second after the page has finished, so reading is never slowed down.
-export const gaSnippet = (id) =>
-  /^G-[A-Z0-9]{4,20}$/.test(id || "")
-    ? `<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date());gtag("config","${id}");addEventListener("load",function(){setTimeout(function(){var s=document.createElement("script");s.async=true;s.src="https://www.googletagmanager.com/gtag/js?id=${id}";document.head.appendChild(s)},1000)})</script>`
-    : "";
+// Only on the site's own address (e.g. thesimplestnews.com), so test copies don't count as visitors.
+export const gaSnippet = (id, domain = "") => {
+  if (!/^G-[A-Z0-9]{4,20}$/.test(id || "")) return "";
+  const host = /^[a-z0-9.-]+$/i.test(domain) ? domain.toLowerCase().replace(/^www\./, "") : "";
+  const onSite = host ? `/(^|\\.)${host.replace(/\./g, "\\.")}$/.test(location.hostname)` : "true";
+  return `<script>if(${onSite}){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date());gtag("config","${id}");addEventListener("load",function(){setTimeout(function(){var s=document.createElement("script");s.async=true;s.src="https://www.googletagmanager.com/gtag/js?id=${id}";document.head.appendChild(s)},1000)})}</script>`;
+};
 
 export function makePages(ctx) {
   const { site, groups, base, assets } = ctx;
@@ -60,7 +63,7 @@ ${noindex ? '<meta name="robots" content="noindex, follow">' : '<meta name="robo
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="${assets.css}">
 <script type="module" src="${assets.js}"></script>
-${gaSnippet(site.analytics?.ga4)}
+${gaSnippet(site.analytics?.ga4, site.domain)}
 ${adOn ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(ads.client)}" crossorigin="anonymous"></script>` : ""}
 ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, "\\u003c")}</script>` : ""}
 </head>`;

@@ -22,7 +22,7 @@
   },
   "analytics": {
     "about": "ga4: the Google Analytics Measurement ID (G-…). Empty = no visitor statistics.",
-    "ga4": ""
+    "ga4": "G-EDVKYS2BJ0"
   },
   "indexNow": {
     "about": "Tells Bing, Yahoo, Yandex and others about new story pages after every update (indexnow.org). key: any 32 letters/digits; the site publishes it as /<key>.txt so they know the pages are ours. Empty = off.",
