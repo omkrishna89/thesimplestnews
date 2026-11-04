@@ -60,7 +60,7 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
 
   function header(active) {
     const chip = (slug, icon, hi, en) =>
-      `<a class="chip${active === slug ? " is-on" : ""}" href="${url(slug === "all" ? "/" : `/${slug}/`)}"${active === slug ? ' aria-current="page"' : ""}><span aria-hidden="true">${icon}</span>${bi(esc(hi), esc(en))}</a>`;
+      `<a class="chip${active === slug ? " is-on" : ""}" data-g="${slug}" href="${url(slug === "all" ? "/" : `/${slug}/`)}"${active === slug ? ' aria-current="page"' : ""}><span aria-hidden="true">${icon}</span>${bi(esc(hi), esc(en))}</a>`;
     return `<header class="hd">
 <div class="hd__in">
 <a class="logo" href="${url("/")}" aria-label="${esc(site.name.en)}"><img src="${url("/assets/img/icon.svg")}" alt="" width="30" height="30"><span class="logo__t">The Simplest <b>News</b></span></a>
@@ -74,6 +74,7 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
 <nav class="gnav" aria-label="${esc(T.en.groups)}"><div class="gnav__in">
 ${chip("all", "🏠", T.hi.home, T.en.home)}
 ${groups.map((g) => chip(g.slug, g.icon, g.nav_hi || g.hi, g.nav_en || g.en)).join("\n")}
+<button type="button" class="chip chip--more" data-more-groups aria-expanded="false" hidden><span class="chip--more__more">${biT("moreGroups")}</span><span class="chip--more__less">${biT("lessGroups")}</span></button>
 </div></nav>`;
   }
 
@@ -113,22 +114,24 @@ ${footer()}
       const L = T[lang];
       return `<div class="ctl l-${lang}" lang="${lang}">
 <label class="ctl__f"><span>${L.sortLabel}</span><select data-sort>${Object.entries(L.sort).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join("")}</select></label>
-<label class="ctl__f"><span>${L.dayLabel}</span><select data-day>${["all", "today", "yesterday"].map((k) => `<option value="${k}">${esc(L.days[k])}</option>`).join("")}<option value="pick">${esc(L.days.pick)}</option></select></label>
+<label class="ctl__f"><span>${L.dayLabel}</span><select data-day>${["all", "today", "yesterday", "pick", "range"].map((k) => `<option value="${k}">${esc(L.days[k])}</option>`).join("")}</select></label>
 <input type="date" class="ctl__date" data-date hidden aria-label="${esc(L.days.pick)}">
+<span class="ctl__range" data-range hidden><label class="ctl__f"><span>${L.from}</span><input type="date" class="ctl__date" data-from></label><label class="ctl__f"><span>${L.to}</span><input type="date" class="ctl__date" data-to></label></span>
 </div>`;
     };
     return `<div class="ctls">${sel("hi")}${sel("en")}</div>`;
   };
 
 
-  const staticLists = (items) =>
+  // Each language gets its own newest stories (a story without its summary yet is shown only in its own language).
+  const staticLists = (items, n = ctx.staticN || 30) =>
     ["hi", "en"]
       .map((lang) => {
-        const list = items.filter((it) => it.ok || it.s?.l === lang).map((it) => it[lang]);
+        const list = items.filter((it) => it.ok || it.s?.l === lang).slice(0, n).map((it) => it[lang]);
         const chunks = [list.slice(0, 6), list.slice(6, 18), list.slice(18)];
         return `<div class="list l-${lang}" lang="${lang}" data-static>${chunks
           .map((c, i) => `<div class="list__chunk">${c.map((it) => itemHTML(it, lang, ctx.render)).join("\n")}</div>${i < 2 && c.length ? ad("infeed", "ad--feed") : ""}`)
-          .join("")}${items.length === 0 ? `<p class="empty">${esc(T[lang].empty)}</p>` : ""}</div>`;
+          .join("")}${list.length === 0 ? `<p class="empty">${esc(T[lang].empty)}</p>` : ""}</div>`;
       })
       .join("");
 
@@ -213,7 +216,7 @@ ${sidebar()}
 <div class="main">
 ${ad("top", "ad--top")}
 <div class="pagehead"><h1>${h1}</h1>${about ? `<p class="pagehead__about">${about}</p>` : ""}</div>
-<div class="lists" data-lists>${staticLists(items)}</div>
+<div class="lists" data-lists>${staticLists(items, 40)}</div>
 </div>
 ${sidebar()}
 </main>`;

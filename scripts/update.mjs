@@ -369,6 +369,14 @@ function locateAll() {
   }
 }
 
+// Two timers can start this: the outside timer (cron-job.org, every 30 minutes) and GitHub's own timer (backup).
+// When GitHub's timer fires right after another run, there is nothing new to do: skip, and save Gemini's free limit.
+const RECENT_MIN = 20;
+if (process.env.RUN_EVENT === "schedule" && db.saved && Date.now() - db.saved < RECENT_MIN * 60e3) {
+  log(`[update] the news was updated ${Math.round((Date.now() - db.saved) / 60e3)} min ago by another run — nothing to do`);
+  process.exit(0);
+}
+
 if (!args.has("--no-fetch")) await readFeeds();
 dedupeTitles();
 locateAll();

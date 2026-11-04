@@ -16,13 +16,16 @@ It costs nothing to run:
 
 | Feature | How it works |
 | --- | --- |
-| News from many websites | 389 free news feeds: national, world, 25 groups, 10 states and **277 districts** (UP, Bihar, MP, Rajasthan, Delhi, Haryana, Jharkhand, Uttarakhand, Chhattisgarh, Himachal). List: `config/sources.json` |
+| News from many websites | 407 free news feeds: national, world, 25 groups, 10 states and **277 districts** (UP, Bihar, MP, Rajasthan, Delhi, Haryana, Jharkhand, Uttarakhand, Chhattisgarh, Himachal). List: `config/sources.json` |
 | Shortest, simplest headline + 9 answers | Gemini reads the full article (only where the website's robots.txt allows) and writes both languages |
 | 25 groups | Local, Startups, AI, Movies, Good News, Road Accidents, Business, Cricket, Sports, Entertainment, Auto, Stock Market, Politics, Govt Schemes, Jobs & Results, Weather, Crime, Health, Education, Gold & Silver, Bank & Money, Farming & Mandi, Tech & Mobiles, Science & Space, Religion & Horoscope |
-| Area tabs on every group | Local · Tehsil · District · State · Country · World. The reader's place comes from **GPS (one tap)**; without GPS it is guessed from their internet connection |
+| Group buttons | One line of buttons; **More ▾** shows all of them, **Less ▴** one line again. Tap one group, then more: the news of **all picked groups** shows together (tap again to remove one, **Home** = all news). The reader's picks are remembered on their phone |
+| A story's groups | The AI picks them. Before the AI has written a story, its news feed's group and clear words in the headline decide (सेंसेक्स, IPO → Stocks; सड़क हादसा → Road Accidents…). Words: `config/words.json` |
+| Stocks box | On Stock Market: type a stock name (Hindi or English, about 145 big companies suggested, e.g. Reliance = रिलायंस). Only news about those stocks shows, from Stock Market and Business. Remembered as the reader's watchlist |
+| Area tabs on every group | Local · Tehsil · District · State · Country · World. The reader's place comes from **GPS (one tap)**; without GPS it is guessed from their internet connection. A nearly empty tab shows a link like "See 94 stories in Country →" |
 | Click a headline | 1st click: the 9 answers open right there (open as many as you like). 2nd click: the story's own page with **all sources** |
 | Hover 1 second (computer) / hold 1 second (phone) | A pop-up box with the whole story and all 9 answers |
-| Sort and day | Newest (default) · Big stories · Most important · Relevant (what this reader opens most) — and All days / Today / Yesterday / pick a day |
+| Sort and day | Newest (default) · Big stories · Most important · Relevant (what this reader opens most) — and All days / Today / Yesterday / pick a day / pick dates (from … to) |
 | Movies | New official trailers and songs from YouTube (T-Series, Zee Music, YRF, Netflix India…), play on the site |
 | Gold & silver | Today's IBJA rates and 5-year charts, like on IFC knowledge |
 | Look | Dark by default, **Light** button next to हिंदी / English. The language follows the phone; the reader's choice is remembered |
@@ -47,7 +50,8 @@ Without the key the site still works: stories show their original headline with 
 
 ### Step 3 — Start it
 Merge the pull request into `main`. The **Update news** run starts by itself (Actions tab). After 10–15 minutes the site is live at
-`https://omkrishna89.github.io/thesimplestnews-/` (the address follows the repository's name). From then on it updates every 30 minutes.
+`https://omkrishna89.github.io/thesimplestnews-/` (the address follows the repository's name). From then on it updates every 30 minutes
+once the timer of Step 8 is set up.
 
 To run it by hand: **Actions** → **Update news** → **Run workflow**.
 
@@ -82,6 +86,23 @@ Open <https://search.google.com/search-console>, add `thesimplestnews.com`, and 
 3. **Commit changes.** The site rebuilds in a few minutes; `ads.txt` is made by itself.
    Spots without an id stay hidden. Add `?ads=preview` to any page address to see where the ads go.
 
+### Step 8 — The 30-minute timer (free, cron-job.org)
+GitHub's own timer often starts hours late, or not at all. A free outside timer presses **Run workflow** every 30 minutes instead
+(GitHub's timer stays as a backup; a backup run right after another run skips the news step, to save Gemini's free limit).
+
+1. **A GitHub key that can only press "Run workflow":** open <https://github.com/settings/personal-access-tokens/new>
+   - Token name: `cron-job timer` · Expiration: **No expiration** (or the longest you can pick)
+   - Repository access: **Only select repositories** → `omkrishna89/thesimplestnews-`
+   - Permissions → **Actions: Read and write** (nothing else)
+   - **Generate token** and copy it (starts with `github_pat_`). Keep it secret.
+2. **The timer:** sign up at <https://console.cron-job.org/signup> → **CREATE CRONJOB**
+   - COMMON: Title `The Simplest News update` · URL
+     `https://api.github.com/repos/omkrishna89/thesimplestnews-/actions/workflows/update.yml/dispatches` · Schedule **Every 30 minutes**
+   - ADVANCED: Request method **POST** · Headers `Accept` = `application/vnd.github+json`, `Authorization` = `Bearer github_pat_…` (your key),
+     `X-GitHub-Api-Version` = `2022-11-28` · Request body `{"ref":"main"}`
+   - **TEST RUN** → it should answer **204**; then **CREATE**. A new **Update news** run appears on the Actions tab.
+3. If the key ever expires, make a new one (point 1) and paste it into the `Authorization` header.
+
 ---
 
 ## 3. Changing things
@@ -92,6 +113,8 @@ All settings are plain files in `config/`. Edit them on GitHub (pencil icon) and
 | --- | --- |
 | `config/site.json` | Name, address, email, AdSense ids, how many days to keep, Gemini settings |
 | `config/groups.json` | The 25 news groups (name in Hindi/English, icon) |
+| `config/words.json` | Clear words that put a story into a group before the AI has written it |
+| `config/stocks.json` | Companies the Stocks box suggests (Hindi and English names, and the words that find their news) |
 | `config/sources.json` | All news feeds. `level`: country, world, state or district |
 | `config/youtube.json` | Film and music channels for trailers & songs |
 | `config/places.json` | States, and other spellings of district names (e.g. Allahabad = Prayagraj) |
@@ -107,8 +130,8 @@ To check that all feeds still work: `node scripts/check-feeds.mjs` (see section 
   Settings: `config/site.json` → `gemini`.
 - **GitHub Pages limits:** the site must stay under 1 GB (it is about 40–200 MB) and about 100 GB of visits a month.
   If the site becomes very popular, move it to **Cloudflare Pages** (also free, no visit limit).
-- **The 30-minute schedule:** GitHub may pause schedules in repositories with no changes for 60 days. If that happens:
-  **Actions** → **Update news** → **Enable workflow**.
+- **The 30-minute schedule:** cron-job.org (Step 8) starts the update every 30 minutes. GitHub's own timer is only a backup:
+  it often starts late, and GitHub pauses it in repositories with no changes for 60 days (**Actions** → **Update news** → **Enable workflow**).
 - **Copyright:** the site shows only its own short summary and a link to the original. Websites that ask robots to stay away
   (robots.txt) are not read. If a publisher asks for a story to be removed, delete it from the site and tell them.
 - **Indian rules for digital news:** read the IT Rules 2021 (digital news publishers / news aggregators) and ask a lawyer

@@ -12,6 +12,7 @@ import { ROOT, config, log } from "./lib/util.mjs";
 import { metalsBox, videosStrip } from "./lib/widgets.mjs";
 import { istDay } from "../src/assets/js/ui.js";
 import { HELP_PAGES } from "./lib/help-pages.mjs";
+import { groupsFromWords } from "./lib/words.mjs";
 
 const OUT = path.resolve(ROOT, process.env.OUT_DIR || "_site");
 const site = config("site.json");
@@ -87,7 +88,9 @@ const guessImp = (s) => Math.max(2, Math.min(6, (s.pr || 5) - 2));
 const masters = db.stories.filter((s) => s.s !== "dup");
 const items = masters.map((s) => {
   const ok = s.s === "ok" && s.a;
-  const g = ok ? s.a.g.filter((x) => SLUGS.has(x)) : (s.gh || []).filter((x) => SLUGS.has(x));
+  // Groups: the AI's (which already include the news feed's own group). Before the AI has written
+  // a story: the feed's group plus groups from clear words in the headline (config/words.json).
+  const g = (ok ? s.a.g : [...new Set([...(s.gh || []), ...groupsFromWords(s.t)])]).filter((x) => SLUGS.has(x) && x !== "local");
   const common = {
     i: s.id,
     t: Math.round(s.p / 1000),
@@ -143,17 +146,26 @@ for (const it of items) {
 // Keep the most important ones when a day has too many, then newest first.
 const capDay = (arr, cap = LIST_CAP) => (arr.length <= cap ? arr : [...arr].sort((a, b) => b.m - a.m || b.t - a.t).slice(0, cap)).sort((a, b) => b.t - a.t);
 
-const index = { built: now, days: {}, base };
+// index.days[key] = the days a list has (newest first); index.n[lang][key] = how many stories on each of those days
+const index = { built: now, days: {}, n: { hi: {}, en: {} }, base };
 for (const [key, days] of lists) {
-  index.days[key] = [...days.keys()].sort().reverse();
-  for (const [day, arr] of days) {
-    const capped = capDay(arr, key.endsWith("/all") ? 150 : LIST_CAP); // "all news" lists: the 150 most important a day
+  const ds = [...days.keys()].sort().reverse();
+  index.days[key] = ds;
+  index.n.hi[key] = [];
+  index.n.en[key] = [];
+  for (const day of ds) {
+    const capped = capDay(days.get(day), key.endsWith("/all") ? 150 : LIST_CAP); // "all news" lists: the 150 most important a day
     // a story without its summary yet is shown only in its own language
-    for (const lang of ["hi", "en"]) writeJSON(`data/${lang}/${key}/${day}.json`, capped.filter((it) => it.ok || it.s.l === lang).map((it) => it[lang]));
+    for (const lang of ["hi", "en"]) {
+      const out = capped.filter((it) => it.ok || it.s.l === lang).map((it) => it[lang]);
+      writeJSON(`data/${lang}/${key}/${day}.json`, out);
+      index.n[lang][key].push(out.length);
+    }
   }
 }
 writeJSON("data/index.json", index);
 writeJSON("data/places.json", placesForBrowser(db.names));
+writeJSON("data/stocks.json", config("stocks.json")?.list || []); // names for the Stocks box
 log(`[build] ${lists.size} lists, ${(jsonBytes / 1e6).toFixed(1)} MB of data files`);
 
 // ---------- pages ----------
@@ -170,14 +182,17 @@ const ctx = {
 const P = makePages(ctx);
 ctx.metalsBox = metals ? (uid) => metalsBox(metals, uid, P.url) : null;
 
+// The newest stories of a list, enough for n in each language
 const latest = (key, n = STATIC_N) => {
   const days = lists.get(key);
   if (!days) return [];
   const out = [];
+  const have = { hi: 0, en: 0 };
   for (const d of [...days.keys()].sort().reverse()) {
     for (const it of capDay(days.get(d))) {
       out.push(it);
-      if (out.length >= n) return out;
+      for (const l of ["hi", "en"]) if (it.ok || it.s.l === l) have[l]++;
+      if (have.hi >= n && have.en >= n) return out;
     }
   }
   return out;

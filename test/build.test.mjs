@@ -17,6 +17,7 @@ test("the website builds and has the key pages", () => {
     stories: [
       story("aaa111", { s: "ok", a: { hi: { h: "हिंदी शीर्षक", q: nine("जवाब") }, en: { h: "English headline", q: nine("answer") }, g: ["cricket"], good: false, imp: 8, scope: "country", place: { country: "India", state: "Uttar Pradesh", district: "Barabanki", local: "Zaidpur", local_hi: "जैदपुर" } }, loc: { c: "in", s: "up", d: "barabanki", l: "zaidpur" }, sc: "country" }),
       story("bbb222"),
+      story("ccc333", { t: "सेंसेक्स 500 अंक चढ़ा, निफ्टी भी उछला" }),
     ],
   };
   fs.mkdirSync(path.join(tmp, "data"));
@@ -40,8 +41,12 @@ test("the website builds and has the key pages", () => {
   const day = idx.days["d/up/barabanki"][0];
   const hi = JSON.parse(read(`data/hi/d/up/barabanki/${day}.json`));
   const en = JSON.parse(read(`data/en/d/up/barabanki/${day}.json`));
-  assert.equal(hi.length, 2, "Hindi list: both stories");
-  assert.equal(en.length, 1, "English list: only the summarized one (the other is a Hindi story without its summary yet)");
+  assert.equal(hi.length, 3, "Hindi list: all stories");
+  assert.equal(en.length, 1, "English list: only the summarized one (the others are Hindi stories without their summary yet)");
+  assert.deepEqual(idx.n.hi["d/up/barabanki"], [3], "story counts per day, for 'See N stories in …'");
+  assert.ok(idx.days["s-up/stock-market"], "a headline with सेंसेक्स puts the story into Stock Market before the AI has written it");
+  assert.deepEqual(JSON.parse(read(`data/hi/s-up/stock-market/${day}.json`)).map((s) => s.i), ["ccc333"]);
+  assert.ok(JSON.parse(read("data/stocks.json")).some((s) => s.s === "RELIANCE"), "names for the Stocks box");
   assert.ok(!fs.existsSync(path.join(out, "ads.txt")), "no ads.txt before AdSense is set up");
   assert.match(read("movies/index.html"), /abcdefghijk/, "trailers & songs on the Movies page");
   fs.rmSync(tmp, { recursive: true, force: true });
