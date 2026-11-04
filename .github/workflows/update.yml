@@ -26,6 +26,8 @@ jobs:
   update:
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    outputs:
+      indexnow: ${{ steps.indexnow.outputs.body }}
     steps:
       - name: Get the files
         uses: actions/checkout@v7
@@ -82,6 +84,13 @@ jobs:
         with:
           path: _site
 
+      # The story pages written in this run, for IndexNow (sent after the site is published)
+      - name: List the new story pages
+        id: indexnow
+        run: |
+          [ -f .cache/indexnow.json ] || exit 0
+          { echo 'body<<INDEXNOW_END'; cat .cache/indexnow.json; echo; echo 'INDEXNOW_END'; } >> "$GITHUB_OUTPUT"
+
   deploy:
     needs: update
     runs-on: ubuntu-latest
@@ -92,3 +101,14 @@ jobs:
       - name: Publish to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+      # IndexNow: Bing, Yahoo, Yandex and others learn about the new stories within minutes (indexnow.org)
+      - name: Tell search engines about the new stories
+        if: needs.update.outputs.indexnow != ''
+        continue-on-error: true
+        env:
+          BODY: ${{ needs.update.outputs.indexnow }}
+        run: |
+          code=$(curl -sS -m 30 -o /dev/null -w '%{http_code}' -X POST https://api.indexnow.org/indexnow \
+            -H 'content-type: application/json; charset=utf-8' --data "$BODY")
+          echo "IndexNow answered HTTP $code (200 or 202 = accepted)"

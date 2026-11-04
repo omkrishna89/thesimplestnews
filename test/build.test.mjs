@@ -15,7 +15,7 @@ test("the website builds and has the key pages", () => {
   const db = {
     v: 1, seen: {}, feeds: {}, names: { "up/barabanki": "बाराबंकी" }, videos: [{ id: "abcdefghijk", t: "New Song (Official Video)", ch: "T-Series", p: now, k: "song" }], metals: null,
     stories: [
-      story("aaa111", { s: "ok", a: { hi: { h: "हिंदी शीर्षक", q: nine("जवाब") }, en: { h: "English headline", q: nine("answer") }, g: ["cricket"], good: false, imp: 8, scope: "country", place: { country: "India", state: "Uttar Pradesh", district: "Barabanki", local: "Zaidpur", local_hi: "जैदपुर" } }, loc: { c: "in", s: "up", d: "barabanki", l: "zaidpur" }, sc: "country" }),
+      story("aaa111", { s: "ok", a: { hi: { h: "हिंदी शीर्षक", q: nine("जवाब") }, en: { h: "English headline", q: nine("answer") }, g: ["cricket"], good: false, imp: 8, scope: "country", place: { country: "India", state: "Uttar Pradesh", district: "Barabanki", local: "Zaidpur", local_hi: "जैदपुर" }, at: now - 60e3 }, loc: { c: "in", s: "up", d: "barabanki", l: "zaidpur" }, sc: "country" }),
       story("bbb222"),
       story("ccc333", { t: "सेंसेक्स 500 अंक चढ़ा, निफ्टी भी उछला" }),
     ],
@@ -23,7 +23,8 @@ test("the website builds and has the key pages", () => {
   fs.mkdirSync(path.join(tmp, "data"));
   fs.writeFileSync(path.join(tmp, "data", "db.json.gz"), zlib.gzipSync(JSON.stringify(db)));
   const out = path.join(tmp, "site");
-  execFileSync(process.execPath, ["scripts/build.mjs"], { env: { ...process.env, DATA_DIR: path.join(tmp, "data"), OUT_DIR: out, PATH_PREFIX: "/thesimplestnews", SITE_URL: "https://omkrishna89.github.io" }, stdio: "pipe" });
+  const indexNowOut = path.join(tmp, "indexnow.json");
+  execFileSync(process.execPath, ["scripts/build.mjs"], { env: { ...process.env, DATA_DIR: path.join(tmp, "data"), OUT_DIR: out, PATH_PREFIX: "/thesimplestnews", SITE_URL: "https://omkrishna89.github.io", INDEXNOW_OUT: indexNowOut }, stdio: "pipe" });
   const read = (p) => fs.readFileSync(path.join(out, p), "utf8");
   const home = read("index.html");
   assert.match(home, /English headline/);
@@ -47,6 +48,14 @@ test("the website builds and has the key pages", () => {
   assert.ok(idx.days["s-up/stock-market"], "a headline with सेंसेक्स puts the story into Stock Market before the AI has written it");
   assert.deepEqual(JSON.parse(read(`data/hi/s-up/stock-market/${day}.json`)).map((s) => s.i), ["ccc333"]);
   assert.ok(JSON.parse(read("data/stocks.json")).some((s) => s.s === "RELIANCE"), "names for the Stocks box");
+  // IndexNow: the key file, and the story written in this run listed for the search engines
+  const site = JSON.parse(fs.readFileSync(new URL("../config/site.json", import.meta.url)));
+  assert.equal(read(`${site.indexNow.key}.txt`), site.indexNow.key);
+  const indexNow = JSON.parse(fs.readFileSync(indexNowOut, "utf8"));
+  assert.equal(indexNow.host, "omkrishna89.github.io");
+  assert.deepEqual(indexNow.urlList, ["https://omkrishna89.github.io/thesimplestnews/story/aaa111/"]);
+  assert.equal(indexNow.keyLocation, `https://omkrishna89.github.io/thesimplestnews/${site.indexNow.key}.txt`);
+  if (!site.analytics?.ga4) assert.doesNotMatch(home, /googletagmanager/, "no Google Analytics without a Measurement ID");
   assert.ok(!fs.existsSync(path.join(out, "ads.txt")), "no ads.txt before AdSense is set up");
   assert.match(read("movies/index.html"), /abcdefghijk/, "trailers & songs on the Movies page");
   fs.rmSync(tmp, { recursive: true, force: true });
