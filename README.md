@@ -16,7 +16,7 @@ It costs nothing to run:
 
 | Feature | How it works |
 | --- | --- |
-| News from many websites | 407 free news feeds: national, world, 25 groups, 10 states and **277 districts** (UP, Bihar, MP, Rajasthan, Delhi, Haryana, Jharkhand, Uttarakhand, Chhattisgarh, Himachal). List: `config/sources.json` |
+| News from many websites | 403 free news feeds: national, world, 25 groups, 10 states and **277 districts** (UP, Bihar, MP, Rajasthan, Delhi, Haryana, Jharkhand, Uttarakhand, Chhattisgarh, Himachal). List: `config/sources.json` |
 | Shortest, simplest headline + 9 answers | Gemini reads the full article (only where the website's robots.txt allows) and writes both languages |
 | 25 groups | Local, Startups, AI, Movies, Good News, Road Accidents, Business, Cricket, Sports, Entertainment, Auto, Stock Market, Politics, Govt Schemes, Jobs & Results, Weather, Crime, Health, Education, Gold & Silver, Bank & Money, Farming & Mandi, Tech & Mobiles, Science & Space, Religion & Horoscope |
 | Group buttons | One line of buttons; **More ▾** shows all of them, **Less ▴** one line again. Tap one group, then more: the news of **all picked groups** shows together (tap again to remove one, **Home** = all news). The reader's picks are remembered on their phone |
@@ -125,7 +125,9 @@ To check that all feeds still work: `node scripts/check-feeds.mjs` (see section 
 
 ## 4. Good to know
 
-- **Gemini's free limit:** about 1,000 requests a day (Google changes this). Each request writes 6 stories, and the biggest stories go first. If Google is busy ("high demand"), the robot stops and tries again in the next run.
+- **Gemini's free limit:** about 1,000 requests a day (Google changes this). Each request writes 6 stories, 96 a run. In each run the
+  24 biggest stories go first; the rest is shared out so every group, every state and every state's districts get some
+  (never more than 4 from one news feed). If Google is busy ("high demand"), the robot stops and tries again in the next run.
   When the limit is used up, new stories show "summary coming soon" until the next day's limit (around 1:30 pm India time).
   Settings: `config/site.json` → `gemini`.
 - **GitHub Pages limits:** the site must stay under 1 GB (it is about 40–200 MB) and about 100 GB of visits a month.

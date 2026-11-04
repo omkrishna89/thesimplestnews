@@ -134,18 +134,6 @@
    "level": "country"
   },
   {
-   "id": "indianexpress-com-section-india-feed",
-   "every": 30,
-   "priority": 8,
-   "url": "https://indianexpress.com/section/india/feed/",
-   "source": {
-    "en": "The Indian Express",
-    "hi": "इंडियन एक्सप्रेस"
-   },
-   "lang": "en",
-   "level": "country"
-  },
-  {
    "id": "timesofindia-indiatimes-com-rssfeedstopstories-cms",
    "every": 30,
    "priority": 8,
@@ -236,21 +224,6 @@
    "level": "country",
    "groups": [
     "startup"
-   ]
-  },
-  {
-   "id": "indianexpress-com-section-technology-artificial-intelligence",
-   "every": 30,
-   "priority": 6,
-   "url": "https://indianexpress.com/section/technology/artificial-intelligence/feed/",
-   "source": {
-    "en": "The Indian Express",
-    "hi": "इंडियन एक्सप्रेस"
-   },
-   "lang": "en",
-   "level": "country",
-   "groups": [
-    "ai"
    ]
   },
   {
@@ -1144,19 +1117,6 @@
    "lang": "en",
    "level": "state",
    "state": "br"
-  },
-  {
-   "id": "indianexpress-com-section-cities-lucknow-feed",
-   "every": 30,
-   "priority": 6,
-   "url": "https://indianexpress.com/section/cities/lucknow/feed/",
-   "source": {
-    "en": "The Indian Express",
-    "hi": "इंडियन एक्सप्रेस"
-   },
-   "lang": "en",
-   "level": "state",
-   "state": "up"
   },
   {
    "id": "amarujala-com-rss-dehradun-xml",
@@ -5525,21 +5485,6 @@
    ]
   },
   {
-   "id": "indianexpress-com-section-sports-feed",
-   "every": 30,
-   "priority": 6,
-   "url": "https://indianexpress.com/section/sports/feed/",
-   "source": {
-    "en": "The Indian Express",
-    "hi": "इंडियन एक्सप्रेस"
-   },
-   "lang": "en",
-   "level": "country",
-   "groups": [
-    "sports"
-   ]
-  },
-  {
    "id": "feeds-feedburner-com-ndtvsports-latest",
    "every": 30,
    "priority": 6,
@@ -5562,21 +5507,6 @@
    "source": {
     "en": "Hindustan Times",
     "hi": "हिंदुस्तान टाइम्स"
-   },
-   "lang": "en",
-   "level": "country",
-   "groups": [
-    "entertainment"
-   ]
-  },
-  {
-   "id": "indianexpress-com-section-entertainment-feed",
-   "every": 30,
-   "priority": 6,
-   "url": "https://indianexpress.com/section/entertainment/feed/",
-   "source": {
-    "en": "The Indian Express",
-    "hi": "इंडियन एक्सप्रेस"
    },
    "lang": "en",
    "level": "country",
@@ -5622,21 +5552,6 @@
    "source": {
     "en": "Hindustan Times",
     "hi": "हिंदुस्तान टाइम्स"
-   },
-   "lang": "en",
-   "level": "country",
-   "groups": [
-    "education"
-   ]
-  },
-  {
-   "id": "indianexpress-com-section-education-feed",
-   "every": 60,
-   "priority": 6,
-   "url": "https://indianexpress.com/section/education/feed/",
-   "source": {
-    "en": "The Indian Express",
-    "hi": "इंडियन एक्सप्रेस"
    },
    "lang": "en",
    "level": "country",
@@ -5702,6 +5617,36 @@
    "level": "country",
    "groups": [
     "farming"
+   ]
+  },
+  {
+   "id": "hindustantimes-com-feeds-rss-sports-rssfeed-xml",
+   "every": 30,
+   "priority": 6,
+   "url": "https://www.hindustantimes.com/feeds/rss/sports/rssfeed.xml",
+   "source": {
+    "en": "Hindustan Times",
+    "hi": "हिंदुस्तान टाइम्स"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "sports"
+   ]
+  },
+  {
+   "id": "timesofindia-indiatimes-com-rssfeeds-4719148-cms",
+   "every": 30,
+   "priority": 6,
+   "url": "https://timesofindia.indiatimes.com/rssfeeds/4719148.cms",
+   "source": {
+    "en": "Times of India",
+    "hi": "टाइम्स ऑफ़ इंडिया"
+   },
+   "lang": "en",
+   "level": "country",
+   "groups": [
+    "sports"
    ]
   }
  ]
