@@ -50,7 +50,7 @@ Without the key the site still works: stories show their original headline with 
 
 ### Step 3 — Start it
 Merge the pull request into `main`. The **Update news** run starts by itself (Actions tab). After 10–15 minutes the site is live at
-`https://omkrishna89.github.io/thesimplestnews-/` (the address follows the repository's name). From then on it updates every 30 minutes
+`https://omkrishna89.github.io/thesimplestnews/` (the address follows the repository's name). From then on it updates every 30 minutes
 once the timer of Step 8 is set up.
 
 To run it by hand: **Actions** → **Update news** → **Run workflow**.
@@ -92,12 +92,12 @@ GitHub's own timer often starts hours late, or not at all. A free outside timer 
 
 1. **A GitHub key that can only press "Run workflow":** open <https://github.com/settings/personal-access-tokens/new>
    - Token name: `cron-job timer` · Expiration: **No expiration** (or the longest you can pick)
-   - Repository access: **Only select repositories** → `omkrishna89/thesimplestnews-`
+   - Repository access: **Only select repositories** → `omkrishna89/thesimplestnews`
    - Permissions → **Actions: Read and write** (nothing else)
    - **Generate token** and copy it (starts with `github_pat_`). Keep it secret.
 2. **The timer:** sign up at <https://console.cron-job.org/signup> → **CREATE CRONJOB**
    - COMMON: Title `The Simplest News update` · URL
-     `https://api.github.com/repos/omkrishna89/thesimplestnews-/actions/workflows/update.yml/dispatches` · Schedule **Every 30 minutes**
+     `https://api.github.com/repos/omkrishna89/thesimplestnews/actions/workflows/update.yml/dispatches` · Schedule **Every 30 minutes**
    - ADVANCED: Request method **POST** · Headers `Accept` = `application/vnd.github+json`, `Authorization` = `Bearer github_pat_…` (your key),
      `X-GitHub-Api-Version` = `2022-11-28` · Request body `{"ref":"main"}`
    - **TEST RUN** → it should answer **204**; then **CREATE**. A new **Update news** run appears on the Actions tab.
