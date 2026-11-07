@@ -41,6 +41,14 @@ test("400 'invalid argument' -> the same model is asked again with a simpler req
   assert.equal(out.variant, 1);
   assert.equal(out.results[0].en.h, "Pond auctioned");
   assert.deepEqual(calls.map((c) => [c.model, c.thinking]), [["lite-model", true], ["lite-model", false]]);
+  assert.deepEqual(out.usage, { in: 0, out: 0, think: 0 }, "no token counts in this answer");
+});
+
+test("the tokens of every request are counted (what a paid plan bills)", async () => {
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(answer) }] } }], usageMetadata: { promptTokenCount: 1480, candidatesTokenCount: 390, thoughtsTokenCount: 120, totalTokenCount: 1990 } }), { status: 200 });
+  const out = await summarize([story]);
+  assert.deepEqual(out.usage, { in: 1480, out: 390, think: 120 });
 });
 
 test("busy (503) -> waits, retries once, then the next model; free limit (429) -> QuotaError", async () => {

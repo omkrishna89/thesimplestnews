@@ -248,6 +248,21 @@ function apply(story, r, model) {
   if (story.loc.l && r.place.local_hi) db.names[`${story.loc.s}/${story.loc.d}/${story.loc.l}`] ||= r.place.local_hi;
 }
 
+// Tokens Gemini used, per model and Google day (its free limits restart at midnight in California).
+// Google bills a paid plan by these, so they show exactly what writing every story would cost. Kept 2 weeks.
+const googleDay = (t) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles" }).format(new Date(t));
+const n0 = (v) => Math.round(v).toLocaleString("en-IN");
+function countTokens(model, stories, u) {
+  const days = (db.aiUsage ||= {});
+  const d = ((days[googleDay(Date.now())] ||= {})[model] ||= { req: 0, stories: 0, in: 0, out: 0, think: 0 });
+  d.req++;
+  d.stories += stories;
+  d.in += u.in;
+  d.out += u.out;
+  d.think += u.think;
+  for (const k of Object.keys(days).sort().slice(0, -14)) delete days[k];
+}
+
 async function writeStories() {
   if (args.has("--no-ai")) return log("[ai] skipped (--no-ai)");
   if (!hasKey() && !MOCK) return log("[ai] no GEMINI_API_KEY: stories show 'summary coming soon'");
@@ -255,6 +270,7 @@ async function writeStories() {
   log(`[ai] ${list.length} stories to write`);
   const batchSize = Number(process.env.GEMINI_BATCH || site.gemini.batch);
   const fresh = [];
+  const run = { stories: 0, in: 0, out: 0, think: 0 };
   let calls = 0;
   let failedInARow = 0;
   for (let i = 0; i < list.length; i += batchSize) {
@@ -313,10 +329,23 @@ async function writeStories() {
       fresh.push(s);
       if (r.sameAs && r.sameAs !== j + 1 && batch[r.sameAs - 1]?.s === "ok") markDuplicate(s, batch[r.sameAs - 1]);
     });
-    log(`[ai] batch ${i / batchSize + 1}: ${out.results.filter(Boolean).length}/${batch.length} written by ${out.model}${out.variant ? ` (request shape ${out.variant})` : ""}`);
+    const written = out.results.filter(Boolean).length;
+    const u = out.usage;
+    if (u) {
+      countTokens(out.model, written, u);
+      run.stories += written;
+      run.in += u.in;
+      run.out += u.out;
+      run.think += u.think;
+    }
+    log(`[ai] batch ${i / batchSize + 1}: ${written}/${batch.length} written by ${out.model}${out.variant ? ` (request shape ${out.variant})` : ""}${u ? ` · tokens: ${n0(u.in)} in, ${n0(u.out)} out, ${n0(u.think)} thinking` : ""}`);
   }
   for (const s of list) if (s.s === "new" && s.tr >= 3) s.s = "fail";
   dedupeHeadlines(fresh);
+  if (run.stories) {
+    const per = (v) => n0(v / run.stories);
+    log(`[ai] tokens this run: ${n0(run.in)} in, ${n0(run.out)} out, ${n0(run.think)} thinking for ${run.stories} stories (each: ${per(run.in)} in, ${per(run.out)} out, ${per(run.think)} thinking)`);
+  }
 }
 
 // ---------- 4. trailers & songs, gold & silver ----------

@@ -75,6 +75,12 @@ test("the website builds and has the key pages", () => {
   if (!site.analytics?.ga4) assert.doesNotMatch(home, /googletagmanager/, "no Google Analytics without a Measurement ID");
   assert.ok(!fs.existsSync(path.join(out, "ads.txt")), "no ads.txt before AdSense is set up");
   assert.match(read("movies/index.html"), /abcdefghijk/, "trailers & songs on the Movies page");
+  // only there: Home, other groups and story pages have nothing but the (empty) ad spot on the right
+  for (const page of ["index.html", "all/world/index.html", "cricket/index.html", "story/aaa111/index.html"]) {
+    const html = read(page);
+    assert.doesNotMatch(html, /abcdefghijk|class="vids|class="panel metals/, `no trailers or gold box on ${page}`);
+    assert.match(html, /<aside class="side"><div class="ad ad--empty ad--side" data-ad="side" hidden><\/div><\/aside>/, `only the ad spot on the right of ${page}`);
+  }
   // "Trending" (Google Trends) on Home: a tap searches our news; the topic's own news links are in data/trends.json
   assert.match(home, /data-trend="cockroach janta party"/);
   assert.match(home, /href="\/thesimplestnews\/\?q=cockroach%20janta%20party"/);

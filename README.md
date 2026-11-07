@@ -26,13 +26,14 @@ It costs nothing to run:
 | Search | The search box on Home (and 🔍 in the top bar of every page) looks through every story of the last 7 days, in both languages, with the same tabs, sort and day choices. Spellings are forgiven (janata = janta, bharatiya = bhartiya, हिन्दी = हिंदी, कॉकरोच = कोकरोच) and small typing mistakes too; rare words count most (a common word like "party" may be missing); short forms work both ways (Cockroach Janta Party = CJP). Code: `src/assets/js/search.js` |
 | Other news websites | Below our own search results: the same search on other news websites through the free **GDELT Project** (slow: 10–20 seconds; English words only), the topic's news links from Google Trends, and a **Google News** button with the same words |
 | 🔥 Trending | Under the Home search box: what India searches on Google right now (Google Trends' free feed, every 30 minutes; Hindi and English topics). One line; **More ▾** shows the rest. Tap a topic to search it |
-| Click a headline | 1st click: the 9 answers open right there (open as many as you like). 2nd click: the story's own page with **all sources** |
+| Click a headline | 1st click: the 9 answers open right there (open as many as you like). 2nd click: closed again. The **Open news page** button at the bottom of an open story goes to its own page with **all sources** (before Gemini has written it: the news website) |
 | Hover 1 second (computer) / hold 1 second (phone) | A pop-up box with the whole story and all 9 answers |
 | Sort and day | Newest (default) · Big stories · Most important · Relevant (what this reader opens most) — and All days / Today / Yesterday / pick a day / pick dates (from … to) |
-| Movies | New official trailers and songs from YouTube (T-Series, Zee Music, YRF, Netflix India…), play on the site |
-| Gold & silver | Today's IBJA rates and 5-year charts, like on IFC knowledge |
+| Movies | New official trailers and songs from YouTube (T-Series, Zee Music, YRF, Netflix India…), play on the site. Only on the Movies page |
+| Gold & silver | Today's IBJA rates and 5-year charts, like on IFC knowledge. Only on the Gold & Silver page |
+| Page width | The news uses the full width. A right-hand column appears only for the side ad, once AdSense is on |
 | Look | Dark by default, **Light** button next to हिंदी / English. The language follows the phone; the reader's choice is remembered |
-| Ads | Google AdSense spots on every page (banner, in the lists, beside the news, end of story) + Auto ads |
+| Ads | Google AdSense spots on every page (banner, in the lists, right-hand column, end of story) + Auto ads |
 | Stories kept | 7 days, also the ones Gemini has not written (so the search finds a whole week). Gemini writes a story only in its first 36 hours; until then it shows "summary coming soon", after that just its headline and link |
 | Search engines | Sitemaps for Google and Bing; after every update the new story pages are sent to Bing, Yahoo, Yandex and others through **IndexNow**, so they appear within minutes |
 | Visitor statistics | Google Analytics, once its Measurement ID is in `config/site.json` (Step 9). It loads after the page, so reading is not slowed |

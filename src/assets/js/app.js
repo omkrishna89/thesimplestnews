@@ -1153,7 +1153,16 @@ async function findItem(id, el) {
   return found || null;
 }
 
-// ---------- first click: answers open in the list; second click: the full story page ----------
+// ---------- a click on a headline opens its answers in the list; another click closes them again ----------
+// The button at the bottom of the open story goes to its news page (or to the news website, while Gemini hasn't
+// written it yet). Ctrl/⌘-click on a headline still opens that page in a new tab.
+function goHTML(it, href) {
+  const L = T[lang];
+  const site = (u, src) => `<a class="btn btn--go" href="${esc(u)}" target="_blank" rel="noopener nofollow">${esc(L.readAt)}${src ? ` ${esc(src)}` : ""} ↗</a>`;
+  if (!it) return `<div class="it__go">${site(href, "")}</div>`;
+  if (!it.q) return `<div class="it__go">${site(it.u, it.src)}</div>`;
+  return `<div class="it__go"><a class="btn btn--go" href="${base}/story/${it.i}/">${esc(L.openPage)} →</a><a class="it__src" href="${esc(it.u)}" target="_blank" rel="noopener nofollow">${esc(L.readAt)} ${esc(it.src)} ↗</a></div>`;
+}
 let suppressClick = null;
 D.addEventListener("click", async (e) => {
   const a = e.target.closest(".it__link");
@@ -1164,25 +1173,25 @@ D.addEventListener("click", async (e) => {
     return;
   }
   if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+  e.preventDefault();
   const art = a.closest(".it");
   if (art.classList.contains("is-open")) {
-    const it = await findItem(art.dataset.id, a);
-    learn(it);
-    return; // let the browser open the story page (or the original website)
+    art.classList.remove("is-open");
+    $(".it__qa", art)?.remove();
+    a.setAttribute("aria-expanded", "false");
+    return;
   }
-  e.preventDefault();
   closePop();
   art.classList.add("is-open");
+  a.setAttribute("aria-expanded", "true");
   const box = D.createElement("div");
   box.className = "it__qa";
   box.innerHTML = `<p class="qa__wait">${esc(T[lang].loading)}</p>`;
   art.append(box);
   const it = await findItem(art.dataset.id, a);
+  if (!box.isConnected) return; // closed again while it was loading
   learn(it);
-  const L = T[lang];
-  box.innerHTML = it
-    ? `${qaHTML(it, lang)}<p class="it__links">${it.q ? `<a href="${base}/story/${it.i}/">${esc(L.sources)} →</a> · ` : ""}<a href="${esc(it.u)}" target="_blank" rel="noopener nofollow">${esc(L.readAt)} ${esc(it.src)} ↗</a></p><p class="it__hint">${esc(fine ? L.clickAgain : L.tapAgain)}</p>`
-    : `<p class="qa__coming">${esc(L.coming)}</p>`;
+  box.innerHTML = `${it ? qaHTML(it, lang) : `<p class="qa__coming">${esc(T[lang].coming)}</p>`}${goHTML(it, a.href)}`;
 });
 
 // ---------- pop-up box: hover 1 second (computer) or hold 1 second (phone) ----------

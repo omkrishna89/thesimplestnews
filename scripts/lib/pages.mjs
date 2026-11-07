@@ -156,9 +156,10 @@ ${footer()}
           .join("")}<button type="button" class="chip chip--more" data-more-trends aria-expanded="false" hidden><span class="chip--more__more">${biT("moreGroups")}</span><span class="chip--more__less">${biT("lessGroups")}</span></button></div></div>`
       : "";
 
-  const sidebar = (extra = "", metals = true) => `<aside class="side">${extra}${metals && ctx.metalsBox ? ctx.metalsBox("side") : ""}${ad("side", "ad--side")}</aside>`;
+  // The right-hand column holds only the side ad. Without an ad it is not shown and the page uses the full width.
+  const sidebar = () => `<aside class="side">${ad("side", "ad--side")}</aside>`;
 
-  function listPage({ group, tab, items, path, title, description, extraTop = "", sideTop = "", noindex }) {
+  function listPage({ group, tab, items, path, title, description, extraTop = "", noindex }) {
     const g = group === "all" ? null : G[group];
     const h1hi = g ? `${g.icon} ${g.hi}` : T.hi.all;
     const h1en = g ? `${g.icon} ${g.en}` : T.en.all;
@@ -174,7 +175,7 @@ ${controls()}
 <div class="lists" data-lists>${PLACE_TABS.has(tab) ? `<p class="empty" data-wait>${biT("loading")}</p>` : staticLists(items)}</div>
 <button type="button" class="btn btn--more" data-more hidden>${biT("more")}</button>
 </div>
-${sidebar(sideTop, group !== "gold-silver")}
+${sidebar()}
 </main>`;
     return page({ title, description, path, noindex, kind: "list", data: view }, body, group);
   }

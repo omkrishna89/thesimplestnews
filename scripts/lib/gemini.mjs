@@ -146,9 +146,12 @@ async function callModel(model, stories) {
     const raw = json.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
     const out = parseAnswer(raw);
     if (!Array.isArray(out.stories)) throw new Error(`${model}: answer has no stories`);
-    return { stories: out.stories, variant };
+    return { stories: out.stories, variant, usage: tokens(json.usageMetadata) };
   }
 }
+
+// How many tokens a request used (Google bills by these): what we sent, the answer, and Gemini's own thinking
+export const tokens = (u = {}) => ({ in: u.promptTokenCount || 0, out: u.candidatesTokenCount || 0, think: u.thoughtsTokenCount || 0 });
 
 const firstLine = (text) => {
   try {
@@ -160,16 +163,17 @@ const firstLine = (text) => {
 
 const outOfQuota = new Set();
 
-// Returns { model, variant, results } — results in the same order as `stories`, null where Gemini skipped one.
-// Throws QuotaError when every model's free limit is used up, or the last error when no model could answer.
+// Returns { model, variant, results, usage } — results in the same order as `stories`, null where Gemini skipped one;
+// usage = the tokens this request used. Throws QuotaError when every model's free limit is used up, or the last
+// error when no model could answer.
 export async function summarize(stories) {
   let lastErr;
   for (const model of MODELS) {
     if (outOfQuota.has(model) || broken.has(model)) continue;
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
-        const { stories: answer, variant } = await callModel(model, stories);
-        return { model, variant, results: stories.map((_, i) => clean(answer.find((a) => Number(a.n) === i + 1))) };
+        const { stories: answer, variant, usage } = await callModel(model, stories);
+        return { model, variant, usage, results: stories.map((_, i) => clean(answer.find((a) => Number(a.n) === i + 1))) };
       } catch (err) {
         lastErr = err;
         if (err instanceof QuotaError) {

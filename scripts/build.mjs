@@ -264,13 +264,10 @@ const TAB_HI = { local: "आसपास", tehsil: "तहसील", district: 
 
 for (const slug of ["all", ...groups.map((g) => g.slug)]) {
   const n = nameOf(slug);
+  // trailers & songs only on the Movies page, gold & silver rates only on the Gold & Silver page
   let extraTop = "";
-  let sideTop = "";
   if (slug === "movies") extraTop = videosStrip(db.videos, { limit: 12 });
-  if (slug === "all") {
-    sideTop = videosStrip(db.videos, { limit: 6, side: true });
-    extraTop = P.trendsRow(trends);
-  }
+  if (slug === "all") extraTop = P.trendsRow(trends);
   if (slug === "gold-silver" && ctx.metalsBox) extraTop = ctx.metalsBox("top");
   for (const tab of ["country", "world", "state", "district", "tehsil", "local"]) {
     const key = tab === "world" ? `world/${slug}` : `in/${slug}`;
@@ -283,7 +280,7 @@ for (const slug of ["all", ...groups.map((g) => g.slug)]) {
     const description = slug === "all" ? `${site.tagline.hi}. ${site.tagline.en}.` : `${n.about_hi || ""} ${n.about_en || ""}`.trim();
     emit(
       rel,
-      P.listPage({ group: slug, tab, items: placeTab ? [] : latest(key), path: "/" + rel.replace(/index\.html$/, ""), title, description, extraTop, sideTop, noindex: placeTab }),
+      P.listPage({ group: slug, tab, items: placeTab ? [] : latest(key), path: "/" + rel.replace(/index\.html$/, ""), title, description, extraTop, noindex: placeTab }),
       { inSitemap: !placeTab, prio: slug === "all" && tab === "country" ? "1.0" : "0.8" },
     );
   }

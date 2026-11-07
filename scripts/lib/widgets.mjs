@@ -58,14 +58,14 @@ ${view.silver ? card(view.silver, "silver", "चांदी", "Silver", "1 क�
 </section>`;
 }
 
-export function videosStrip(videos, { limit = 8, side = false } = {}) {
+export function videosStrip(videos, { limit = 8 } = {}) {
   if (!videos?.length) return "";
-  return `<section class="vids${side ? " vids--side panel" : ""}" aria-label="Trailers and songs">
+  return `<section class="vids" aria-label="Trailers and songs">
 <h2>🎬 ${bi("नए ट्रेलर और गाने", "New trailers & songs")}</h2>
 <div class="vids__row">${videos
     .slice(0, limit)
     .map(
-      (v) => `<button type="button" class="vid" data-yt="${esc(v.id)}" aria-label="${esc(v.t)}"><span class="vid__img"><img src="https://i.ytimg.com/vi/${esc(v.id)}/mqdefault.jpg" alt="" loading="lazy" width="320" height="180"><span class="vid__play" aria-hidden="true">▶</span><span class="vid__kind">${v.k === "trailer" ? bi("ट्रेलर", "Trailer") : bi("गाना", "Song")}</span></span><span class="vid__t">${esc(v.t)}</span><span class="vid__ch">${esc(v.ch)}</span><span class="vid__txt"><span class="vid__t">${esc(v.t)}</span><span class="vid__ch">${esc(v.ch)}</span></span></button>`,
+      (v) => `<button type="button" class="vid" data-yt="${esc(v.id)}" aria-label="${esc(v.t)}"><span class="vid__img"><img src="https://i.ytimg.com/vi/${esc(v.id)}/mqdefault.jpg" alt="" loading="lazy" width="320" height="180"><span class="vid__play" aria-hidden="true">▶</span><span class="vid__kind">${v.k === "trailer" ? bi("ट्रेलर", "Trailer") : bi("गाना", "Song")}</span></span><span class="vid__t">${esc(v.t)}</span><span class="vid__ch">${esc(v.ch)}</span></button>`,
     )
     .join("")}</div>
 </section>`;
