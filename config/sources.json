@@ -359,98 +359,6 @@
    ]
   },
   {
-   "id": "amarujala-com-rss-entertainment-xml",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.amarujala.com/rss/entertainment.xml",
-   "source": {
-    "en": "Amar Ujala",
-    "hi": "अमर उजाला"
-   },
-   "lang": "hi",
-   "level": "country",
-   "groups": [
-    "entertainment",
-    "movies"
-   ]
-  },
-  {
-   "id": "abplive-com-entertainment-feed",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.abplive.com/entertainment/feed",
-   "source": {
-    "en": "ABP Live",
-    "hi": "एबीपी लाइव"
-   },
-   "lang": "hi",
-   "level": "country",
-   "groups": [
-    "entertainment",
-    "movies"
-   ]
-  },
-  {
-   "id": "bollywoodhungama-com-rss-news-xml",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.bollywoodhungama.com/rss/news.xml",
-   "source": {
-    "en": "Bollywood Hungama",
-    "hi": "बॉलीवुड हंगामा"
-   },
-   "lang": "en",
-   "level": "country",
-   "groups": [
-    "movies"
-   ]
-  },
-  {
-   "id": "thehindu-com-entertainment-movies-feeder-default-rss",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.thehindu.com/entertainment/movies/feeder/default.rss",
-   "source": {
-    "en": "The Hindu",
-    "hi": "द हिंदू"
-   },
-   "lang": "en",
-   "level": "country",
-   "groups": [
-    "movies"
-   ]
-  },
-  {
-   "id": "hindi-thebetterindia-com-feed",
-   "every": 30,
-   "priority": 6,
-   "url": "https://hindi.thebetterindia.com/feed/",
-   "source": {
-    "en": "The Better India",
-    "hi": "द बेटर इंडिया"
-   },
-   "lang": "hi",
-   "level": "country",
-   "groups": [
-    "good-news"
-   ]
-  },
-  {
-   "id": "thebetterindia-com-feed",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.thebetterindia.com/feed/",
-   "source": {
-    "en": "The Better India",
-    "hi": "द बेटर इंडिया"
-   },
-   "lang": "en",
-   "level": "country",
-   "groups": [
-    "good-news"
-   ]
-  },
-  {
    "id": "amarujala-com-rss-business-xml",
    "every": 30,
    "priority": 6,
@@ -523,81 +431,6 @@
    "level": "country",
    "groups": [
     "stock-market"
-   ]
-  },
-  {
-   "id": "amarujala-com-rss-cricket-xml",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.amarujala.com/rss/cricket.xml",
-   "source": {
-    "en": "Amar Ujala",
-    "hi": "अमर उजाला"
-   },
-   "lang": "hi",
-   "level": "country",
-   "groups": [
-    "cricket"
-   ]
-  },
-  {
-   "id": "abplive-com-sports-cricket-feed",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.abplive.com/sports/cricket/feed",
-   "source": {
-    "en": "ABP Live",
-    "hi": "एबीपी लाइव"
-   },
-   "lang": "hi",
-   "level": "country",
-   "groups": [
-    "cricket"
-   ]
-  },
-  {
-   "id": "espncricinfo-com-rss-content-story-feeds-0-xml",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.espncricinfo.com/rss/content/story/feeds/0.xml",
-   "source": {
-    "en": "ESPNcricinfo",
-    "hi": "ईएसपीएन क्रिकइंफ़ो"
-   },
-   "lang": "en",
-   "level": "country",
-   "groups": [
-    "cricket"
-   ]
-  },
-  {
-   "id": "thehindu-com-sport-cricket-feeder-default-rss",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.thehindu.com/sport/cricket/feeder/default.rss",
-   "source": {
-    "en": "The Hindu",
-    "hi": "द हिंदू"
-   },
-   "lang": "en",
-   "level": "country",
-   "groups": [
-    "cricket"
-   ]
-  },
-  {
-   "id": "amarujala-com-rss-sports-xml",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.amarujala.com/rss/sports.xml",
-   "source": {
-    "en": "Amar Ujala",
-    "hi": "अमर उजाला"
-   },
-   "lang": "hi",
-   "level": "country",
-   "groups": [
-    "sports"
    ]
   },
   {
@@ -751,21 +584,6 @@
    ]
   },
   {
-   "id": "amarujala-com-rss-crime-xml",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.amarujala.com/rss/crime.xml",
-   "source": {
-    "en": "Amar Ujala",
-    "hi": "अमर उजाला"
-   },
-   "lang": "hi",
-   "level": "country",
-   "groups": [
-    "crime"
-   ]
-  },
-  {
    "id": "kisantak-in-rssfeeds-id-home",
    "every": 30,
    "priority": 6,
@@ -778,51 +596,6 @@
    "level": "country",
    "groups": [
     "farming"
-   ]
-  },
-  {
-   "id": "amarujala-com-rss-astrology-xml",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.amarujala.com/rss/astrology.xml",
-   "source": {
-    "en": "Amar Ujala",
-    "hi": "अमर उजाला"
-   },
-   "lang": "hi",
-   "level": "country",
-   "groups": [
-    "religion"
-   ]
-  },
-  {
-   "id": "amarujala-com-rss-spirituality-xml",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.amarujala.com/rss/spirituality.xml",
-   "source": {
-    "en": "Amar Ujala",
-    "hi": "अमर उजाला"
-   },
-   "lang": "hi",
-   "level": "country",
-   "groups": [
-    "religion"
-   ]
-  },
-  {
-   "id": "abplive-com-astro-feed",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.abplive.com/astro/feed",
-   "source": {
-    "en": "ABP Live",
-    "hi": "एबीपी लाइव"
-   },
-   "lang": "hi",
-   "level": "country",
-   "groups": [
-    "religion"
    ]
   },
   {
@@ -4557,51 +4330,6 @@
    ]
   },
   {
-   "id": "bhaskar-com-rss-v1-category-1053-xml",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.bhaskar.com/rss-v1--category-1053.xml",
-   "source": {
-    "en": "Dainik Bhaskar",
-    "hi": "दैनिक भास्कर"
-   },
-   "lang": "hi",
-   "level": "country",
-   "groups": [
-    "sports"
-   ]
-  },
-  {
-   "id": "bhaskar-com-rss-v1-category-3998-xml",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.bhaskar.com/rss-v1--category-3998.xml",
-   "source": {
-    "en": "Dainik Bhaskar",
-    "hi": "दैनिक भास्कर"
-   },
-   "lang": "hi",
-   "level": "country",
-   "groups": [
-    "entertainment"
-   ]
-  },
-  {
-   "id": "bhaskar-com-rss-v1-category-3379-xml",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.bhaskar.com/rss-v1--category-3379.xml",
-   "source": {
-    "en": "Dainik Bhaskar",
-    "hi": "दैनिक भास्कर"
-   },
-   "lang": "hi",
-   "level": "country",
-   "groups": [
-    "religion"
-   ]
-  },
-  {
    "id": "bhaskar-com-rss-v1-category-1125-xml",
    "every": 30,
    "priority": 6,
@@ -5557,66 +5285,6 @@
    ]
   },
   {
-   "id": "thehindu-com-sport-feeder-default-rss",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.thehindu.com/sport/feeder/default.rss",
-   "source": {
-    "en": "The Hindu",
-    "hi": "द हिंदू"
-   },
-   "lang": "en",
-   "level": "country",
-   "groups": [
-    "sports"
-   ]
-  },
-  {
-   "id": "feeds-feedburner-com-ndtvsports-latest",
-   "every": 30,
-   "priority": 6,
-   "url": "https://feeds.feedburner.com/ndtvsports-latest",
-   "source": {
-    "en": "NDTV Sports",
-    "hi": "एनडीटीवी स्पोर्ट्स"
-   },
-   "lang": "en",
-   "level": "country",
-   "groups": [
-    "sports"
-   ]
-  },
-  {
-   "id": "hindustantimes-com-feeds-rss-entertainment-rssfeed-xml",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.hindustantimes.com/feeds/rss/entertainment/rssfeed.xml",
-   "source": {
-    "en": "Hindustan Times",
-    "hi": "हिंदुस्तान टाइम्स"
-   },
-   "lang": "en",
-   "level": "country",
-   "groups": [
-    "entertainment"
-   ]
-  },
-  {
-   "id": "timesofindia-indiatimes-com-rssfeeds-1081479906-cms",
-   "every": 30,
-   "priority": 6,
-   "url": "https://timesofindia.indiatimes.com/rssfeeds/1081479906.cms",
-   "source": {
-    "en": "Times of India",
-    "hi": "टाइम्स ऑफ़ इंडिया"
-   },
-   "lang": "en",
-   "level": "country",
-   "groups": [
-    "entertainment"
-   ]
-  },
-  {
    "id": "timesofindia-indiatimes-com-rssfeeds-913168846-cms",
    "every": 30,
    "priority": 6,
@@ -5704,36 +5372,6 @@
    "level": "country",
    "groups": [
     "farming"
-   ]
-  },
-  {
-   "id": "hindustantimes-com-feeds-rss-sports-rssfeed-xml",
-   "every": 30,
-   "priority": 6,
-   "url": "https://www.hindustantimes.com/feeds/rss/sports/rssfeed.xml",
-   "source": {
-    "en": "Hindustan Times",
-    "hi": "हिंदुस्तान टाइम्स"
-   },
-   "lang": "en",
-   "level": "country",
-   "groups": [
-    "sports"
-   ]
-  },
-  {
-   "id": "timesofindia-indiatimes-com-rssfeeds-4719148-cms",
-   "every": 30,
-   "priority": 6,
-   "url": "https://timesofindia.indiatimes.com/rssfeeds/4719148.cms",
-   "source": {
-    "en": "Times of India",
-    "hi": "टाइम्स ऑफ़ इंडिया"
-   },
-   "lang": "en",
-   "level": "country",
-   "groups": [
-    "sports"
    ]
   }
  ]

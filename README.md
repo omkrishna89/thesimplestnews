@@ -16,11 +16,12 @@ It costs nothing to run:
 
 | Feature | How it works |
 | --- | --- |
-| News from many websites | 410 free news feeds: national (NDTV, The Hindu, ThePrint, India Today, BBC Hindi, Aaj Tak…), world, 25 groups, 10 states and **277 districts** (UP, Bihar, MP, Rajasthan, Delhi, Haryana, Jharkhand, Uttarakhand, Chhattisgarh, Himachal). List: `config/sources.json` |
+| News from many websites | 386 free news feeds: national (NDTV, The Hindu, ThePrint, India Today, BBC Hindi, Aaj Tak…), world, the groups, 10 states and **277 districts** (UP, Bihar, MP, Rajasthan, Delhi, Haryana, Jharkhand, Uttarakhand, Chhattisgarh, Himachal). List: `config/sources.json` |
 | Shortest, simplest headline + 9 answers | Gemini reads the full article (only where the website's robots.txt allows) and writes both languages |
-| 25 groups | Local, Startups, AI, Movies, Good News, Road Accidents, Business, Cricket, Sports, Entertainment, Auto, Stock Market, Politics, Govt Schemes, Jobs & Results, Weather, Crime, Health, Education, Gold & Silver, Bank & Money, Farming & Mandi, Tech & Mobiles, Science & Space, Religion & Horoscope |
+| 15 groups — and only these | Startups, AI, Business, Auto, Stock Market, Politics, Govt Schemes, Jobs & Results, Health, Education, Gold & Silver, Bank & Money, Farming & Mandi, Tech & Mobiles, Science & Space. Every other story (cricket and sports, films, crime, accidents, weather, religion…) is left out. List: `config/groups.json` |
+| Sorting | In every run, Gemini first sorts the new headlines into the 15 groups (150 headlines in one request, so it costs little of the free limit), or "other" — those are left out and never written. The 🔥 Trending topics are sorted the same way |
 | Group buttons | One line of buttons; **More ▾** shows all of them, **Less ▴** one line again. Tap one group, then more: the news of **all picked groups** shows together (tap again to remove one, **Home** = all news). The reader's picks are remembered on their phone |
-| A story's groups | The AI picks them. Before the AI has written a story, its news feed's group and clear words in the headline decide (सेंसेक्स, IPO → Stocks; सड़क हादसा → Road Accidents…). Words: `config/words.json` |
+| A story's groups | The AI picks them when it writes the story. Before that: the groups it sorted the headline into; before sorting, the news feed's group and clear words in the headline (सेंसेक्स, IPO → Stocks…). Words: `config/words.json` |
 | Stocks box | On Stock Market: type a stock name (Hindi or English, about 145 big companies suggested, e.g. Reliance = रिलायंस). Only news about those stocks shows, from Stock Market and Business. Remembered as the reader's watchlist |
 | Area tabs on every group | Local · Tehsil · District · State · Country · World. The reader's place comes from **GPS (one tap)**; without GPS it is guessed from their internet connection. A nearly empty tab shows a link like "See 94 stories in Country →" |
 | Search | The search box on Home (and 🔍 in the top bar of every page) looks through every story of the last 7 days, in both languages, with the same tabs, sort and day choices. Spellings are forgiven (janata = janta, bharatiya = bhartiya, हिन्दी = हिंदी, कॉकरोच = कोकरोच) and small typing mistakes too; rare words count most (a common word like "party" may be missing); short forms work both ways (Cockroach Janta Party = CJP). Code: `src/assets/js/search.js` |
@@ -29,7 +30,6 @@ It costs nothing to run:
 | Click a headline | 1st click: the 9 answers open right there (open as many as you like). 2nd click: closed again. The **Open news page** button at the bottom of an open story goes to its own page with **all sources** (before Gemini has written it: the news website) |
 | Hover 1 second (computer) / hold 1 second (phone) | A pop-up box with the whole story and all 9 answers |
 | Sort and day | Newest (default) · Big stories · Most important · Relevant (what this reader opens most) — and All days / Today / Yesterday / pick a day / pick dates (from … to) |
-| Movies | New official trailers and songs from YouTube (T-Series, Zee Music, YRF, Netflix India…), play on the site. Only on the Movies page |
 | Gold & silver | Today's IBJA rates and 5-year charts, like on IFC knowledge. Only on the Gold & Silver page |
 | Page width | The news uses the full width. A right-hand column appears only for the side ad, once AdSense is on |
 | Look | Dark by default, **Light** button next to हिंदी / English. The language follows the phone; the reader's choice is remembered |
@@ -129,7 +129,6 @@ All settings are plain files in `config/`. Edit them on GitHub (pencil icon) and
 | `config/words.json` | Clear words that put a story into a group before the AI has written it |
 | `config/stocks.json` | Companies the Stocks box suggests (Hindi and English names, and the words that find their news) |
 | `config/sources.json` | All news feeds. `level`: country, world, state or district |
-| `config/youtube.json` | Film and music channels for trailers & songs |
 | `config/places.json` | States, and other spellings of district names (e.g. Allahabad = Prayagraj) |
 
 To check that all feeds still work: `node scripts/check-feeds.mjs` (see section 5).
@@ -138,11 +137,13 @@ To check that all feeds still work: `node scripts/check-feeds.mjs` (see section 
 
 ## 4. Good to know
 
-- **Gemini's free limit:** about 1,000 requests a day (Google changes this). Each request writes 6 stories, 96 a run. In each run the
-  24 biggest stories go first; the rest is shared out so every group, every state and every state's districts get some
-  (never more than 4 from one news feed). If Google is busy ("high demand"), the robot stops and tries again in the next run.
-  When the limit is used up, new stories show "summary coming soon" until the next day's limit (around 1:30 pm India time).
-  Settings: `config/site.json` → `gemini`.
+- **Gemini's free limit:** a number of requests a day (about 420; Google changes it and doesn't publish it, so the robot
+  learns it). Google's day starts at midnight in California (1:30 pm India time). The limit is **spread over the whole day**:
+  each run uses only its share of what is left, so the Indian morning gets short summaries too. Each run first sorts the
+  new headlines (1–4 requests), then writes 12 stories per request. The 24 biggest stories go first; the rest is shared out
+  so every group, every state and every state's districts get some (never more than 4 from one news feed). If Google is
+  busy ("high demand"), the robot stops and tries again in the next run. The log shows the tokens each run used — what a
+  paid plan would charge. Settings: `config/site.json` → `gemini`.
 - **GitHub Pages limits:** the site must stay under 1 GB (it is about 40–200 MB) and about 100 GB of visits a month.
   If the site becomes very popular, move it to **Cloudflare Pages** (also free, no visit limit).
 - **The 30-minute schedule:** cron-job.org (Step 8) starts the update every 30 minutes. GitHub's own timer is only a backup:

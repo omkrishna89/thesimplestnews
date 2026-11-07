@@ -209,7 +209,6 @@ async function showPlace() {
 
 // ---------- lists: which stories, in what order ----------
 const list = { ready: false, dynamic: false, loading: 0, tab: view?.tab, groups: [], q: "", query: null, rank: null, sort: store.get("sort", "newest"), day: "all", date: "", from: "", to: "", keys: [], loaded: [], ids: new Set(), days: [], next: 0, shown: 30, items: [] };
-const LOCAL_SCOPES = ["local", "tehsil", "district"];
 const PLACE_KEY_TABS = new Set(["district", "tehsil", "local"]); // these tabs read the district's list and filter it here
 
 // The groups shown: one or more, picked with the group buttons (remembered on this phone). None = all news.
@@ -259,7 +258,7 @@ function keysFor(tab) {
 }
 const inGroups = (it) => {
   const gs = loadGroups();
-  return !gs.length || gs.some((g) => (g === "local" ? LOCAL_SCOPES.includes(it.sc) : it.g?.includes(g)));
+  return !gs.length || gs.some((g) => it.g?.includes(g));
 };
 
 // Search results by tab: World = news from outside India, Country = all of India, State/District/… = the reader's area
@@ -1292,14 +1291,8 @@ if (pop) {
   D.addEventListener("contextmenu", (e) => e.target.closest(".it__link") && e.preventDefault());
 }
 
-// ---------- videos, copy link, ads ----------
+// ---------- copy link, ads ----------
 D.addEventListener("click", (e) => {
-  const v = e.target.closest("[data-yt]");
-  if (v) {
-    const box = $(".vid__img", v);
-    box.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.dataset.yt)}?autoplay=1&rel=0" title="YouTube" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe>`;
-    v.removeAttribute("data-yt");
-  }
   const c = e.target.closest("[data-copy]");
   if (c) {
     navigator.clipboard?.writeText(c.dataset.copy).then(() => {

@@ -242,7 +242,7 @@ ${ad("top", "ad--top")}
 </div>
 ${sidebar()}
 </main>`;
-    return page({ title, description: title, path, kind: "place", data: { keys } }, body, "local");
+    return page({ title, description: title, path, kind: "place", data: { keys } }, body, "");
   }
 
   function textPage({ path, title, hi, en }) {

@@ -1,4 +1,4 @@
-// Gold & silver box with 5-year charts (like IFC knowledge), and the trailers & songs strip.
+// Gold & silver box with 5-year charts (like IFC knowledge), on the Gold & Silver page.
 import { esc } from "../../src/assets/js/ui.js";
 import { bi } from "./pages.mjs";
 
@@ -55,18 +55,5 @@ ${view.silver ? card(view.silver, "silver", "चांदी", "Silver", "1 क�
     `स्रोत: <a href="https://ibjarates.com/" rel="noopener">IBJA</a>${view.date ? ` · ${dayHi(view.date)}, ${view.session === "PM" ? "शाम" : "दोपहर"} का भाव` : ""}। ▲▼ = पिछले दिन से बदलाव। GST और मेकिंग चार्ज अलग।${est ? " <sup>*</sup>पुराने भाव अनुमानित: अंतरराष्ट्रीय भाव × डॉलर-रुपया दर, IBJA के हाल के भावों से मिलाकर।" : ""}`,
     `Source: <a href="https://ibjarates.com/" rel="noopener">IBJA</a>${view.date ? ` · ${dayEn(view.date)}, ${view.session === "PM" ? "evening" : "noon"} rate` : ""}. ▲▼ = change from the day before. GST and making charges extra.${est ? " <sup>*</sup>Older rates are estimates: world price × dollar-rupee rate, matched to IBJA's recent rates." : ""}`,
   )}</p>
-</section>`;
-}
-
-export function videosStrip(videos, { limit = 8 } = {}) {
-  if (!videos?.length) return "";
-  return `<section class="vids" aria-label="Trailers and songs">
-<h2>🎬 ${bi("नए ट्रेलर और गाने", "New trailers & songs")}</h2>
-<div class="vids__row">${videos
-    .slice(0, limit)
-    .map(
-      (v) => `<button type="button" class="vid" data-yt="${esc(v.id)}" aria-label="${esc(v.t)}"><span class="vid__img"><img src="https://i.ytimg.com/vi/${esc(v.id)}/mqdefault.jpg" alt="" loading="lazy" width="320" height="180"><span class="vid__play" aria-hidden="true">▶</span><span class="vid__kind">${v.k === "trailer" ? bi("ट्रेलर", "Trailer") : bi("गाना", "Song")}</span></span><span class="vid__t">${esc(v.t)}</span><span class="vid__ch">${esc(v.ch)}</span></button>`,
-    )
-    .join("")}</div>
 </section>`;
 }

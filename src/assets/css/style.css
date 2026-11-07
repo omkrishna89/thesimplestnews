@@ -335,19 +335,6 @@ b, strong { font-weight: 600; }
 }
 .wrap--wide { grid-template-columns: minmax(0, 1fr) !important; }
 
-/* ---------- trailers & songs ---------- */
-.vids { margin: 12px 0 6px; }
-.vids h2 { font-size: 1.05rem; margin: 0 0 8px; }
-.vids__row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(210px, 46%); gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; scrollbar-width: thin; }
-@media (min-width: 700px) { .vids__row { grid-auto-columns: minmax(220px, 31%); } }
-.vid { scroll-snap-align: start; display: flex; flex-direction: column; gap: 4px; border: 0; background: none; padding: 0; text-align: left; cursor: pointer; color: var(--text); }
-.vid__img { position: relative; display: block; aspect-ratio: 16 / 9; border-radius: var(--radius-sm); overflow: hidden; background: var(--card-2); }
-.vid__img img, .vid__img iframe { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border: 0; }
-.vid__play { position: absolute; inset: 0; margin: auto; width: 46px; height: 46px; border-radius: 50%; background: rgb(0 0 0 / 60%); color: #fff; display: grid; place-items: center; font-size: 1.1rem; }
-.vid__kind { position: absolute; left: 6px; top: 6px; background: rgb(0 0 0 / 65%); color: #fff; font-size: .7rem; font-weight: 600; padding: 1px 7px; border-radius: 999px; }
-.vid__t { font-size: .85rem; font-weight: 500; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.vid__ch { font-size: .75rem; color: var(--muted); }
-
 /* ---------- ads (spots stay empty until AdSense is set up) ---------- */
 .ad { margin: 12px 0; text-align: center; min-height: 0; }
 .ad__label { display: block; font-size: .66rem; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 2px; }

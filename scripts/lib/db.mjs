@@ -14,12 +14,11 @@ export function loadDB() {
     db.stories ||= [];
     db.seen ||= {};
     db.feeds ||= {};
-    db.videos ||= [];
     db.names ||= {};
     return db;
   } catch (err) {
     if (err.code !== "ENOENT") console.warn(`[db] could not read ${FILE}: ${err.message} (starting empty)`);
-    return { v: 1, stories: [], seen: {}, feeds: {}, videos: [], names: {}, metals: null };
+    return { v: 1, stories: [], seen: {}, feeds: {}, names: {}, metals: null };
   }
 }
 

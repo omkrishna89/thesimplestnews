@@ -5,7 +5,7 @@ import { test } from "node:test";
 
 process.env.GEMINI_API_KEY = "test-key";
 process.env.GEMINI_MODEL = "lite-model,big-model";
-const { requestBody, parseAnswer, summarize, QuotaError, VARIANTS } = await import("../scripts/lib/gemini.mjs");
+const { requestBody, sortBody, parseAnswer, summarize, sortHeadlines, requestShapes, quotaOf, QuotaError, VARIANTS } = await import("../scripts/lib/gemini.mjs");
 
 const story = { sourceName: "Amar Ujala", stateHint: "Uttar Pradesh", districtHint: "barabanki", tehsilHint: "", publishedIST: "3 Nov 2026, 1:42 am", title: "Pond auctioned", text: "The pond was auctioned for 1.53 crore." };
 const side = (h) => ({ h, what: "a", who: "b", whom: "c", whose: "d", where: "e", when: "f", why: "g", which: "h", how: "i" });
@@ -49,6 +49,41 @@ test("the tokens of every request are counted (what a paid plan bills)", async (
     new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(answer) }] } }], usageMetadata: { promptTokenCount: 1480, candidatesTokenCount: 390, thoughtsTokenCount: 120, totalTokenCount: 1990 } }), { status: 200 });
   const out = await summarize([story]);
   assert.deepEqual(out.usage, { in: 1480, out: 390, think: 120 });
+});
+
+test("only the site's groups: 'other' means not news for this site", async () => {
+  const body = requestBody([story], 1);
+  const choices = body.generationConfig.responseSchema.properties.stories.items.properties.groups.items.enum;
+  assert.ok(choices.includes("politics") && choices.includes("other"));
+  assert.ok(!choices.includes("cricket") && !choices.includes("movies") && !choices.includes("local"));
+  assert.match(body.systemInstruction.parts[0].text, /give \["other"\]/);
+  globalThis.fetch = async () => ok({ stories: [{ ...answer.stories[0], groups: ["other"] }] });
+  assert.deepEqual((await summarize([story])).results[0].groups, [], "a story Gemini calls 'other' has none of the site's groups");
+});
+
+test("sorting: many headlines in one request, each into the site's groups or 'other'", async () => {
+  const items = [{ text: "सेंसेक्स 800 अंक चढ़ा" }, { text: "कोहली का शतक, भारत जीता" }, { text: "PM Kisan की नई किस्त" }, { text: "skipped one" }];
+  const b = sortBody(items, 1);
+  assert.match(b.contents[0].parts[0].text, /^1\. सेंसेक्स 800 अंक चढ़ा\n2\. कोहली/);
+  assert.match(b.systemInstruction.parts[0].text, /- stock-market: Stock Market/);
+  globalThis.fetch = async () => ok({ items: [{ n: 1, g: ["stock-market", "business"] }, { n: 2, g: ["other"] }, { n: 3, g: ["govt-schemes", "farming", "cricket"] }] });
+  const r = await sortHeadlines(items);
+  assert.deepEqual(r.groups, [["stock-market", "business"], [], ["govt-schemes", "farming"], null], "'other' -> [], unknown groups dropped, a skipped item -> null");
+});
+
+test("a per-minute 429 is not the daily free limit", () => {
+  const body = (quotaId, quotaValue) => JSON.stringify({ error: { code: 429, message: "You exceeded your current quota", details: [{ "@type": "type.googleapis.com/google.rpc.QuotaFailure", violations: [{ quotaId, quotaValue }] }] } });
+  assert.deepEqual(quotaOf(body("GenerateRequestsPerDayPerProjectPerModel-FreeTier", "500")), { id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier", value: "500" });
+  assert.deepEqual(quotaOf(body("GenerateContentInputTokensPerModelPerMinute-FreeTier", "250000")).id, "GenerateContentInputTokensPerModelPerMinute-FreeTier");
+  assert.deepEqual(quotaOf("not json"), { id: "", value: "" });
+});
+
+test("the request shape a model accepts is remembered between runs", () => {
+  assert.equal(requestShapes.get()["lite-model"], 1, "lite-model refused shape 0 earlier in this file");
+  requestShapes.set({ "big-model": 2, "bad-model": 9 });
+  assert.equal(requestShapes.get()["big-model"], 2);
+  assert.equal(requestShapes.get()["bad-model"], undefined, "a shape that doesn't exist is ignored");
+  requestShapes.set({ "big-model": 0 });
 });
 
 test("busy (503) -> waits, retries once, then the next model; free limit (429) -> QuotaError", async () => {
