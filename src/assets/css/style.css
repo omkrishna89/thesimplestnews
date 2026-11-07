@@ -156,10 +156,12 @@ b, strong { font-weight: 600; }
 /* phones: the news lines up with the top bar and the group buttons */
 @media (max-width: 560px) { .wrap { padding-left: 10px; padding-right: 10px; } }
 @media (max-width: 370px) { .wrap { padding-left: 8px; padding-right: 8px; } }
-@media (min-width: 1000px) { .wrap { grid-template-columns: minmax(0, 1fr) 330px; } }
+/* computers: a right-hand column only when it has something to show (an ad); otherwise the news uses the full width */
+@media (min-width: 1000px) { .wrap:has(> .side > :not([hidden])) { grid-template-columns: minmax(0, 1fr) 330px; } }
 .wrap--text { grid-template-columns: minmax(0, 760px); justify-content: center; }
 .main { min-width: 0; }
 .side { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.side:not(:has(> :not([hidden]))) { display: none; }
 @media (min-width: 1000px) { .side { position: sticky; top: 62px; align-self: start; max-height: calc(100vh - 74px); overflow: auto; scrollbar-width: thin; } }
 .pagehead { margin: 8px 0 6px; }
 .pagehead h1 { font-size: 1.45rem; margin: 0; }
@@ -225,7 +227,11 @@ b, strong { font-weight: 600; }
 .it__qa { padding: 0 12px 14px; }
 @media (min-width: 640px) { .it__qa { padding-left: 90px; } }
 .it__links { margin: 10px 0 0; font-size: .9rem; font-weight: 500; }
-.it__hint { margin: 6px 0 0; font-size: .78rem; color: var(--muted); }
+/* the bottom of an open story: the button to its news page, and the news website's own link */
+.it__go { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 14px 0 0; }
+.btn--go { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.btn--go:hover { filter: brightness(1.08); }
+.it__src { font-size: .88rem; font-weight: 500; }
 .badge { display: inline-block; font-size: .72rem; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: var(--card-2); color: var(--warn); border: 1px solid var(--line); vertical-align: 1px; }
 .badge--big { background: var(--down); color: #fff; border-color: transparent; margin-right: 6px; }
 .empty { color: var(--muted); padding: 24px 6px; text-align: center; }
@@ -328,30 +334,6 @@ b, strong { font-weight: 600; }
   .main > .metals .metal__plot { aspect-ratio: 2.2 / 1; }
 }
 .wrap--wide { grid-template-columns: minmax(0, 1fr) !important; }
-.wrap--wide .side:not(:has(.ad:not([hidden]))) { display: none; }
-
-/* ---------- trailers & songs ---------- */
-.vids { margin: 12px 0 6px; }
-.vids h2 { font-size: 1.05rem; margin: 0 0 8px; }
-.vids__row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(210px, 46%); gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; scrollbar-width: thin; }
-@media (min-width: 700px) { .vids__row { grid-auto-columns: minmax(220px, 31%); } }
-.vid { scroll-snap-align: start; display: flex; flex-direction: column; gap: 4px; border: 0; background: none; padding: 0; text-align: left; cursor: pointer; color: var(--text); }
-.vid__img { position: relative; display: block; aspect-ratio: 16 / 9; border-radius: var(--radius-sm); overflow: hidden; background: var(--card-2); }
-.vid__img img, .vid__img iframe { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border: 0; }
-.vid__play { position: absolute; inset: 0; margin: auto; width: 46px; height: 46px; border-radius: 50%; background: rgb(0 0 0 / 60%); color: #fff; display: grid; place-items: center; font-size: 1.1rem; }
-.vid__kind { position: absolute; left: 6px; top: 6px; background: rgb(0 0 0 / 65%); color: #fff; font-size: .7rem; font-weight: 600; padding: 1px 7px; border-radius: 999px; }
-.vid__t { font-size: .85rem; font-weight: 500; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.vid__ch { font-size: .75rem; color: var(--muted); }
-
-.vids--side { margin: 0; }
-.vids--side .vids__row { display: flex; flex-direction: column; gap: 10px; overflow: visible; padding: 0; }
-.vids--side .vid { flex-direction: row; align-items: flex-start; gap: 10px; }
-.vids--side .vid__img { flex: none; width: 128px; }
-.vids--side .vid__play { width: 32px; height: 32px; font-size: .8rem; }
-.vids--side .vid__kind { font-size: .62rem; }
-.vids--side .vid > .vid__t, .vids--side .vid > .vid__ch { display: none; }
-.vid__txt { display: none; }
-.vids--side .vid__txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 
 /* ---------- ads (spots stay empty until AdSense is set up) ---------- */
 .ad { margin: 12px 0; text-align: center; min-height: 0; }

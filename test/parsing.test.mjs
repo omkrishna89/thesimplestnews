@@ -3,7 +3,6 @@ import fs from "node:fs";
 import { test } from "node:test";
 import { parseFeed } from "../scripts/lib/feeds.mjs";
 import { cleanUrl, parseDate, plain, slug } from "../scripts/lib/util.mjs";
-import { isTrailerOrSong, videoKind } from "../scripts/lib/youtube.mjs";
 import { similarity, words } from "../scripts/lib/db.mjs";
 
 const fx = (f) => fs.readFileSync(new URL(`./fixtures/${f}`, import.meta.url), "utf8");
@@ -42,15 +41,6 @@ test("helpers", () => {
   assert.equal(slug("Kanpur Nagar District"), "kanpur-nagar");
   assert.equal(slug("Nawabganj tehsil"), "nawabganj");
   assert.equal(slug("बाराबंकी"), "बाराबंकी");
-});
-
-test("trailers and songs are kept, shorts and old hits are not", () => {
-  assert.ok(isTrailerOrSong("Pushpa 3 Official Trailer | In Cinemas 2026"));
-  assert.ok(isTrailerOrSong("Tum Ho (Official Video) | New Song"));
-  assert.ok(!isTrailerOrSong("Funny scene #shorts"));
-  assert.ok(!isTrailerOrSong("Best of 90s Hits Jukebox"));
-  assert.equal(videoKind("Kanguva - Official Teaser"), "trailer");
-  assert.equal(videoKind("Dil Ka Gaana Lyrical Song"), "song");
 });
 
 test("same story from two websites is spotted", () => {

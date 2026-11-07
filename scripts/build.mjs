@@ -9,7 +9,7 @@ import { metalsView } from "./lib/metals.mjs";
 import { makePages } from "./lib/pages.mjs";
 import { STATES, placesForBrowser } from "./lib/places.mjs";
 import { ROOT, config, log } from "./lib/util.mjs";
-import { metalsBox, videosStrip } from "./lib/widgets.mjs";
+import { metalsBox } from "./lib/widgets.mjs";
 import { istDay, stockFile } from "../src/assets/js/ui.js";
 import { HELP_PAGES } from "./lib/help-pages.mjs";
 import { groupsFromWords, wordTest } from "./lib/words.mjs";
@@ -91,12 +91,14 @@ function placeName(s, lang) {
 // Importance for stories Gemini hasn't written yet, from the kind of feed they came from
 const guessImp = (s) => Math.max(2, Math.min(6, (s.pr || 5) - 2));
 
-const masters = db.stories.filter((s) => s.s !== "dup");
+// The site shows ONLY news in its groups (config/groups.json). "skip" = Gemini found a story is in none of them.
+const masters = db.stories.filter((s) => s.s !== "dup" && s.s !== "skip");
 const items = masters.map((s) => {
   const ok = s.s === "ok" && s.a;
-  // Groups: the AI's (which already include the news feed's own group). Before the AI has written
-  // a story: the feed's group plus groups from clear words in the headline (config/words.json).
-  const g = (ok ? s.a.g : [...new Set([...(s.gh || []), ...groupsFromWords(s.t)])]).filter((x) => SLUGS.has(x) && x !== "local");
+  // Groups: the AI's (which already include the news feed's own group). Before the AI has written a story:
+  // the groups Gemini sorted its headline into — or, before that, the feed's group plus groups from clear
+  // words in the headline (config/words.json).
+  const g = (ok ? s.a.g : s.sg || [...new Set([...(s.gh || []), ...groupsFromWords(s.t)])]).filter((x) => SLUGS.has(x));
   const common = {
     i: s.id,
     t: Math.round(s.p / 1000),
@@ -116,12 +118,12 @@ const items = masters.map((s) => {
     pn: placeName(s, l),
   });
   return { s, ok, loc: s.loc || { c: "in" }, sc: common.sc, g, m: common.m, t: common.t, day: istDay(s.p), hi: lang("hi"), en: lang("en") };
-});
+}).filter((it) => it.g.length); // not in any of the site's groups (yet): left out
 items.sort((a, b) => b.t - a.t);
-log(`[build] ${items.length} stories (${items.filter((i) => i.ok).length} written by AI), ${db.stories.length - masters.length} duplicates merged`);
+const dups = db.stories.filter((s) => s.s === "dup").length;
+log(`[build] ${items.length} stories in the site's groups (${items.filter((i) => i.ok).length} written by AI), ${dups} duplicates merged, ${db.stories.length - dups - items.length} left out (not in the site's groups)`);
 
 // ---------- which list a story belongs to ----------
-const inGroup = (it, group) => group === "all" || (group === "local" ? ["local", "tehsil", "district"].includes(it.sc) : it.g.includes(group));
 const scopeKeys = (it) => {
   if (it.loc.c === "world") return ["world"];
   const keys = [];
@@ -143,7 +145,6 @@ for (const it of items) {
   for (const sk of scopeKeys(it)) {
     if (!listable(it, sk)) continue;
     push(`${sk}/all`, it);
-    if (["local", "tehsil", "district"].includes(it.sc)) push(`${sk}/local`, it);
     for (const g of it.g) push(`${sk}/${g}`, it);
   }
   if (it.loc.s && it.loc.d) push(`d/${it.loc.s}/${it.loc.d}`, it);
@@ -213,8 +214,8 @@ for (const day of index.days.search) {
   }
 }
 writeJSON("data/index.json", index);
-// "Trending" (Google Trends India): the topics of the last hours and their news links
-const trends = (db.trends?.list || []).filter((t) => now - t.p < 12 * 3600e3).map(({ q, t, n, news }) => ({ q, t, n, news }));
+// "Trending" (Google Trends India): the topics of the last hours that Gemini sorted into the site's groups, and their news links
+const trends = (db.trends?.list || []).filter((t) => now - t.p < 12 * 3600e3 && t.g?.some((g) => SLUGS.has(g))).map(({ q, t, n, news }) => ({ q, t, n, news }));
 writeJSON("data/trends.json", trends);
 writeJSON("data/places.json", placesForBrowser(db.names));
 writeJSON("data/stocks.json", config("stocks.json")?.list || []); // names for the Stocks box
@@ -264,13 +265,9 @@ const TAB_HI = { local: "आसपास", tehsil: "तहसील", district: 
 
 for (const slug of ["all", ...groups.map((g) => g.slug)]) {
   const n = nameOf(slug);
+  // gold & silver rates only on the Gold & Silver page
   let extraTop = "";
-  let sideTop = "";
-  if (slug === "movies") extraTop = videosStrip(db.videos, { limit: 12 });
-  if (slug === "all") {
-    sideTop = videosStrip(db.videos, { limit: 6, side: true });
-    extraTop = P.trendsRow(trends);
-  }
+  if (slug === "all") extraTop = P.trendsRow(trends);
   if (slug === "gold-silver" && ctx.metalsBox) extraTop = ctx.metalsBox("top");
   for (const tab of ["country", "world", "state", "district", "tehsil", "local"]) {
     const key = tab === "world" ? `world/${slug}` : `in/${slug}`;
@@ -283,7 +280,7 @@ for (const slug of ["all", ...groups.map((g) => g.slug)]) {
     const description = slug === "all" ? `${site.tagline.hi}. ${site.tagline.en}.` : `${n.about_hi || ""} ${n.about_en || ""}`.trim();
     emit(
       rel,
-      P.listPage({ group: slug, tab, items: placeTab ? [] : latest(key), path: "/" + rel.replace(/index\.html$/, ""), title, description, extraTop, sideTop, noindex: placeTab }),
+      P.listPage({ group: slug, tab, items: placeTab ? [] : latest(key), path: "/" + rel.replace(/index\.html$/, ""), title, description, extraTop, noindex: placeTab }),
       { inSitemap: !placeTab, prio: slug === "all" && tab === "country" ? "1.0" : "0.8" },
     );
   }

@@ -1,5 +1,8 @@
-// Google Gemini (free tier) writes, for a batch of stories, in Hindi AND English:
-// the shortest simple headline and short answers to 9 questions, plus groups, place and importance.
+// Google Gemini (free tier):
+//  - sorts new headlines into the site's groups (cheap: many headlines in one request), and
+//  - writes, for a batch of stories, in Hindi AND English: the shortest simple headline and short answers
+//    to 9 questions, plus groups, place and importance.
+// The site shows only news in its groups (config/groups.json); "other" = none of them.
 import { config, log, sleep } from "./util.mjs";
 
 export const QUESTIONS = ["what", "who", "whom", "whose", "where", "when", "why", "which", "how"];
@@ -7,7 +10,11 @@ export const NOT_SAID = { en: "Not mentioned", hi: "जानकारी नह
 const SCOPES = ["local", "tehsil", "district", "state", "country", "world"];
 
 const site = config("site.json");
-const GROUPS = config("groups.json").list.map((g) => g.slug).filter((s) => s !== "local");
+const GROUP_LIST = config("groups.json").list;
+const GROUPS = GROUP_LIST.map((g) => g.slug);
+export const OTHER = "other";
+const CHOICES = [...GROUPS, OTHER];
+const NOT_OURS = "cricket or other sports, films, TV and celebrities, crime, accidents, weather, religion or horoscope";
 const KEY = process.env.GEMINI_API_KEY || "";
 const BASE = process.env.GEMINI_BASE || "https://generativelanguage.googleapis.com/v1beta";
 const MODELS = (process.env.GEMINI_MODEL ? process.env.GEMINI_MODEL.split(",") : site.gemini.models).map((m) => m.trim()).filter(Boolean);
@@ -32,8 +39,7 @@ const SCHEMA = {
           n: { type: "INTEGER" },
           hi: answerSchema,
           en: answerSchema,
-          groups: { type: "ARRAY", items: { type: "STRING", enum: GROUPS } },
-          good: { type: "BOOLEAN" },
+          groups: { type: "ARRAY", items: { type: "STRING", enum: CHOICES } },
           importance: { type: "INTEGER" },
           scope: { type: "STRING", enum: SCOPES },
           country: { type: "STRING" },
@@ -45,7 +51,7 @@ const SCHEMA = {
           district_hi: { type: "STRING" },
           same_as: { type: "INTEGER" },
         },
-        required: ["n", "hi", "en", "groups", "good", "importance", "scope", "country", "state", "district", "tehsil", "place", "place_hi", "district_hi", "same_as"],
+        required: ["n", "hi", "en", "groups", "importance", "scope", "country", "state", "district", "tehsil", "place", "place_hi", "district_hi", "same_as"],
       },
     },
   },
@@ -61,12 +67,11 @@ For every story you get, write:
    Each answer is ONE short simple sentence (at most 15 words). Use only facts from the story text. Never guess or add facts.
    If the story does not say it, write exactly "${NOT_SAID.en}" in English and "${NOT_SAID.hi}" in Hindi.
 3. Hindi = simple spoken Hindi in Devanagari (common English words like IPL, UPI, GST, AI, SUV are fine). English = plain simple English.
-4. "groups": 1 to 3 groups from the list, best first. "accidents" is only for road accidents. "good-news" only for clearly happy or hopeful news. "politics" for elections, parties and leaders.
-5. "good": true only if the story is clearly good news.
-6. "importance" 1-10: 9-10 = huge news for all India; 7-8 = big national or state news; 4-6 = normal news; 1-3 = small local or minor news.
-7. "scope": where the news matters: local (one village, town or city area), tehsil, district, state, country (all India), world (outside India).
-8. Place of the event in English standard spelling: "country", "state", "district" (official current district name, e.g. Prayagraj, Gurugram, Kanpur Nagar), "tehsil" (tehsil or block if known), "place" (the most specific place: village, town, city or area). Use "" when unknown. "place_hi" and "district_hi": the same names in Hindi.
-9. "same_as": if a story is about the same event as an earlier story number in this batch, give that number, else 0.
+4. "groups": 1 to 3 groups from the list, best first. "politics" for elections, parties and leaders. If the story fits none of the groups (for example ${NOT_OURS}), give ["${OTHER}"].
+5. "importance" 1-10: 9-10 = huge news for all India; 7-8 = big national or state news; 4-6 = normal news; 1-3 = small local or minor news.
+6. "scope": where the news matters: local (one village, town or city area), tehsil, district, state, country (all India), world (outside India).
+7. Place of the event in English standard spelling: "country", "state", "district" (official current district name, e.g. Prayagraj, Gurugram, Kanpur Nagar), "tehsil" (tehsil or block if known), "place" (the most specific place: village, town, city or area). Use "" when unknown. "place_hi" and "district_hi": the same names in Hindi.
+8. "same_as": if a story is about the same event as an earlier story number in this batch, give that number, else 0.
 
 Reply with JSON {"stories":[...]} with exactly one entry for every story, using its number "n".`;
 
@@ -87,20 +92,45 @@ function storyBlock(s, i) {
 // (the answer's shape is then spelled out in the instructions).
 export const VARIANTS = 3;
 const JSON_SHAPE = `Reply with JSON only, exactly in this shape (one entry per story):
-{"stories":[{"n":1,"hi":{"h":"","what":"","who":"","whom":"","whose":"","where":"","when":"","why":"","which":"","how":""},"en":{"h":"","what":"","who":"","whom":"","whose":"","where":"","when":"","why":"","which":"","how":""},"groups":["${GROUPS[0]}"],"good":false,"importance":5,"scope":"district","country":"India","state":"","district":"","tehsil":"","place":"","place_hi":"","district_hi":"","same_as":0}]}
-"groups" may only use: ${GROUPS.join(", ")}. "scope" is one of: ${SCOPES.join(", ")}.`;
+{"stories":[{"n":1,"hi":{"h":"","what":"","who":"","whom":"","whose":"","where":"","when":"","why":"","which":"","how":""},"en":{"h":"","what":"","who":"","whom":"","whose":"","where":"","when":"","why":"","which":"","how":""},"groups":["${GROUPS[0]}"],"importance":5,"scope":"district","country":"India","state":"","district":"","tehsil":"","place":"","place_hi":"","district_hi":"","same_as":0}]}
+"groups" may only use: ${CHOICES.join(", ")}. "scope" is one of: ${SCOPES.join(", ")}.`;
+
+const generation = (variant, schema, maxOutputTokens, temperature) => ({
+  temperature,
+  maxOutputTokens,
+  responseMimeType: "application/json",
+  ...(variant <= 1 ? { responseSchema: schema } : {}),
+  ...(variant === 0 ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
+});
 
 export function requestBody(stories, variant = 0) {
   return {
     systemInstruction: { parts: [{ text: variant >= 2 ? `${SYSTEM}\n\n${JSON_SHAPE}` : SYSTEM }] },
     contents: [{ role: "user", parts: [{ text: stories.map(storyBlock).join("\n\n") }] }],
-    generationConfig: {
-      temperature: 0.2,
-      maxOutputTokens: 12000,
-      responseMimeType: "application/json",
-      ...(variant <= 1 ? { responseSchema: SCHEMA } : {}),
-      ...(variant === 0 ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
-    },
+    generationConfig: generation(variant, SCHEMA, 32000, 0.2),
+  };
+}
+
+// ---------- sorting: which group a headline belongs to (before anything is written) ----------
+const SORT_SYSTEM = `You sort Indian news (Hindi or English) into the groups of "The Simplest News". The website shows ONLY news in these groups:
+${GROUP_LIST.map((g) => `- ${g.slug}: ${g.en} (${g.about_en})`).join("\n")}
+
+For every numbered item give "g": 1 to 3 group slugs from the list, best first. "politics" = elections, parties, leaders and government decisions.
+If the item fits none of the groups (for example ${NOT_OURS}), give ["${OTHER}"].
+Reply with JSON {"items":[{"n":1,"g":["politics"]}]} with exactly one entry for every item, using its number "n".`;
+
+const SORT_SCHEMA = {
+  type: "OBJECT",
+  properties: { items: { type: "ARRAY", items: { type: "OBJECT", properties: { n: { type: "INTEGER" }, g: { type: "ARRAY", items: { type: "STRING", enum: CHOICES } } }, required: ["n", "g"] } } },
+  required: ["items"],
+};
+
+// items: [{ text }] — a headline with a few words of the story, or a trending topic with its news headlines
+export function sortBody(items, variant = 0) {
+  return {
+    systemInstruction: { parts: [{ text: variant >= 2 ? `${SORT_SYSTEM}\n"g" may only use: ${CHOICES.join(", ")}. Reply with JSON only.` : SORT_SYSTEM }] },
+    contents: [{ role: "user", parts: [{ text: items.map((it, i) => `${i + 1}. ${String(it.text).replace(/\s+/g, " ").trim()}`).join("\n") }] }],
+    generationConfig: generation(variant, SORT_SCHEMA, 16000, 0),
   };
 }
 
@@ -117,20 +147,39 @@ export function parseAnswer(raw) {
   }
 }
 
-const variantOf = new Map(); // model -> request shape that works for it in this run
+const variantOf = new Map(); // model -> request shape that works for it
 const broken = new Set(); // models that refused every request shape in this run
 
-async function callModel(model, stories) {
+// The request shape each model accepts, kept between runs (the database stores it), so no run wastes a request
+// on a shape that model refuses
+export const requestShapes = {
+  get: () => Object.fromEntries(variantOf),
+  set: (shapes = {}) => {
+    for (const [model, v] of Object.entries(shapes)) if (Number.isInteger(v) && v >= 0 && v < VARIANTS) variantOf.set(model, v);
+  },
+};
+
+// One request to one model. makeBody(variant) builds it; `key` is the list the answer must have ("stories" or "items").
+async function callModel(model, makeBody, key) {
   for (;;) {
     const variant = variantOf.get(model) || 0;
     const res = await fetch(`${BASE}/models/${encodeURIComponent(model)}:generateContent`, {
       method: "POST",
       headers: { "content-type": "application/json", "x-goog-api-key": KEY },
-      body: JSON.stringify(requestBody(stories, variant)),
+      body: JSON.stringify(makeBody(variant)),
       signal: AbortSignal.timeout(150000),
     });
     const text = await res.text();
-    if (res.status === 429) throw new QuotaError(`${model}: free limit reached (429) ${text.slice(0, 200)}`);
+    if (res.status === 429) {
+      // Google says which limit it was: per minute (wait a little) or per day (the free limit for today is used up)
+      const q = quotaOf(text);
+      if (/PerMinute/i.test(q.id) && !/PerDay/i.test(q.id)) {
+        const err = new Error(`${model}: too many requests this minute (${q.id})`);
+        err.status = 429;
+        throw err;
+      }
+      throw new QuotaError(`${model}: free limit reached (429)${q.id ? ` ${q.id}${q.value ? ` = ${q.value}` : ""}` : ` ${firstLine(text)}`}`);
+    }
     if (res.status === 400 && variant < VARIANTS - 1) {
       log(`[gemini] ${model} did not accept request shape ${variant} (${firstLine(text)}); trying a simpler one`);
       variantOf.set(model, variant + 1);
@@ -145,10 +194,24 @@ async function callModel(model, stories) {
     const json = JSON.parse(text);
     const raw = json.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
     const out = parseAnswer(raw);
-    if (!Array.isArray(out.stories)) throw new Error(`${model}: answer has no stories`);
-    return { stories: out.stories, variant };
+    if (!Array.isArray(out[key])) throw new Error(`${model}: answer has no ${key}`);
+    return { list: out[key], variant, usage: tokens(json.usageMetadata) };
   }
 }
+
+// Which limit a 429 answer is about, e.g. { id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier", value: "500" }
+export function quotaOf(text) {
+  try {
+    for (const d of JSON.parse(text).error?.details || []) {
+      const v = d.violations?.find((x) => x.quotaId);
+      if (v) return { id: String(v.quotaId), value: v.quotaValue ? String(v.quotaValue) : "" };
+    }
+  } catch {}
+  return { id: "", value: "" };
+}
+
+// How many tokens a request used (Google bills by these): what we sent, the answer, and Gemini's own thinking
+export const tokens = (u = {}) => ({ in: u.promptTokenCount || 0, out: u.candidatesTokenCount || 0, think: u.thoughtsTokenCount || 0 });
 
 const firstLine = (text) => {
   try {
@@ -160,16 +223,15 @@ const firstLine = (text) => {
 
 const outOfQuota = new Set();
 
-// Returns { model, variant, results } — results in the same order as `stories`, null where Gemini skipped one.
+// Asks the models in order. Returns { model, variant, list, usage } (usage = the tokens this request used).
 // Throws QuotaError when every model's free limit is used up, or the last error when no model could answer.
-export async function summarize(stories) {
+async function ask(makeBody, key) {
   let lastErr;
   for (const model of MODELS) {
     if (outOfQuota.has(model) || broken.has(model)) continue;
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
-        const { stories: answer, variant } = await callModel(model, stories);
-        return { model, variant, results: stories.map((_, i) => clean(answer.find((a) => Number(a.n) === i + 1))) };
+        return { model, ...(await callModel(model, makeBody, key)) };
       } catch (err) {
         lastErr = err;
         if (err instanceof QuotaError) {
@@ -179,8 +241,8 @@ export async function summarize(stories) {
         }
         log(`[gemini] ${String(err.message).slice(0, 200)}`);
         if (broken.has(model)) break;
-        // "high demand" (503), a timeout or a broken answer: wait a little and try once more
-        if (attempt === 1) await sleep(err.status === 503 ? 15000 : 4000);
+        // "high demand" (503), too many requests this minute (429), a timeout or a broken answer: wait a little and try once more
+        if (attempt === 1) await sleep(err.status === 429 ? 30000 : err.status === 503 ? 15000 : 4000);
       }
     }
   }
@@ -188,6 +250,27 @@ export async function summarize(stories) {
     throw new QuotaError("every model reached its free limit");
   }
   throw lastErr || new Error("no model available");
+}
+
+const byNumber = (list, i) => list.find((a) => Number(a?.n) === i + 1);
+
+// Writes a batch: { model, variant, usage, results } — results in the same order as `stories`, null where Gemini
+// skipped one. A result's groups are only the site's groups ([] = "other": not news for this site).
+export async function summarize(stories) {
+  const r = await ask((v) => requestBody(stories, v), "stories");
+  return { model: r.model, variant: r.variant, usage: r.usage, results: stories.map((_, i) => clean(byNumber(r.list, i))) };
+}
+
+// Sorts items ({ text }) into the site's groups: { model, usage, groups } — for each item its groups,
+// [] = "other" (none of the site's groups), or null where Gemini skipped it (it is sorted again next time).
+export async function sortHeadlines(items) {
+  const r = await ask((v) => sortBody(items, v), "items");
+  const groups = items.map((_, i) => {
+    const a = byNumber(r.list, i);
+    if (!a || !Array.isArray(a.g)) return null;
+    return [...new Set(a.g.filter((g) => GROUPS.includes(g)))].slice(0, 3);
+  });
+  return { model: r.model, usage: r.usage, groups };
 }
 
 const tidy = (s, max) => {
@@ -213,7 +296,6 @@ export function clean(a) {
     hi,
     en,
     groups: [...new Set((a.groups || []).filter((g) => GROUPS.includes(g)))].slice(0, 3),
-    good: a.good === true,
     imp,
     scope: SCOPES.includes(a.scope) ? a.scope : "",
     place: {

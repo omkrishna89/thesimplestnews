@@ -1,30 +1,20 @@
 {
-  "about": "News groups. 'slug' is the web address (/cricket/). Gemini puts each story in 1-3 of these groups. 'local' is special: it shows every topic, by place. 'nav_hi'/'nav_en': the short name on the group buttons at the top of every page.",
+  "about": "News groups. 'slug' is the web address (/business/). The site shows ONLY news in these groups: Gemini sorts every new headline into 1-3 of them, or 'other' (then the story is left out). 'nav_hi'/'nav_en': the short name on the group buttons at the top of every page.",
   "list": [
-    {"slug": "local", "en": "Local", "hi": "स्थानीय", "icon": "📍", "about_en": "All news from your own area: village, tehsil and district.", "about_hi": "आपके अपने इलाके की सारी खबरें: गांव, तहसील और ज़िला।", "nav_hi": "स्थानीय", "nav_en": "Local"},
     {"slug": "startup", "en": "Startups", "hi": "स्टार्टअप", "icon": "🚀", "about_en": "New companies, funding and founders.", "about_hi": "नई कंपनियां, फंडिंग और संस्थापक।", "nav_hi": "स्टार्टअप", "nav_en": "Startups"},
     {"slug": "ai", "en": "AI", "hi": "एआई", "icon": "🤖", "about_en": "Artificial intelligence: new tools, companies and rules.", "about_hi": "आर्टिफ़िशियल इंटेलिजेंस: नए टूल, कंपनियां और नियम।", "nav_hi": "एआई", "nav_en": "AI"},
-    {"slug": "movies", "en": "Movies", "hi": "फ़िल्में", "icon": "🎬", "about_en": "New films, trailers and song releases.", "about_hi": "नई फ़िल्में, ट्रेलर और नए गाने।", "nav_hi": "फ़िल्में", "nav_en": "Movies"},
-    {"slug": "good-news", "en": "Good News", "hi": "अच्छी खबर", "icon": "🌞", "about_en": "Happy, hopeful and inspiring news.", "about_hi": "खुशी, उम्मीद और प्रेरणा देने वाली खबरें।", "nav_hi": "अच्छी खबर", "nav_en": "Good News"},
-    {"slug": "accidents", "en": "Road Accidents", "hi": "सड़क हादसे", "icon": "🚑", "about_en": "Road accidents and safety alerts.", "about_hi": "सड़क हादसे और सुरक्षा की चेतावनी।", "nav_hi": "हादसे", "nav_en": "Accidents"},
     {"slug": "business", "en": "Business", "hi": "व्यापार", "icon": "💼", "about_en": "Companies, trade, prices and the economy.", "about_hi": "कंपनियां, कारोबार, दाम और अर्थव्यवस्था।", "nav_hi": "व्यापार", "nav_en": "Business"},
-    {"slug": "cricket", "en": "Cricket", "hi": "क्रिकेट", "icon": "🏏", "about_en": "Matches, scores and players.", "about_hi": "मैच, स्कोर और खिलाड़ी।", "nav_hi": "क्रिकेट", "nav_en": "Cricket"},
-    {"slug": "sports", "en": "Sports", "hi": "खेल", "icon": "⚽", "about_en": "Football, hockey, kabaddi, Olympics and more.", "about_hi": "फ़ुटबॉल, हॉकी, कबड्डी, ओलंपिक और दूसरे खेल।", "nav_hi": "खेल", "nav_en": "Sports"},
-    {"slug": "entertainment", "en": "Entertainment", "hi": "मनोरंजन", "icon": "🎭", "about_en": "TV, web series, music and celebrities.", "about_hi": "टीवी, वेब सीरीज़, संगीत और सितारे।", "nav_hi": "मनोरंजन", "nav_en": "Entertainment"},
     {"slug": "auto", "en": "Auto", "hi": "ऑटो", "icon": "🚗", "about_en": "Cars, bikes, EVs and launches.", "about_hi": "कार, बाइक, ईवी और नई लॉन्च।", "nav_hi": "ऑटो", "nav_en": "Auto"},
     {"slug": "stock-market", "en": "Stock Market", "hi": "शेयर बाज़ार", "icon": "📈", "about_en": "Sensex, Nifty, shares, IPOs and mutual funds.", "about_hi": "सेंसेक्स, निफ़्टी, शेयर, आईपीओ और म्यूचुअल फ़ंड।", "nav_hi": "शेयर", "nav_en": "Stocks"},
     {"slug": "politics", "en": "Politics", "hi": "राजनीति", "icon": "🏛️", "about_en": "Elections, parties and leaders.", "about_hi": "चुनाव, पार्टियां और नेता।", "nav_hi": "राजनीति", "nav_en": "Politics"},
     {"slug": "govt-schemes", "en": "Govt Schemes", "hi": "सरकारी योजना", "icon": "📜", "about_en": "Government schemes: who gets them and how to apply.", "about_hi": "सरकारी योजनाएं: किसे मिलेगा और कैसे करें आवेदन।", "nav_hi": "योजना", "nav_en": "Schemes"},
     {"slug": "jobs", "en": "Jobs & Results", "hi": "नौकरी और रिज़ल्ट", "icon": "📝", "about_en": "Job openings, exams and results.", "about_hi": "भर्तियां, परीक्षाएं और रिज़ल्ट।", "nav_hi": "नौकरी", "nav_en": "Jobs"},
-    {"slug": "weather", "en": "Weather", "hi": "मौसम", "icon": "⛅", "about_en": "Rain, heat, cold and weather alerts.", "about_hi": "बारिश, गर्मी, ठंड और मौसम की चेतावनी।", "nav_hi": "मौसम", "nav_en": "Weather"},
-    {"slug": "crime", "en": "Crime", "hi": "अपराध", "icon": "🚨", "about_en": "Crime, police and courts.", "about_hi": "अपराध, पुलिस और अदालत।", "nav_hi": "अपराध", "nav_en": "Crime"},
     {"slug": "health", "en": "Health", "hi": "सेहत", "icon": "🏥", "about_en": "Health, hospitals and diseases.", "about_hi": "सेहत, अस्पताल और बीमारियां।", "nav_hi": "सेहत", "nav_en": "Health"},
     {"slug": "education", "en": "Education", "hi": "शिक्षा", "icon": "📚", "about_en": "Schools, colleges, admissions and boards.", "about_hi": "स्कूल, कॉलेज, दाखिले और बोर्ड।", "nav_hi": "शिक्षा", "nav_en": "Education"},
     {"slug": "gold-silver", "en": "Gold & Silver", "hi": "सोना-चांदी", "icon": "💰", "about_en": "Today's gold and silver rates, with 5-year charts.", "about_hi": "आज का सोना-चांदी भाव और 5 साल का चार्ट।", "nav_hi": "सोना-चांदी", "nav_en": "Gold"},
     {"slug": "money", "en": "Bank & Money", "hi": "बैंक और पैसा", "icon": "🏦", "about_en": "Banks, UPI, loans, tax and your money.", "about_hi": "बैंक, यूपीआई, लोन, टैक्स और आपका पैसा।", "nav_hi": "पैसा", "nav_en": "Money"},
     {"slug": "farming", "en": "Farming & Mandi", "hi": "खेती और मंडी", "icon": "🌾", "about_en": "Farming, crops and mandi rates.", "about_hi": "खेती, फसल और मंडी भाव।", "nav_hi": "खेती", "nav_en": "Farming"},
     {"slug": "tech", "en": "Tech & Mobiles", "hi": "टेक और मोबाइल", "icon": "📱", "about_en": "Phones, apps, internet and gadgets.", "about_hi": "फ़ोन, ऐप, इंटरनेट और गैजेट।", "nav_hi": "टेक", "nav_en": "Tech"},
-    {"slug": "science", "en": "Science & Space", "hi": "विज्ञान और अंतरिक्ष", "icon": "🔭", "about_en": "Science, ISRO and space.", "about_hi": "विज्ञान, इसरो और अंतरिक्ष।", "nav_hi": "विज्ञान", "nav_en": "Science"},
-    {"slug": "religion", "en": "Religion & Horoscope", "hi": "धर्म और राशिफल", "icon": "🙏", "about_en": "Festivals, religion and horoscopes.", "about_hi": "त्योहार, धर्म और राशिफल।", "nav_hi": "धर्म", "nav_en": "Religion"}
+    {"slug": "science", "en": "Science & Space", "hi": "विज्ञान और अंतरिक्ष", "icon": "🔭", "about_en": "Science, ISRO and space.", "about_hi": "विज्ञान, इसरो और अंतरिक्ष।", "nav_hi": "विज्ञान", "nav_en": "Science"}
   ]
 }

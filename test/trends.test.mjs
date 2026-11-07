@@ -42,3 +42,10 @@ test("Google Trends: topics of the last 8 hours, the most searched first", () =>
   assert.equal(m[1].n, 500, "a topic keeps its highest count");
   assert.equal(m[1].news[0].h, "new", "and its newest news links");
 });
+
+test("Google Trends: a topic keeps the groups Gemini sorted it into", () => {
+  const now = Date.parse("2026-11-04T12:00:00Z");
+  const m = mergeTrends([{ q: "sensex live", t: "Sensex live", n: 500, p: now - 3600e3, g: ["stock-market"], news: [] }], [{ q: "sensex live", t: "Sensex live", n: 900, p: now - 600e3, news: [] }], now);
+  assert.deepEqual(m[0].g, ["stock-market"]);
+  assert.equal(m[0].n, 900);
+});

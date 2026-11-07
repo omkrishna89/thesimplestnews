@@ -1,21 +1,23 @@
 // Runs every 30 minutes on GitHub:
-//  1. reads all due news feeds and keeps the new stories (last 48 hours)
-//  2. reads the full article of the most important new stories (only where robots.txt allows)
-//  3. Google Gemini writes the shortest headline + 9 answers in Hindi and English
-//  4. updates movie trailers/songs (YouTube), gold/silver rates and "Trending now" (Google Trends India)
+//  1. reads all due news feeds and keeps the new stories (last 48 hours), and "Trending now" (Google Trends India)
+//  2. Google Gemini sorts the new headlines and trending topics into the site's groups (others are left out)
+//  3. reads the full article of the most important new stories (only where robots.txt allows), and Gemini
+//     writes the shortest headline + 9 answers in Hindi and English — within this run's share of the free limit
+//  4. updates gold/silver rates
 //  5. forgets stories older than 7 days (written or not, so the search finds a whole week), and saves
 //     everything in .data/db.json.gz
 // Options: --no-fetch (skip feeds), --no-ai (skip Gemini), MOCK_AI=1 (fake answers, for testing the site only)
 import { readArticle, allowedByRobots } from "./lib/article.mjs";
 import { loadDB, saveDB, similarity, words } from "./lib/db.mjs";
 import { parseFeed } from "./lib/feeds.mjs";
-import { NOT_SAID, QUESTIONS, QuotaError, hasKey, summarize } from "./lib/gemini.mjs";
+import { NOT_SAID, QUESTIONS, QuotaError, hasKey, requestShapes, sortHeadlines, summarize } from "./lib/gemini.mjs";
 import { updateMetals } from "./lib/metals.mjs";
+import { googleDay, learnLimit, msToReset, runBudget } from "./lib/pace.mjs";
 import { pickForAI } from "./lib/pick.mjs";
 import { COVERED, districtSlug, placeSlug, stateCode } from "./lib/places.mjs";
 import { updateTrends } from "./lib/trends.mjs";
 import { clip, config, get, hash, log, plain, pool, sleep, TZ } from "./lib/util.mjs";
-import { updateVideos } from "./lib/youtube.mjs";
+import { groupsFromWords } from "./lib/words.mjs";
 import { AI_HOURS } from "../src/assets/js/ui.js";
 
 const args = new Set(process.argv.slice(2));
@@ -217,12 +219,13 @@ function scopeOf(story, loc) {
 // ---------- 2 + 3. read articles and let Gemini write ----------
 const istTime = (t) => new Intl.DateTimeFormat("en-IN", { timeZone: TZ, dateStyle: "medium", timeStyle: "short" }).format(new Date(t));
 
-// The biggest stories first, then a fair share for every group, state and district (scripts/lib/pick.mjs)
-function candidates() {
-  const waiting = db.stories.filter((s) => s.s === "new" && s.tr < 3 && now - s.p < AI_MAX_AGE);
+// The biggest stories first, then a fair share for every group, state and district (scripts/lib/pick.mjs).
+// Only stories Gemini has sorted into one of the site's groups are written.
+function candidates(perRun) {
+  const waiting = db.stories.filter((s) => s.s === "new" && s.tr < 3 && now - s.p < AI_MAX_AGE && s.sg?.length);
   return pickForAI(waiting, {
     now,
-    perRun: Number(process.env.GEMINI_PER_RUN || site.gemini.perRun),
+    perRun: Math.min(perRun, Number(process.env.GEMINI_PER_RUN || site.gemini.perRun)),
     topFirst: site.gemini.topFirst ?? 24,
     perFeed: site.gemini.perFeed ?? 4,
   });
@@ -233,28 +236,106 @@ function mockAnswer(s) {
     h: clip(s.t, 70),
     q: QUESTIONS.map((q, i) => (i === 0 ? clip(s.x || s.t, 120) : i === 4 && s.d ? s.d : i === 5 ? istTime(s.p) : NOT_SAID[lang])),
   });
-  return { hi: mk("hi"), en: mk("en"), groups: s.gh || [], good: false, imp: s.pr, scope: "", place: { country: s.lv === "world" ? "World" : "India", state: s.st || "", district: s.d || "", tehsil: s.th || "", local: "", local_hi: "", district_hi: "" }, sameAs: 0 };
+  return { hi: mk("hi"), en: mk("en"), groups: s.sg || s.gh || [], imp: s.pr, scope: "", place: { country: s.lv === "world" ? "World" : "India", state: s.st || "", district: s.d || "", tehsil: s.th || "", local: "", local_hi: "", district_hi: "" }, sameAs: 0 };
 }
 
+// The site's groups only (config/groups.json)
+const GROUP_SLUGS = new Set(config("groups.json").list.map((g) => g.slug));
+const ours = (groups = []) => groups.filter((g) => GROUP_SLUGS.has(g));
+
 function apply(story, r, model) {
-  const groups = [...new Set([...(r.groups || []), ...(story.gh || [])])].slice(0, 4);
-  story.a = { hi: r.hi, en: r.en, g: groups, good: r.good, imp: r.imp, scope: r.scope, place: r.place, m: model, at: Date.now() };
-  if (r.good && !groups.includes("good-news")) story.a.g.push("good-news");
+  // Gemini's groups, plus the news feed's own group (a Business feed's story is Business news)
+  const groups = [...new Set([...(r.groups || []), ...ours(story.gh)])].slice(0, 4);
+  story.a = { hi: r.hi, en: r.en, g: groups, imp: r.imp, scope: r.scope, place: r.place, m: model, at: Date.now() };
   story.loc = locate(story);
   story.sc = scopeOf(story, story.loc);
-  story.s = "ok";
+  // Having read the whole story, Gemini can find it is not news for this site after all
+  story.s = groups.length ? "ok" : "skip";
   // learn Hindi names of places for the location bar
   if (story.loc.d && r.place.district_hi) db.names[`${story.loc.s}/${story.loc.d}`] ||= r.place.district_hi;
   if (story.loc.l && r.place.local_hi) db.names[`${story.loc.s}/${story.loc.d}/${story.loc.l}`] ||= r.place.local_hi;
 }
 
-async function writeStories() {
-  if (args.has("--no-ai")) return log("[ai] skipped (--no-ai)");
-  if (!hasKey() && !MOCK) return log("[ai] no GEMINI_API_KEY: stories show 'summary coming soon'");
-  const list = candidates();
-  log(`[ai] ${list.length} stories to write`);
+// Requests and tokens Gemini used, per model and Google day (its free limits restart at midnight in California).
+// Google bills a paid plan by tokens, so they show exactly what writing every story would cost. Kept 2 weeks.
+const n0 = (v) => Math.round(v).toLocaleString("en-IN");
+const today = () => (db.aiUsage ||= {})[googleDay(Date.now())] ||= {};
+const usedToday = () => Object.values(today()).reduce((n, m) => n + (m.req || 0), 0);
+function countTokens(model, u, { stories = 0, sorted = 0 } = {}) {
+  const days = (db.aiUsage ||= {});
+  const d = (today()[model] ||= { req: 0, stories: 0, sorted: 0, in: 0, out: 0, think: 0 });
+  d.req++;
+  d.stories += stories;
+  d.sorted = (d.sorted || 0) + sorted;
+  d.in += u.in;
+  d.out += u.out;
+  d.think += u.think;
+  for (const k of Object.keys(days).sort().slice(0, -14)) delete days[k];
+}
+// Every model said "free limit reached": the requests made today are the real limit
+function limitReached() {
+  db.aiLimit = { req: Math.max(24, usedToday()), day: googleDay(Date.now()), learned: true };
+  today()._hit = true;
+}
+
+// ---------- 2. Gemini sorts new headlines (and trending topics) into the site's groups ----------
+// Many headlines in one request, so this costs little of the free limit. "other" = not news for this site:
+// the story is left out and never written.
+async function sortNew(maxRequests) {
+  const fresh = db.stories.filter((s) => s.s === "new" && !s.sg && now - s.p < AI_MAX_AGE);
+  // a news feed of one of the site's groups needs no sorting
+  for (const s of fresh) if (ours(s.gh).length) s.sg = ours(s.gh);
+  const stories = fresh.filter((s) => !s.sg).sort((a, b) => b.p - a.p);
+  const topics = (db.trends?.list || []).filter((t) => !t.g);
+  const items = [
+    ...topics.map((t) => ({ t, text: `Trending Google search in India: "${t.t}". Its news: ${t.news.map((n) => n.h).join(" | ")}` })),
+    ...stories.map((s) => ({ s, text: `${s.t}${s.x ? ` — ${clip(s.x, 160)}` : ""}` })),
+  ];
+  if (!items.length || maxRequests <= 0) return 0;
+  const size = Number(process.env.GEMINI_SORT_BATCH || site.gemini.sortBatch || 150);
+  let requests = 0;
+  let kept = 0;
+  let other = 0;
+  for (let i = 0; i < items.length && requests < maxRequests; i += size) {
+    const part = items.slice(i, i + size);
+    let r;
+    try {
+      if (MOCK) r = { model: "mock", groups: part.map((it) => (it.s ? ours(groupsFromWords(it.s.t)) : ["business"])) };
+      else {
+        if (requests > 0) await sleep(Number(process.env.GEMINI_PAUSE_MS || site.gemini.pauseMs));
+        r = await sortHeadlines(part.map((it) => ({ text: it.text })));
+      }
+    } catch (err) {
+      if (err instanceof QuotaError) limitReached();
+      log(`[sort] ${String(err.message).slice(0, 160)} — the rest is sorted next time`);
+      break;
+    }
+    requests++;
+    if (r.usage) countTokens(r.model, r.usage, { sorted: part.length });
+    part.forEach((it, j) => {
+      const g = r.groups[j];
+      if (!g) return; // skipped by Gemini: sorted again next time
+      if (it.t) it.t.g = g;
+      else {
+        it.s.sg = g;
+        if (!g.length) it.s.s = "skip";
+      }
+      if (g.length) kept++;
+      else other++;
+    });
+  }
+  const left = items.length - kept - other;
+  log(`[sort] ${requests} requests: ${kept} in the site's groups, ${other} other (left out)${left ? `, ${left} wait for the next run` : ""}`);
+  return requests;
+}
+
+// ---------- 3. read articles and let Gemini write ----------
+async function writeStories(maxRequests) {
   const batchSize = Number(process.env.GEMINI_BATCH || site.gemini.batch);
+  const list = candidates(Math.max(0, maxRequests) * batchSize);
+  log(`[ai] ${list.length} stories to write (${maxRequests} requests of ${batchSize})`);
   const fresh = [];
+  const run = { stories: 0, in: 0, out: 0, think: 0 };
   let calls = 0;
   let failedInARow = 0;
   for (let i = 0; i < list.length; i += batchSize) {
@@ -293,6 +374,7 @@ async function writeStories() {
       if (err instanceof QuotaError) {
         log(`[ai] free limit reached: ${err.message.slice(0, 120)} — the rest waits for the next run`);
         for (const s of batch) s.tr--; // not their fault
+        limitReached();
         break;
       }
       for (const s of batch) s.tr--; // Gemini didn't answer: not these stories' fault
@@ -313,36 +395,69 @@ async function writeStories() {
       fresh.push(s);
       if (r.sameAs && r.sameAs !== j + 1 && batch[r.sameAs - 1]?.s === "ok") markDuplicate(s, batch[r.sameAs - 1]);
     });
-    log(`[ai] batch ${i / batchSize + 1}: ${out.results.filter(Boolean).length}/${batch.length} written by ${out.model}${out.variant ? ` (request shape ${out.variant})` : ""}`);
+    const written = out.results.filter(Boolean).length;
+    const u = out.usage;
+    if (u) {
+      countTokens(out.model, u, { stories: written });
+      run.stories += written;
+      run.in += u.in;
+      run.out += u.out;
+      run.think += u.think;
+    }
+    log(`[ai] batch ${i / batchSize + 1}: ${written}/${batch.length} written by ${out.model}${out.variant ? ` (request shape ${out.variant})` : ""}${u ? ` · tokens: ${n0(u.in)} in, ${n0(u.out)} out, ${n0(u.think)} thinking` : ""}`);
   }
   for (const s of list) if (s.s === "new" && s.tr >= 3) s.s = "fail";
   dedupeHeadlines(fresh);
+  if (run.stories) {
+    const per = (v) => n0(v / run.stories);
+    log(`[ai] tokens this run: ${n0(run.in)} in, ${n0(run.out)} out, ${n0(run.think)} thinking for ${run.stories} stories (each: ${per(run.in)} in, ${per(run.out)} out, ${per(run.think)} thinking)`);
+  }
 }
 
-// ---------- 4. trailers & songs, gold & silver ----------
+// Sorting first (new news can only be shown once it is sorted), then writing — together never more than this
+// run's share of today's free limit (scripts/lib/pace.mjs)
+const SORT_MAX = 4; // requests per run; a big pile of unsorted headlines is sorted over several runs
+async function ai() {
+  if (args.has("--no-ai")) return log("[ai] skipped (--no-ai)");
+  if (!hasKey() && !MOCK) return log("[ai] no GEMINI_API_KEY: nothing is sorted or written");
+  const day = googleDay(now);
+  if (db.aiShape && now - db.aiShape.at < 7 * 86400e3) requestShapes.set(db.aiShape.v); // a week, then all shapes are tried again
+  else db.aiShape = { at: now, v: {} };
+  if (db.aiLimit?.day !== day) {
+    const prev = Object.keys(db.aiUsage || {}).filter((d) => d < day).sort().pop();
+    const y = prev && db.aiUsage[prev];
+    const limit = learnLimit(db.aiLimit?.req || site.gemini.dailyRequests || 420, y && { hit: !!y._hit, req: Object.values(y).reduce((n, m) => n + (m.req || 0), 0) });
+    db.aiLimit = { req: limit, day };
+  }
+  const budget = runBudget({ limit: db.aiLimit.req, used: usedToday(), msLeft: msToReset(now) });
+  log(`[ai] free limit ~${db.aiLimit.req} requests a day, ${usedToday()} used today; this run may use ${budget}`);
+  const sorted = await sortNew(Math.min(SORT_MAX, budget));
+  await writeStories(budget - sorted);
+  db.aiShape.v = requestShapes.get();
+}
+
+// "Trending now": what India searches on Google (sorted into the site's groups in step 2)
+async function trends() {
+  if (args.has("--no-fetch")) return;
+  try {
+    const r = await updateTrends(db.trends?.list || []);
+    db.trends = { at: now, list: r.list };
+    log(`[trends] ${r.fresh} topics from Google Trends, ${r.list.length} kept`);
+  } catch (err) {
+    log(`[trends] ${err.message} — the last topics stay`);
+  }
+}
+
+// ---------- 4. gold & silver ----------
 async function extras() {
   if (args.has("--no-fetch")) return;
-  if (!db.videosAt || now - db.videosAt > 55 * 60e3) {
-    try {
-      const r = await updateVideos(db.videos, { keepDays: site.keepDays });
-      db.videos = r.videos;
-      db.videosAt = now;
-      log(`[youtube] ${r.fresh} new trailers/songs, ${r.videos.length} kept${r.failed ? `, ${r.failed} channels failed` : ""}`);
-    } catch (err) {
-      log(`[youtube] ${err.message}`);
-    }
-  }
   if (!db.metals?.checked || now - db.metals.checked > 2.5 * 3600e3) {
     db.metals = await updateMetals(db.metals || {});
     log(`[metals] IBJA ${db.metals.ibja ? `${db.metals.ibja.date} ${db.metals.ibja.session}` : "not available"}, history ${db.metals.intl ? "ok" : "not available"}`);
   }
-  try {
-    const r = await updateTrends(db.trends?.list || []);
-    db.trends = { at: now, list: r.list };
-    log(`[trends] ${r.fresh} topics from Google Trends, ${r.list.length} shown`);
-  } catch (err) {
-    log(`[trends] ${err.message} — the last topics stay`);
-  }
+  // trailers & songs are not on the site any more (no Movies group)
+  delete db.videos;
+  delete db.videosAt;
 }
 
 // ---------- 5. forget old stories ----------
@@ -378,12 +493,13 @@ if (process.env.RUN_EVENT === "schedule" && db.saved && Date.now() - db.saved < 
 }
 
 if (!args.has("--no-fetch")) await readFeeds();
+await trends();
 dedupeTitles();
 locateAll();
-await writeStories();
+await ai();
 await extras();
 prune();
 const size = saveDB(db);
 const count = (st) => db.stories.filter((s) => s.s === st).length;
-log(`[done] ${count("ok")} written, ${count("new")} waiting, ${count("dup")} duplicates, ${count("fail")} failed · db ${(size / 1e6).toFixed(1)} MB · ${((Date.now() - started) / 1000).toFixed(0)} s`);
+log(`[done] ${count("ok")} written, ${count("new")} waiting, ${count("skip")} not in the site's groups, ${count("dup")} duplicates, ${count("fail")} failed · db ${(size / 1e6).toFixed(1)} MB · ${((Date.now() - started) / 1000).toFixed(0)} s`);
 if (COVERED.length === 0) log("warning: no covered states in config/places.json");

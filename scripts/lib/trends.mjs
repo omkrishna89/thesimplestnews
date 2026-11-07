@@ -53,13 +53,14 @@ export function parseTrends(xml) {
   return out;
 }
 
-// New topics join the ones of the last hours; the most searched first
+// New topics join the ones of the last hours; the most searched first. A topic keeps the groups Gemini sorted it into (g).
 export function mergeTrends(old = [], fresh = [], now = Date.now()) {
   const by = new Map();
   for (const t of [...old, ...fresh]) {
     if (now - t.p > KEEP_MS) continue;
     const had = by.get(t.q);
-    by.set(t.q, had ? { ...t, n: Math.max(had.n, t.n), p: Math.max(had.p, t.p), news: t.p >= had.p ? t.news : had.news } : t);
+    const g = t.g ?? had?.g;
+    by.set(t.q, had ? { ...t, n: Math.max(had.n, t.n), p: Math.max(had.p, t.p), news: t.p >= had.p ? t.news : had.news, ...(g ? { g } : {}) } : t);
   }
   return [...by.values()].sort((a, b) => b.n - a.n || b.p - a.p).slice(0, MAX);
 }

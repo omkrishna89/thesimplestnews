@@ -13,13 +13,25 @@ test("the website builds and has the key pages", () => {
   const nine = (p) => Array.from({ length: 9 }, (_, i) => `${p} ${i}`);
   const story = (id, extra) => ({ id, u: `https://news.example/${id}`, src: "f", pub: { en: "Amar Ujala", hi: "अमर उजाला" }, l: "hi", t: `Title ${id}`, img: "", p: now - 3600e3, f: now, lv: "district", st: "up", d: "barabanki", pr: 4, s: "new", tr: 0, loc: { c: "in", s: "up", d: "barabanki" }, sc: "district", ...extra });
   const db = {
-    v: 1, seen: {}, feeds: {}, names: { "up/barabanki": "बाराबंकी" }, videos: [{ id: "abcdefghijk", t: "New Song (Official Video)", ch: "T-Series", p: now, k: "song" }], metals: null,
-    trends: { at: now, list: [{ q: "cockroach janta party", t: "Cockroach Janta Party", n: 5000, p: now - 3600e3, news: [{ h: "CJP backs rally", u: "https://news.example/cjp", src: "The Hindu" }] }, { q: "old topic", t: "Old topic", n: 9000, p: now - 20 * 3600e3, news: [] }] },
+    v: 1, seen: {}, feeds: {}, names: { "up/barabanki": "बाराबंकी" }, metals: null,
+    trends: {
+      at: now,
+      list: [
+        { q: "cockroach janta party", t: "Cockroach Janta Party", n: 5000, p: now - 3600e3, g: ["politics"], news: [{ h: "CJP backs rally", u: "https://news.example/cjp", src: "The Hindu" }] },
+        { q: "old topic", t: "Old topic", n: 9000, p: now - 20 * 3600e3, g: ["politics"], news: [] },
+        { q: "hardik pandya", t: "Hardik Pandya", n: 9000, p: now - 3600e3, g: [], news: [] }, // cricket: not one of the site's groups
+        { q: "not sorted yet", t: "Not sorted yet", n: 9000, p: now - 3600e3, news: [] },
+      ],
+    },
     stories: [
-      story("aaa111", { s: "ok", a: { hi: { h: "हिंदी शीर्षक", q: nine("जवाब") }, en: { h: "English headline", q: nine("answer") }, g: ["cricket"], good: false, imp: 8, scope: "country", place: { country: "India", state: "Uttar Pradesh", district: "Barabanki", local: "Zaidpur", local_hi: "जैदपुर" }, at: now - 60e3 }, loc: { c: "in", s: "up", d: "barabanki", l: "zaidpur" }, sc: "country" }),
-      story("bbb222"),
-      story("ccc333", { t: "सेंसेक्स 500 अंक चढ़ा, निफ्टी भी उछला" }),
-      story("ddd444", { t: "रिलायंस के शेयर 3% चढ़े, टीसीएस में गिरावट" }),
+      story("aaa111", { s: "ok", a: { hi: { h: "हिंदी शीर्षक", q: nine("जवाब") }, en: { h: "English headline", q: nine("answer") }, g: ["politics"], imp: 8, scope: "country", place: { country: "India", state: "Uttar Pradesh", district: "Barabanki", local: "Zaidpur", local_hi: "जैदपुर" }, at: now - 60e3 }, loc: { c: "in", s: "up", d: "barabanki", l: "zaidpur" }, sc: "country" }),
+      story("bbb222", { sg: ["business"] }), // Gemini sorted its headline into Business
+      story("ccc333", { t: "सेंसेक्स 500 अंक चढ़ा, निफ्टी भी उछला" }), // not sorted yet, but clear words: Stock Market
+      story("ddd444", { t: "रिलायंस के शेयर 3% चढ़े, टीसीएस में गिरावट", sg: ["stock-market"] }),
+      // left out: sorted as "other", found "other" by the writer, and not sorted yet without clear words
+      story("eee555", { t: "कोहली का शतक, भारत जीता", s: "skip", sg: [] }),
+      story("fff666", { s: "skip", a: { hi: { h: "क्रिकेट", q: nine("x") }, en: { h: "Cricket match", q: nine("x") }, g: [], imp: 5, scope: "country", place: {}, at: now - 60e3 } }),
+      story("ggg777"),
     ],
   };
   fs.mkdirSync(path.join(tmp, "data"));
@@ -32,19 +44,24 @@ test("the website builds and has the key pages", () => {
   assert.match(home, /English headline/);
   assert.match(home, /href="\/thesimplestnews\/story\/aaa111\/"/, "links carry the GitHub Pages path");
   assert.match(home, /<link rel="canonical" href="https:\/\/omkrishna89.github.io\/thesimplestnews\/">/);
-  for (const p of ["cricket/index.html", "cricket/world/index.html", "cricket/district/index.html", "story/aaa111/index.html", "place/up/barabanki/index.html", "privacy/index.html", "about/index.html", "contact/index.html", "terms/index.html", "disclaimer/index.html", "404.html", "robots.txt", "sitemap.xml", "news-sitemap.xml", "data/index.json", "data/places.json", "manifest.webmanifest"]) {
+  for (const p of ["politics/index.html", "politics/world/index.html", "politics/district/index.html", "story/aaa111/index.html", "place/up/barabanki/index.html", "privacy/index.html", "about/index.html", "contact/index.html", "terms/index.html", "disclaimer/index.html", "404.html", "robots.txt", "sitemap.xml", "news-sitemap.xml", "data/index.json", "data/places.json", "manifest.webmanifest"]) {
     assert.ok(fs.existsSync(path.join(out, p)), `${p} exists`);
   }
   const storyPage = read("story/aaa111/index.html");
   assert.match(storyPage, /answer 0/);
   assert.match(storyPage, /"@type":"NewsArticle"/);
-  assert.match(read("cricket/district/index.html"), /noindex/, "personal tabs are not for Google");
+  assert.match(read("politics/district/index.html"), /noindex/, "personal tabs are not for Google");
+  // only the site's 15 groups: no pages, buttons or sitemap entries for the others, and no Local button
+  for (const p of ["cricket/index.html", "movies/index.html", "local/index.html", "story/fff666/index.html"]) assert.ok(!fs.existsSync(path.join(out, p)), `${p} is gone`);
+  assert.match(home, /data-g="politics"/);
+  assert.doesNotMatch(home, /data-g="(cricket|movies|local|good-news|crime)"/);
+  assert.doesNotMatch(read("sitemap.xml"), /\/cricket\/|\/local\//);
   const idx = JSON.parse(read("data/index.json"));
   assert.ok(idx.days["d/up/barabanki"].length >= 1);
   const day = idx.days["d/up/barabanki"][0];
   const hi = JSON.parse(read(`data/hi/d/up/barabanki/${day}.json`));
   const en = JSON.parse(read(`data/en/d/up/barabanki/${day}.json`));
-  assert.equal(hi.length, 4, "Hindi list: all stories");
+  assert.deepEqual(hi.map((s) => s.i).sort(), ["aaa111", "bbb222", "ccc333", "ddd444"], "Hindi list: the stories in the site's groups");
   assert.equal(en.length, 1, "English list: only the summarized one (the others are Hindi stories without their summary yet)");
   assert.deepEqual(idx.n.hi["d/up/barabanki"], [4], "story counts per day, for 'See N stories in …'");
   // the Stocks box: one file per company, found from any group
@@ -63,7 +80,7 @@ test("the website builds and has the key pages", () => {
   assert.match(written.s, /English headline/, "an English search also finds the Hindi version");
   assert.deepEqual(JSON.parse(read(`data/en/search/${day}.json`)).map((s) => s.i), ["aaa111"], "English: only stories that have English");
   assert.ok(idx.days["s-up/stock-market"], "a headline with सेंसेक्स puts the story into Stock Market before the AI has written it");
-  assert.deepEqual(JSON.parse(read(`data/hi/s-up/stock-market/${day}.json`)).map((s) => s.i), ["ccc333"]);
+  assert.deepEqual(JSON.parse(read(`data/hi/s-up/stock-market/${day}.json`)).map((s) => s.i).sort(), ["ccc333", "ddd444"], "by clear words (ccc333) or Gemini's sorting (ddd444)");
   assert.ok(JSON.parse(read("data/stocks.json")).some((s) => s.s === "RELIANCE"), "names for the Stocks box");
   // IndexNow: the key file, and the story written in this run listed for the search engines
   const site = JSON.parse(fs.readFileSync(new URL("../config/site.json", import.meta.url)));
@@ -74,12 +91,19 @@ test("the website builds and has the key pages", () => {
   assert.equal(indexNow.keyLocation, `https://omkrishna89.github.io/thesimplestnews/${site.indexNow.key}.txt`);
   if (!site.analytics?.ga4) assert.doesNotMatch(home, /googletagmanager/, "no Google Analytics without a Measurement ID");
   assert.ok(!fs.existsSync(path.join(out, "ads.txt")), "no ads.txt before AdSense is set up");
-  assert.match(read("movies/index.html"), /abcdefghijk/, "trailers & songs on the Movies page");
+  assert.deepEqual(JSON.parse(read(`data/hi/s-up/business/${day}.json`)).map((s) => s.i), ["bbb222"], "sorted by Gemini into Business");
+  // Home, the groups and story pages have nothing but the (empty) ad spot on the right
+  for (const page of ["index.html", "all/world/index.html", "business/index.html", "story/aaa111/index.html"]) {
+    const html = read(page);
+    assert.doesNotMatch(html, /class="vids|class="panel metals/, `no trailers or gold box on ${page}`);
+    assert.match(html, /<aside class="side"><div class="ad ad--empty ad--side" data-ad="side" hidden><\/div><\/aside>/, `only the ad spot on the right of ${page}`);
+  }
   // "Trending" (Google Trends) on Home: a tap searches our news; the topic's own news links are in data/trends.json
   assert.match(home, /data-trend="cockroach janta party"/);
   assert.match(home, /href="\/thesimplestnews\/\?q=cockroach%20janta%20party"/);
   assert.doesNotMatch(home, /Old topic/, "topics older than 12 hours are left out");
-  assert.doesNotMatch(read("cricket/index.html"), /data-trends/, "only on Home");
+  assert.doesNotMatch(home, /Hardik Pandya|Not sorted yet/, "only topics Gemini sorted into the site's groups");
+  assert.doesNotMatch(read("business/index.html"), /data-trends/, "only on Home");
   assert.deepEqual(JSON.parse(read("data/trends.json")).map((t) => t.q), ["cockroach janta party"]);
   // app.js loads ui.js and search.js with their versions, so a phone never mixes new and old files
   assert.match(read("assets/js/app.js"), /from "\.\/ui\.js\?v=[0-9a-f]{10}"/);
