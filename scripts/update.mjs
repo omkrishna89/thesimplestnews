@@ -10,7 +10,7 @@
 import { readArticle, allowedByRobots } from "./lib/article.mjs";
 import { loadDB, saveDB, similarity, words } from "./lib/db.mjs";
 import { parseFeed } from "./lib/feeds.mjs";
-import { NOT_SAID, QUESTIONS, QuotaError, hasKey, requestShapes, sortHeadlines, summarize } from "./lib/gemini.mjs";
+import { NOT_SAID, PRIMARY, QUESTIONS, QuotaError, dailyLimitOf, hasKey, requestShapes, sortHeadlines, summarize } from "./lib/gemini.mjs";
 import { updateMetals } from "./lib/metals.mjs";
 import { googleDay, learnLimit, msToReset, runBudget } from "./lib/pace.mjs";
 import { pickForAI } from "./lib/pick.mjs";
@@ -260,7 +260,8 @@ function apply(story, r, model) {
 // Google bills a paid plan by tokens, so they show exactly what writing every story would cost. Kept 2 weeks.
 const n0 = (v) => Math.round(v).toLocaleString("en-IN");
 const today = () => (db.aiUsage ||= {})[googleDay(Date.now())] ||= {};
-const usedToday = () => Object.values(today()).reduce((n, m) => n + (m.req || 0), 0);
+// The free limit is planned for the main model; the stand-in models have their own (small) limits
+const usedToday = () => today()[PRIMARY]?.req || 0;
 function countTokens(model, u, { stories = 0, sorted = 0 } = {}) {
   const days = (db.aiUsage ||= {});
   const d = (today()[model] ||= { req: 0, stories: 0, sorted: 0, in: 0, out: 0, think: 0 });
@@ -272,9 +273,14 @@ function countTokens(model, u, { stories = 0, sorted = 0 } = {}) {
   d.think += u.think;
   for (const k of Object.keys(days).sort().slice(0, -14)) delete days[k];
 }
-// Every model said "free limit reached": the requests made today are the real limit
-function limitReached() {
-  db.aiLimit = { req: Math.max(24, usedToday()), day: googleDay(Date.now()), learned: true };
+// The main model said "free limit for today reached": Google's own number is the limit (or, without one, the
+// requests made today). A stand-in model at its own small limit changes nothing.
+function noteLimit() {
+  const hit = dailyLimitOf(PRIMARY);
+  if (!hit) return;
+  // without Google's number, never below half the first guess (a day can start with requests this robot didn't count)
+  const floor = Math.round((site.gemini.dailyRequests || 420) / 2);
+  db.aiLimit = hit.value ? { req: hit.value, day: googleDay(Date.now()), from: "google" } : { req: Math.max(floor, usedToday()), day: googleDay(Date.now()), from: "count" };
   today()._hit = true;
 }
 
@@ -306,7 +312,7 @@ async function sortNew(maxRequests) {
         r = await sortHeadlines(part.map((it) => ({ text: it.text })));
       }
     } catch (err) {
-      if (err instanceof QuotaError) limitReached();
+      if (err instanceof QuotaError) noteLimit();
       log(`[sort] ${String(err.message).slice(0, 160)} — the rest is sorted next time`);
       break;
     }
@@ -374,7 +380,7 @@ async function writeStories(maxRequests) {
       if (err instanceof QuotaError) {
         log(`[ai] free limit reached: ${err.message.slice(0, 120)} — the rest waits for the next run`);
         for (const s of batch) s.tr--; // not their fault
-        limitReached();
+        noteLimit();
         break;
       }
       for (const s of batch) s.tr--; // Gemini didn't answer: not these stories' fault
@@ -423,14 +429,23 @@ async function ai() {
   const day = googleDay(now);
   if (db.aiShape && now - db.aiShape.at < 7 * 86400e3) requestShapes.set(db.aiShape.v); // a week, then all shapes are tried again
   else db.aiShape = { at: now, v: {} };
-  if (db.aiLimit?.day !== day) {
-    const prev = Object.keys(db.aiUsage || {}).filter((d) => d < day).sort().pop();
-    const y = prev && db.aiUsage[prev];
-    const limit = learnLimit(db.aiLimit?.req || site.gemini.dailyRequests || 420, y && { hit: !!y._hit, req: Object.values(y).reduce((n, m) => n + (m.req || 0), 0) });
-    db.aiLimit = { req: limit, day };
+  // A limit learned by the first version counted the stand-in models too (one of them allows only 20 requests a
+  // day): start again from the first guess
+  if (!db.aiLimit?.from) {
+    db.aiLimit = { req: site.gemini.dailyRequests || 420, day, from: "guess" };
+    for (const d of Object.values(db.aiUsage || {})) delete d._hit;
+  }
+  if (db.aiLimit.day !== day) {
+    // Google's own number stays; a guess is checked against yesterday
+    if (db.aiLimit.from !== "google") {
+      const prev = Object.keys(db.aiUsage || {}).filter((d) => d < day).sort().pop();
+      const y = prev && db.aiUsage[prev];
+      db.aiLimit.req = Math.max(Math.round((site.gemini.dailyRequests || 420) / 2), learnLimit(db.aiLimit.req, y && { hit: !!y._hit, req: y[PRIMARY]?.req || 0 }));
+    }
+    db.aiLimit.day = day;
   }
   const budget = runBudget({ limit: db.aiLimit.req, used: usedToday(), msLeft: msToReset(now) });
-  log(`[ai] free limit ~${db.aiLimit.req} requests a day, ${usedToday()} used today; this run may use ${budget}`);
+  log(`[ai] free limit ${db.aiLimit.from === "google" ? "" : "~"}${db.aiLimit.req} requests a day for ${PRIMARY}${db.aiLimit.from === "google" ? " (Google's number)" : ""}, ${usedToday()} used today; this run may use ${budget}`);
   const sorted = await sortNew(Math.min(SORT_MAX, budget));
   await writeStories(budget - sorted);
   db.aiShape.v = requestShapes.get();
