@@ -14,12 +14,18 @@ const GROUP_LIST = config("groups.json").list;
 const GROUPS = GROUP_LIST.map((g) => g.slug);
 export const OTHER = "other";
 const CHOICES = [...GROUPS, OTHER];
-const NOT_OURS = "cricket or other sports, films, TV and celebrities, crime, accidents, weather, religion or horoscope";
+// The same rules for sorting and for writing, so Gemini doesn't sort a story in and then find it out after writing it
+const NOT_OURS = "cricket or other sports, films, TV and celebrities, crime, police and court cases, accidents and disasters, war, terror attacks and the army, festivals, temples and religion, horoscope, weather";
+const POLITICS = `"politics" = elections, political parties, politicians and the laws and government decisions they make — not police work, festival arrangements, wars abroad or the army`;
 const KEY = process.env.GEMINI_API_KEY || "";
 const BASE = process.env.GEMINI_BASE || "https://generativelanguage.googleapis.com/v1beta";
 const MODELS = (process.env.GEMINI_MODEL ? process.env.GEMINI_MODEL.split(",") : site.gemini.models).map((m) => m.trim()).filter(Boolean);
 
 export class QuotaError extends Error {}
+export const PRIMARY = MODELS[0]; // the model the free limit is planned for; the others only stand in when it is busy
+// Models whose free limit for today is used up, with the limit Google gave (e.g. 500 requests a day)
+const dailyLimits = new Map();
+export const dailyLimitOf = (model) => dailyLimits.get(model);
 export const hasKey = () => !!KEY;
 
 const answerSchema = {
@@ -67,7 +73,7 @@ For every story you get, write:
    Each answer is ONE short simple sentence (at most 15 words). Use only facts from the story text. Never guess or add facts.
    If the story does not say it, write exactly "${NOT_SAID.en}" in English and "${NOT_SAID.hi}" in Hindi.
 3. Hindi = simple spoken Hindi in Devanagari (common English words like IPL, UPI, GST, AI, SUV are fine). English = plain simple English.
-4. "groups": 1 to 3 groups from the list, best first. "politics" for elections, parties and leaders. If the story fits none of the groups (for example ${NOT_OURS}), give ["${OTHER}"].
+4. "groups": 1 to 3 groups from the list, best first. ${POLITICS}. If the story fits none of the groups (for example ${NOT_OURS}), give ["${OTHER}"].
 5. "importance" 1-10: 9-10 = huge news for all India; 7-8 = big national or state news; 4-6 = normal news; 1-3 = small local or minor news.
 6. "scope": where the news matters: local (one village, town or city area), tehsil, district, state, country (all India), world (outside India).
 7. Place of the event in English standard spelling: "country", "state", "district" (official current district name, e.g. Prayagraj, Gurugram, Kanpur Nagar), "tehsil" (tehsil or block if known), "place" (the most specific place: village, town, city or area). Use "" when unknown. "place_hi" and "district_hi": the same names in Hindi.
@@ -115,8 +121,8 @@ export function requestBody(stories, variant = 0) {
 const SORT_SYSTEM = `You sort Indian news (Hindi or English) into the groups of "The Simplest News". The website shows ONLY news in these groups:
 ${GROUP_LIST.map((g) => `- ${g.slug}: ${g.en} (${g.about_en})`).join("\n")}
 
-For every numbered item give "g": 1 to 3 group slugs from the list, best first. "politics" = elections, parties, leaders and government decisions.
-If the item fits none of the groups (for example ${NOT_OURS}), give ["${OTHER}"].
+For every numbered item give "g": 1 to 3 group slugs from the list, best first. ${POLITICS}.
+If the item fits none of the groups (for example ${NOT_OURS}), give ["${OTHER}"]. When in doubt, give ["${OTHER}"].
 Reply with JSON {"items":[{"n":1,"g":["politics"]}]} with exactly one entry for every item, using its number "n".`;
 
 const SORT_SCHEMA = {
@@ -178,6 +184,7 @@ async function callModel(model, makeBody, key) {
         err.status = 429;
         throw err;
       }
+      dailyLimits.set(model, { value: Number(q.value) || 0 });
       throw new QuotaError(`${model}: free limit reached (429)${q.id ? ` ${q.id}${q.value ? ` = ${q.value}` : ""}` : ` ${firstLine(text)}`}`);
     }
     if (res.status === 400 && variant < VARIANTS - 1) {
@@ -249,6 +256,8 @@ async function ask(makeBody, key) {
   if (MODELS.every((m) => outOfQuota.has(m) || broken.has(m)) && MODELS.some((m) => outOfQuota.has(m))) {
     throw new QuotaError("every model reached its free limit");
   }
+  // e.g. the main model busy (503) and a stand-in model at its own small limit: Gemini is busy, not out of its limit
+  if (lastErr instanceof QuotaError) throw new Error(`Gemini is busy (${lastErr.message.slice(0, 120)})`);
   throw lastErr || new Error("no model available");
 }
 
