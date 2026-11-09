@@ -54,7 +54,7 @@ test("the tokens of every request are counted (what a paid plan bills)", async (
 test("only the site's groups: 'other' means not news for this site", async () => {
   const body = requestBody([story], 1);
   const choices = body.generationConfig.responseSchema.properties.stories.items.properties.groups.items.enum;
-  assert.ok(choices.includes("politics") && choices.includes("other"));
+  assert.ok(choices.includes("politics") && choices.includes("scams") && choices.includes("other"));
   assert.ok(!choices.includes("cricket") && !choices.includes("movies") && !choices.includes("local"));
   assert.match(body.systemInstruction.parts[0].text, /give \["other"\]/);
   globalThis.fetch = async () => ok({ stories: [{ ...answer.stories[0], groups: ["other"] }] });

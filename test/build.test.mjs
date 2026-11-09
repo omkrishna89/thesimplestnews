@@ -52,7 +52,11 @@ test("the website builds and has the key pages", () => {
   assert.match(storyPage, /"@type":"NewsArticle"/);
   assert.match(read("politics/district/index.html"), /noindex/, "personal tabs are not for Google");
   // only the site's 15 groups: no pages, buttons or sitemap entries for the others, and no Local button
-  for (const p of ["cricket/index.html", "movies/index.html", "local/index.html", "story/fff666/index.html"]) assert.ok(!fs.existsSync(path.join(out, p)), `${p} is gone`);
+  for (const p of ["cricket/index.html", "movies/index.html", "local/index.html", "story/fff666/index.html", "politics/local/index.html", "all/tehsil/index.html"]) assert.ok(!fs.existsSync(path.join(out, p)), `${p} is gone`);
+  // the area tabs: District · State · Country · World (World = all news, India's too)
+  assert.match(home, /data-tab="district"[\s\S]*data-tab="state"[\s\S]*data-tab="country"[\s\S]*data-tab="world"/);
+  assert.doesNotMatch(home, /data-tab="(local|tehsil)"/);
+  assert.match(home, /data-g="scams"[\s\S]*data-g="startup"/, "Scams & Fraud right after Home");
   assert.match(home, /data-g="politics"/);
   assert.doesNotMatch(home, /data-g="(cricket|movies|local|good-news|crime)"/);
   assert.doesNotMatch(read("sitemap.xml"), /\/cricket\/|\/local\//);
@@ -92,6 +96,7 @@ test("the website builds and has the key pages", () => {
   if (!site.analytics?.ga4) assert.doesNotMatch(home, /googletagmanager/, "no Google Analytics without a Measurement ID");
   assert.ok(!fs.existsSync(path.join(out, "ads.txt")), "no ads.txt before AdSense is set up");
   assert.deepEqual(JSON.parse(read(`data/hi/s-up/business/${day}.json`)).map((s) => s.i), ["bbb222"], "sorted by Gemini into Business");
+  assert.deepEqual(JSON.parse(read(`data/hi/world/all/${day}.json`)).map((s) => s.i), ["aaa111"], "World holds India's news too");
   // Home, the groups and story pages have nothing but the (empty) ad spot on the right
   for (const page of ["index.html", "all/world/index.html", "business/index.html", "story/aaa111/index.html"]) {
     const html = read(page);

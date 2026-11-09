@@ -14,6 +14,8 @@ test("clear words find their group", () => {
   assert.ok(has("ISRO to launch Gaganyaan test flight", "science"));
   assert.ok(has("सोने-चांदी के दाम आज फिर बढ़े", "gold-silver"));
   assert.ok(has("स्टार्टअप ने जुटाए 50 करोड़", "startup"));
+  assert.ok(has("साइबर ठगों ने बुजुर्ग से 20 लाख ठगे", "scams"));
+  assert.ok(has("Digital arrest scam: retired teacher loses ₹50 lakh", "scams"));
 });
 
 test("look-alike words don't", () => {

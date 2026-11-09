@@ -124,9 +124,10 @@ const dups = db.stories.filter((s) => s.s === "dup").length;
 log(`[build] ${items.length} stories in the site's groups (${items.filter((i) => i.ok).length} written by AI), ${dups} duplicates merged, ${db.stories.length - dups - items.length} left out (not in the site's groups)`);
 
 // ---------- which list a story belongs to ----------
+// World = all news (India's too); Country = news for all of India; State and District = the reader's area
 const scopeKeys = (it) => {
   if (it.loc.c === "world") return ["world"];
-  const keys = [];
+  const keys = ["world"];
   if (it.sc === "country" || it.m >= 7 || (!it.loc.s && it.s.lv === "country")) keys.push("in");
   if (it.loc.s) keys.push(`s-${it.loc.s}`);
   return keys;
@@ -161,7 +162,8 @@ for (const [key, days] of lists) {
   index.n.hi[key] = [];
   index.n.en[key] = [];
   for (const day of ds) {
-    const capped = capDay(days.get(day), key.endsWith("/all") ? 150 : LIST_CAP); // "all news" lists: the 150 most important a day
+    // "all groups" lists: the 150 most important a day (World, which holds all news, 300)
+    const capped = capDay(days.get(day), key.endsWith("/all") && key !== "world/all" ? 150 : LIST_CAP);
     // a story without its summary yet is shown only in its own language
     for (const lang of ["hi", "en"]) {
       const out = capped.filter((it) => it.ok || it.s.l === lang).map((it) => it[lang]);
@@ -269,7 +271,7 @@ for (const slug of ["all", ...groups.map((g) => g.slug)]) {
   let extraTop = "";
   if (slug === "all") extraTop = P.trendsRow(trends);
   if (slug === "gold-silver" && ctx.metalsBox) extraTop = ctx.metalsBox("top");
-  for (const tab of ["country", "world", "state", "district", "tehsil", "local"]) {
+  for (const tab of ["country", "world", "state", "district"]) {
     const key = tab === "world" ? `world/${slug}` : `in/${slug}`;
     const rel = slug === "all" ? (tab === "country" ? "index.html" : `all/${tab}/index.html`) : tab === "country" ? `${slug}/index.html` : `${slug}/${tab}/index.html`;
     const placeTab = !["country", "world"].includes(tab);
