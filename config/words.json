@@ -1,6 +1,10 @@
 {
   "about": "Clear words that put a story into a group right away, before the AI has written it (the AI's groups are used once it has). A word must stand on its own in the headline. Words in CAPITAL letters only (AI, IPO, ISRO) must match exactly; others ignore upper/lower case. Regular-expression text is allowed: (?:a|b) = a or b, s? = with or without s, \\d = a digit.",
   "groups": {
+    "scams": [
+      "ठगी", "ठग", "ठगों", "ठगे", "धोखाधड़ी", "फ्रॉड", "फ़्रॉड", "स्कैम", "स्कैमर", "घोटाला", "घोटाले", "घोटालों", "डिजिटल अरेस्ट", "साइबर ठगी", "साइबर फ्रॉड", "भ्रष्टाचार", "रिश्वत", "रिश्वतखोर", "चिटफंड", "पोंजी",
+      "scams?", "scammers?", "frauds?", "fraudsters?", "fraudulent", "cyber ?fraud", "digital arrest", "phishing", "ponzi", "chit funds?", "duped", "cheated", "embezzle(?:ment|d)?", "corruption", "bribe(?:s|ry)?", "money laundering"
+    ],
     "stock-market": [
       "सेंसेक्स", "निफ्टी", "निफ़्टी", "शेयर बाजार", "शेयर बाज़ार", "शेयर मार्केट", "स्टॉक मार्केट", "शेयरों", "शेयरधारकों", "स्टॉक्स", "आईपीओ", "जीएमपी", "डिविडेंड", "मल्टीबैगर", "ब्रोकरेज", "टारगेट प्राइस", "लिस्टिंग", "सेबी",
       "Sensex", "Nifty", "stock markets?", "share markets?", "stocks", "IPO", "IPOs", "GMP", "SEBI", "Dalal Street", "Wall Street", "Nasdaq", "Dow Jones", "multibaggers?", "dividends?", "target price", "brokerages?", "market cap", "m-?cap", "FIIs?", "DIIs?", "Q[1-4] results?",

@@ -1,5 +1,5 @@
 // The Simplest News — everything that happens in the browser. Small and without frameworks, so it stays fast.
-import { T, PLACE_TABS, ago, esc, istDay, itemHTML, qaHTML, slug, stockFile, thumb } from "./ui.js";
+import { T, TABS, PLACE_TABS, ago, esc, istDay, itemHTML, qaHTML, slug, stockFile, thumb } from "./ui.js";
 import { foldText, gdeltItems, gdeltQuery, gdeltUrl, googleNewsUrl, parseQuery, rank } from "./search.js";
 
 const D = document;
@@ -64,7 +64,8 @@ $("[data-toggle-theme]")?.addEventListener("click", () => {
 if (H.dataset.theme === "light") $('meta[name="theme-color"]')?.setAttribute("content", "#ffffff");
 
 // keep the active group chip in view, and open groups on the reader's favourite tab
-const favTab = store.get("tab", "country");
+// (the Local and Tehsil tabs are gone: a reader who had one of them gets District)
+const favTab = ((t) => (["local", "tehsil"].includes(t) ? "district" : TABS.includes(t) ? t : "country"))(store.get("tab", "country"));
 if (favTab !== "country") {
   $$(".gnav .chip").forEach((a) => {
     const href = a.getAttribute("href");
@@ -209,7 +210,7 @@ async function showPlace() {
 
 // ---------- lists: which stories, in what order ----------
 const list = { ready: false, dynamic: false, loading: 0, tab: view?.tab, groups: [], q: "", query: null, rank: null, sort: store.get("sort", "newest"), day: "all", date: "", from: "", to: "", keys: [], loaded: [], ids: new Set(), days: [], next: 0, shown: 30, items: [] };
-const PLACE_KEY_TABS = new Set(["district", "tehsil", "local"]); // these tabs read the district's list and filter it here
+const PLACE_KEY_TABS = new Set(["district"]); // this tab reads the district's list and filters it here
 
 // The groups shown: one or more, picked with the group buttons (remembered on this phone). None = all news.
 const chipEls = $$(".gnav .chip[data-g]");
@@ -261,16 +262,12 @@ const inGroups = (it) => {
   return !gs.length || gs.some((g) => it.g?.includes(g));
 };
 
-// Search results by tab: World = news from outside India, Country = all of India, State/District/… = the reader's area
+// Search results by tab: World = all news, Country = all of India, State/District = the reader's area
 function inTab(it, tab) {
-  if (tab === "world") return it.sc === "world";
+  if (tab === "world") return true;
   if (tab === "country") return it.sc !== "world";
   if (!loc || loc.c !== "in" || it.p[0] !== loc.s) return false;
-  if (tab === "state") return true;
-  if (it.p[1] !== loc.d) return false;
-  if (tab === "district") return true;
-  if (tab === "tehsil") return !!loc.t && (it.p[2] === loc.t || it.p[3] === loc.t);
-  return !!it.p[3] && (it.p[3] === loc.l || it.p[3] === loc.t || it.p[2] === loc.l);
+  return tab === "state" || it.p[1] === loc.d;
 }
 
 function keep(it) {
@@ -285,8 +282,6 @@ function keep(it) {
   } else if (PLACE_KEY_TABS.has(tab)) {
     if (!inGroups(it)) return false;
   }
-  if (tab === "tehsil" && PLACE_KEY_TABS.has(tab) && !(loc.t && (it.p[2] === loc.t || it.p[3] === loc.t))) return false;
-  if (tab === "local" && !(it.p[3] && (it.p[3] === loc.l || it.p[3] === loc.t || it.p[2] === loc.l))) return false;
   return !watching() || matchesWatch(it);
 }
 
@@ -445,7 +440,6 @@ function emptyText() {
   if (searching()) return T[lang].noResults(list.q, list.span || 1);
   // "No news about TCS in the last 3 days."
   if (watching()) return list.watchNames && list.span ? T[lang].noStockNewsDays(list.watchNames, list.span) : T[lang].noStockNews;
-  if (list.tab === "local") return T[lang].emptyLocal;
   return T[lang].empty;
 }
 

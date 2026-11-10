@@ -15,8 +15,8 @@ const GROUPS = GROUP_LIST.map((g) => g.slug);
 export const OTHER = "other";
 const CHOICES = [...GROUPS, OTHER];
 // The same rules for sorting and for writing, so Gemini doesn't sort a story in and then find it out after writing it
-const NOT_OURS = "cricket or other sports, films, TV and celebrities, crime, police and court cases, accidents and disasters, war, terror attacks and the army, festivals, temples and religion, horoscope, weather";
-const POLITICS = `"politics" = elections, political parties, politicians and the laws and government decisions they make — not police work, festival arrangements, wars abroad or the army`;
+const NOT_OURS = "cricket or other sports, films, TV and celebrities, other crime (theft, murder, fights) and police and court cases that are not about fraud, accidents and disasters, war, terror attacks and the army, festivals, temples and religion, horoscope, weather";
+const POLITICS = `"politics" = elections, political parties, politicians and the laws and government decisions they make — not police work, festival arrangements, wars abroad or the army. "scams" = frauds that cheat people (online, cyber, bank, UPI, OTP, fake calls, 'digital arrest', job, loan and investment scams, chit funds), fraudsters caught, warnings on how to stay safe, big money scams, bank-loan frauds, government scams and corruption cases`;
 const KEY = process.env.GEMINI_API_KEY || "";
 const BASE = process.env.GEMINI_BASE || "https://generativelanguage.googleapis.com/v1beta";
 const MODELS = (process.env.GEMINI_MODEL ? process.env.GEMINI_MODEL.split(",") : site.gemini.models).map((m) => m.trim()).filter(Boolean);

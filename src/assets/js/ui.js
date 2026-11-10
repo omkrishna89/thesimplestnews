@@ -170,8 +170,9 @@ export const stockFile = (symbol) => String(symbol).toLowerCase().replace(/[^a-z
 export const AI_HOURS = 36;
 const young = (item, now = Date.now()) => !item.t || now - item.t * 1000 < AI_HOURS * 3600e3;
 
-export const TABS = ["local", "tehsil", "district", "state", "country", "world"];
-export const PLACE_TABS = new Set(["local", "tehsil", "district", "state"]);
+// The area tabs. World = all news: India's and the rest of the world's.
+export const TABS = ["district", "state", "country", "world"];
+export const PLACE_TABS = new Set(["district", "state"]);
 
 export const esc = (s = "") =>
   String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
