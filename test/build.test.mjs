@@ -10,7 +10,8 @@ import { test } from "node:test";
 test("the website builds and has the key pages", () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "tsn-"));
   const now = Date.now();
-  const nine = (p) => Array.from({ length: 9 }, (_, i) => `${p} ${i}`);
+  // 9 answers; the 5th is "where" (Gemini's own short answer: the website completes it)
+  const nine = (p, where) => Array.from({ length: 9 }, (_, i) => (i === 4 && where ? where : `${p} ${i}`));
   const story = (id, extra) => ({ id, u: `https://news.example/${id}`, src: "f", pub: { en: "Amar Ujala", hi: "अमर उजाला" }, l: "hi", t: `Title ${id}`, img: "", p: now - 3600e3, f: now, lv: "district", st: "up", d: "barabanki", pr: 4, s: "new", tr: 0, loc: { c: "in", s: "up", d: "barabanki" }, sc: "district", ...extra });
   const db = {
     v: 1, seen: {}, feeds: {}, names: { "up/barabanki": "बाराबंकी" }, metals: null,
@@ -24,7 +25,7 @@ test("the website builds and has the key pages", () => {
       ],
     },
     stories: [
-      story("aaa111", { s: "ok", a: { hi: { h: "हिंदी शीर्षक", q: nine("जवाब") }, en: { h: "English headline", q: nine("answer") }, g: ["politics"], imp: 8, scope: "country", place: { country: "India", state: "Uttar Pradesh", district: "Barabanki", local: "Zaidpur", local_hi: "जैदपुर" }, at: now - 60e3 }, loc: { c: "in", s: "up", d: "barabanki", l: "zaidpur" }, sc: "country" }),
+      story("aaa111", { s: "ok", a: { hi: { h: "हिंदी शीर्षक", q: nine("जवाब", "जैदपुर") }, en: { h: "English headline", q: nine("answer", "Zaidpur") }, g: ["politics"], imp: 8, scope: "country", place: { country: "India", state: "Uttar Pradesh", district: "Barabanki", local: "Zaidpur", local_hi: "जैदपुर" }, at: now - 60e3 }, loc: { c: "in", s: "up", d: "barabanki", l: "zaidpur" }, sc: "country" }),
       story("bbb222", { sg: ["business"] }), // Gemini sorted its headline into Business
       story("ccc333", { t: "सेंसेक्स 500 अंक चढ़ा, निफ्टी भी उछला" }), // not sorted yet, but clear words: Stock Market
       story("ddd444", { t: "रिलायंस के शेयर 3% चढ़े, टीसीएस में गिरावट", sg: ["stock-market"] }),
@@ -50,6 +51,9 @@ test("the website builds and has the key pages", () => {
   const storyPage = read("story/aaa111/index.html");
   assert.match(storyPage, /answer 0/);
   assert.match(storyPage, /"@type":"NewsArticle"/);
+  // "Where?" is the complete location, in both languages (the district's Hindi name was learned from an earlier story)
+  assert.match(storyPage, /<dd>Zaidpur \(district Barabanki\), Uttar Pradesh, India<\/dd>/);
+  assert.match(storyPage, /<dd>जैदपुर \(ज़िला बाराबंकी\), उत्तर प्रदेश, भारत<\/dd>/);
   assert.match(read("politics/district/index.html"), /noindex/, "personal tabs are not for Google");
   // only the site's 15 groups: no pages, buttons or sitemap entries for the others, and no Local button
   for (const p of ["cricket/index.html", "movies/index.html", "local/index.html", "story/fff666/index.html", "politics/local/index.html", "all/tehsil/index.html"]) assert.ok(!fs.existsSync(path.join(out, p)), `${p} is gone`);

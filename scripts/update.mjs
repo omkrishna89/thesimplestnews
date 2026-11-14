@@ -7,6 +7,7 @@
 //  5. forgets stories older than 7 days (written or not, so the search finds a whole week), and saves
 //     everything in .data/db.json.gz
 // Options: --no-fetch (skip feeds), --no-ai (skip Gemini), MOCK_AI=1 (fake answers, for testing the site only)
+import { inHindi, isNotSaid } from "./lib/answers.mjs";
 import { readArticle, allowedByRobots } from "./lib/article.mjs";
 import { loadDB, saveDB, similarity, words } from "./lib/db.mjs";
 import { parseFeed } from "./lib/feeds.mjs";
@@ -251,9 +252,10 @@ function apply(story, r, model) {
   story.sc = scopeOf(story, story.loc);
   // Having read the whole story, Gemini can find it is not news for this site after all
   story.s = groups.length ? "ok" : "skip";
-  // learn Hindi names of places for the location bar
+  // learn Hindi names of places, for the location bar and for the complete "Where?" answer
   if (story.loc.d && r.place.district_hi) db.names[`${story.loc.s}/${story.loc.d}`] ||= r.place.district_hi;
   if (story.loc.l && r.place.local_hi) db.names[`${story.loc.s}/${story.loc.d}/${story.loc.l}`] ||= r.place.local_hi;
+  if (story.loc.t && r.place.tehsil_hi) db.names[`${story.loc.s}/${story.loc.d}/${story.loc.t}`] ||= r.place.tehsil_hi;
 }
 
 // Requests and tokens Gemini used, per model and Google day (its free limits restart at midnight in California).
@@ -489,6 +491,33 @@ function prune() {
   log(`[prune] ${before - db.stories.length} old stories removed, ${db.stories.length} kept`);
 }
 
+// Gemini sometimes wrote "Not mentioned" where a place's name should be, or a Hindi name in other letters (such
+// names are now dropped when its answer comes in). Stories and learned names saved earlier are put right here.
+function fixPlaces() {
+  let stories = 0;
+  for (const s of db.stories) {
+    const p = s.a?.place;
+    if (!p) continue;
+    let moved = false;
+    for (const [k, v] of Object.entries(p)) {
+      if (!v || (k.endsWith("_hi") ? inHindi(v) : !isNotSaid(v))) continue;
+      p[k] = "";
+      if (!k.endsWith("_hi")) moved = true;
+    }
+    if (!moved) continue;
+    s.loc = locate(s);
+    s.sc = scopeOf(s, s.loc);
+    stories++;
+  }
+  let learned = 0;
+  for (const [k, v] of Object.entries(db.names)) {
+    if (inHindi(v) && !k.includes("not-mentioned")) continue;
+    delete db.names[k];
+    learned++;
+  }
+  if (stories || learned) log(`[places] "not mentioned" was saved as a place name in ${stories} stories and ${learned} learned names: put right`);
+}
+
 // unsummarized stories still need a place
 function locateAll() {
   for (const s of db.stories) {
@@ -510,6 +539,7 @@ if (process.env.RUN_EVENT === "schedule" && db.saved && Date.now() - db.saved < 
 if (!args.has("--no-fetch")) await readFeeds();
 await trends();
 dedupeTitles();
+fixPlaces();
 locateAll();
 await ai();
 await extras();
