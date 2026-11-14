@@ -18,6 +18,7 @@ It costs nothing to run:
 | --- | --- |
 | News from many websites | 386 free news feeds: national (NDTV, The Hindu, ThePrint, India Today, BBC Hindi, Aaj Tak…), world, the groups, 10 states and **277 districts** (UP, Bihar, MP, Rajasthan, Delhi, Haryana, Jharkhand, Uttarakhand, Chhattisgarh, Himachal). List: `config/sources.json` |
 | Shortest, simplest headline + 9 answers | Gemini reads the full article (only where the website's robots.txt allows) and writes both languages |
+| "Where?" = the complete location | Always `[exact spot,] place (tehsil X, district Y), state, country`, e.g. **Sadar Hospital, Supaul (tehsil Supaul, district Supaul), Bihar, India** — in Hindi **जैदपुर (तहसील नवाबगंज, ज़िला बाराबंकी), उत्तर प्रदेश, भारत**. The website builds it from the place details Gemini gives with every story, so old and new stories look the same. A part that is not known is left out (the tehsil is never guessed). News about a whole state, the whole country or several places keeps Gemini's words (**Bihar, India** · **Bihar and Jharkhand, India**); news from outside India has no tehsil or district (**Paris, France**). Code: `scripts/lib/answers.mjs` |
 | 16 groups — and only these | Scams & Fraud (online, bank and UPI frauds, fake calls, digital arrest, job/loan/investment scams, big money scams and corruption), Startups, AI, Business, Auto, Stock Market, Politics, Govt Schemes, Jobs & Results, Health, Education, Gold & Silver, Bank & Money, Farming & Mandi, Tech & Mobiles, Science & Space. Every other story (cricket and sports, films, crime, accidents, weather, religion…) is left out. List: `config/groups.json` |
 | Sorting | In every run, Gemini first sorts the new headlines into the 16 groups (150 headlines in one request, so it costs little of the free limit), or "other" — those are left out and never written. The 🔥 Trending topics are sorted the same way |
 | Group buttons | One line of buttons; **More ▾** shows all of them, **Less ▴** one line again. Tap one group, then more: the news of **all picked groups** shows together (tap again to remove one, **Home** = all news). The reader's picks are remembered on their phone |
@@ -130,6 +131,7 @@ All settings are plain files in `config/`. Edit them on GitHub (pencil icon) and
 | `config/stocks.json` | Companies the Stocks box suggests (Hindi and English names, and the words that find their news) |
 | `config/sources.json` | All news feeds. `level`: country, world, state or district |
 | `config/places.json` | States, and other spellings of district names (e.g. Allahabad = Prayagraj) |
+| `config/countries.json` | Hindi names of countries, for the "Where?" answer of news from outside India |
 
 To check that all feeds still work: `node scripts/check-feeds.mjs` (see section 5).
 
@@ -173,7 +175,7 @@ node scripts/check-feeds.mjs        # check every news feed
 | --- | --- |
 | `scripts/update.mjs` | Reads feeds, reads articles, asks Gemini, keeps 7 days (database: `.data/db.json.gz`, saved in the `data` branch) |
 | `scripts/build.mjs` | Makes every page and the data files the pages load (`/data/{hi,en}/…/{day}.json`) |
-| `scripts/lib/` | Feed reader, article reader (robots.txt), Gemini, places, gold & silver, YouTube, page templates |
+| `scripts/lib/` | Feed reader, article reader (robots.txt), Gemini, the 9 answers (complete "Where?"), places, gold & silver, page templates |
 | `src/assets/js/app.js` | Everything in the browser: answers, pop-up, hold on phones, sort, days, tabs, GPS, language, light/dark |
 | `src/assets/js/ui.js` | Shared by the build and the browser: labels in both languages and the HTML of a story |
 | `src/assets/css/style.css` | The look (dark and light) |

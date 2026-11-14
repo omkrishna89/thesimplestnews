@@ -1,0 +1,15 @@
+{
+  "about": "Hindi names of countries, for the complete 'Where?' answer of news from outside India (e.g. 'पेरिस, फ्रांस'). A country that is not listed uses the Hindi name Gemini gives.",
+  "hi": {
+    "India": "भारत",
+    "United States": "अमेरिका", "United States of America": "अमेरिका", "USA": "अमेरिका", "US": "अमेरिका", "America": "अमेरिका",
+    "United Kingdom": "ब्रिटेन", "UK": "ब्रिटेन", "Britain": "ब्रिटेन", "Great Britain": "ब्रिटेन",
+    "United Arab Emirates": "संयुक्त अरब अमीरात", "UAE": "संयुक्त अरब अमीरात",
+    "China": "चीन", "Pakistan": "पाकिस्तान", "Bangladesh": "बांग्लादेश", "Nepal": "नेपाल", "Sri Lanka": "श्रीलंका", "Bhutan": "भूटान", "Maldives": "मालदीव", "Myanmar": "म्यांमार", "Afghanistan": "अफ़ग़ानिस्तान",
+    "Israel": "इज़राइल", "Palestine": "फ़िलिस्तीन", "Iran": "ईरान", "Iraq": "इराक", "Saudi Arabia": "सऊदी अरब", "Qatar": "क़तर", "Oman": "ओमान", "Kuwait": "कुवैत", "Bahrain": "बहरीन", "Yemen": "यमन", "Syria": "सीरिया", "Lebanon": "लेबनान", "Turkey": "तुर्की", "Turkiye": "तुर्की", "Egypt": "मिस्र",
+    "Russia": "रूस", "Ukraine": "यूक्रेन", "France": "फ्रांस", "Germany": "जर्मनी", "Italy": "इटली", "Spain": "स्पेन", "Portugal": "पुर्तगाल", "Netherlands": "नीदरलैंड", "Belgium": "बेल्जियम", "Switzerland": "स्विट्ज़रलैंड", "Austria": "ऑस्ट्रिया", "Poland": "पोलैंड", "Hungary": "हंगरी", "Ireland": "आयरलैंड", "Denmark": "डेनमार्क", "Sweden": "स्वीडन", "Norway": "नॉर्वे", "Finland": "फिनलैंड", "Greece": "ग्रीस",
+    "Japan": "जापान", "South Korea": "दक्षिण कोरिया", "North Korea": "उत्तर कोरिया", "Taiwan": "ताइवान", "Hong Kong": "हांगकांग", "Singapore": "सिंगापुर", "Malaysia": "मलेशिया", "Indonesia": "इंडोनेशिया", "Philippines": "फिलीपींस", "Thailand": "थाईलैंड", "Vietnam": "वियतनाम",
+    "Australia": "ऑस्ट्रेलिया", "New Zealand": "न्यूज़ीलैंड", "Canada": "कनाडा", "Mexico": "मेक्सिको", "Brazil": "ब्राज़ील", "Argentina": "अर्जेंटीना", "Chile": "चिली", "Peru": "पेरू", "Colombia": "कोलंबिया", "Venezuela": "वेनेजुएला", "Paraguay": "पराग्वे", "Cuba": "क्यूबा",
+    "South Africa": "दक्षिण अफ्रीका", "Nigeria": "नाइजीरिया", "Kenya": "केन्या", "Sudan": "सूडान", "Ethiopia": "इथियोपिया", "Tanzania": "तंजानिया"
+  }
+}

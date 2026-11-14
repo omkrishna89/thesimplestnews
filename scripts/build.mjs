@@ -4,6 +4,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { siteAnswers } from "./lib/answers.mjs";
 import { loadDB } from "./lib/db.mjs";
 import { metalsView } from "./lib/metals.mjs";
 import { makePages } from "./lib/pages.mjs";
@@ -17,6 +18,7 @@ import { groupsFromWords, wordTest } from "./lib/words.mjs";
 const OUT = path.resolve(ROOT, process.env.OUT_DIR || "_site");
 const site = config("site.json");
 const groups = config("groups.json").list;
+const COUNTRIES_HI = config("countries.json").hi; // Hindi names of countries, for the "Where?" answer
 const SLUGS = new Set(groups.map((g) => g.slug));
 const siteUrl = (process.env.SITE_URL || site.url).replace(/\/$/, "");
 const base = (process.env.PATH_PREFIX || "").replace(/\/$/, "");
@@ -113,7 +115,8 @@ const items = masters.map((s) => {
   const lang = (l) => ({
     ...common,
     h: ok ? s.a[l].h : s.t,
-    ...(ok ? { q: s.a[l].q } : s.x ? { x: s.x } : {}),
+    // the 9 answers; "Where?" is the complete location: place (tehsil, district), state, country
+    ...(ok ? { q: siteAnswers(s, l, { states: STATES, names: db.names, countries: COUNTRIES_HI }) } : s.x ? { x: s.x } : {}),
     src: s.pub?.[l] || s.pub?.en || "",
     pn: placeName(s, l),
   });

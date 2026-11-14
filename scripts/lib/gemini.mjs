@@ -3,10 +3,10 @@
 //  - writes, for a batch of stories, in Hindi AND English: the shortest simple headline and short answers
 //    to 9 questions, plus groups, place and importance.
 // The site shows only news in its groups (config/groups.json); "other" = none of them.
+import { NOT_SAID, QUESTIONS, inHindi, isNotSaid } from "./answers.mjs";
 import { config, log, sleep } from "./util.mjs";
 
-export const QUESTIONS = ["what", "who", "whom", "whose", "where", "when", "why", "which", "how"];
-export const NOT_SAID = { en: "Not mentioned", hi: "जानकारी नहीं" };
+export { NOT_SAID, QUESTIONS };
 const SCOPES = ["local", "tehsil", "district", "state", "country", "world"];
 
 const site = config("site.json");
@@ -53,11 +53,16 @@ const SCHEMA = {
           district: { type: "STRING" },
           tehsil: { type: "STRING" },
           place: { type: "STRING" },
+          spot: { type: "STRING" },
           place_hi: { type: "STRING" },
+          tehsil_hi: { type: "STRING" },
           district_hi: { type: "STRING" },
+          state_hi: { type: "STRING" },
+          country_hi: { type: "STRING" },
+          spot_hi: { type: "STRING" },
           same_as: { type: "INTEGER" },
         },
-        required: ["n", "hi", "en", "groups", "importance", "scope", "country", "state", "district", "tehsil", "place", "place_hi", "district_hi", "same_as"],
+        required: ["n", "hi", "en", "groups", "importance", "scope", "country", "state", "district", "tehsil", "place", "spot", "place_hi", "tehsil_hi", "district_hi", "state_hi", "country_hi", "spot_hi", "same_as"],
       },
     },
   },
@@ -69,14 +74,14 @@ const SYSTEM = `You are the editor of "The Simplest News", an Indian news websit
 For every story you get, write:
 1. "h": the shortest possible headline. English: at most 8 words. Hindi: at most 10 words. Use very simple everyday words that a 10-year-old understands. No clickbait, no "BREAKING", no question headlines.
 2. Short answers to these 9 questions, in both languages:
-   what = what happened; who = who did it or who is involved; whom = to whom it happened or who is affected; whose = whose thing, money, land, team or responsibility it is; where = the place; when = the day or time; why = the reason; which = which exact thing (scheme, team, vehicle, exam, company, department...); how = how it happened or how to do it.
+   what = what happened; who = who did it or who is involved; whom = to whom it happened or who is affected; whose = whose thing, money, land, team or responsibility it is; where = the place in a few words (several places: name them all, e.g. "Bihar and Jharkhand" — the website itself adds tehsil, district, state and country from the place details of point 7); when = the day or time; why = the reason; which = which exact thing (scheme, team, vehicle, exam, company, department...); how = how it happened or how to do it.
    Each answer is ONE short simple sentence (at most 15 words). Use only facts from the story text. Never guess or add facts.
    If the story does not say it, write exactly "${NOT_SAID.en}" in English and "${NOT_SAID.hi}" in Hindi.
 3. Hindi = simple spoken Hindi in Devanagari (common English words like IPL, UPI, GST, AI, SUV are fine). English = plain simple English.
 4. "groups": 1 to 3 groups from the list, best first. ${POLITICS}. If the story fits none of the groups (for example ${NOT_OURS}), give ["${OTHER}"].
 5. "importance" 1-10: 9-10 = huge news for all India; 7-8 = big national or state news; 4-6 = normal news; 1-3 = small local or minor news.
 6. "scope": where the news matters: local (one village, town or city area), tehsil, district, state, country (all India), world (outside India).
-7. Place of the event in English standard spelling: "country", "state", "district" (official current district name, e.g. Prayagraj, Gurugram, Kanpur Nagar), "tehsil" (tehsil or block if known), "place" (the most specific place: village, town, city or area). Use "" when unknown. "place_hi" and "district_hi": the same names in Hindi.
+7. Place of the event in English standard spelling: "country", "state", "district" (official current district name, e.g. Prayagraj, Gurugram, Kanpur Nagar), "tehsil" (the tehsil or block: ONLY when the story names it or you are certain which tehsil the place is in — never guess), "place" (the most specific place: village, town, city or area), "spot" (the exact spot inside the place when the story names one: a building, office, hospital, school, road or market, e.g. "Sadar Hospital", "NH-27 near Ramnagar"). Use "" when unknown or not named. "place_hi", "tehsil_hi", "district_hi", "state_hi", "country_hi" and "spot_hi": the same names in Hindi (Devanagari).
 8. "same_as": if a story is about the same event as an earlier story number in this batch, give that number, else 0.
 
 Reply with JSON {"stories":[...]} with exactly one entry for every story, using its number "n".`;
@@ -98,7 +103,7 @@ function storyBlock(s, i) {
 // (the answer's shape is then spelled out in the instructions).
 export const VARIANTS = 3;
 const JSON_SHAPE = `Reply with JSON only, exactly in this shape (one entry per story):
-{"stories":[{"n":1,"hi":{"h":"","what":"","who":"","whom":"","whose":"","where":"","when":"","why":"","which":"","how":""},"en":{"h":"","what":"","who":"","whom":"","whose":"","where":"","when":"","why":"","which":"","how":""},"groups":["${GROUPS[0]}"],"importance":5,"scope":"district","country":"India","state":"","district":"","tehsil":"","place":"","place_hi":"","district_hi":"","same_as":0}]}
+{"stories":[{"n":1,"hi":{"h":"","what":"","who":"","whom":"","whose":"","where":"","when":"","why":"","which":"","how":""},"en":{"h":"","what":"","who":"","whom":"","whose":"","where":"","when":"","why":"","which":"","how":""},"groups":["${GROUPS[0]}"],"importance":5,"scope":"district","country":"India","state":"","district":"","tehsil":"","place":"","spot":"","place_hi":"","tehsil_hi":"","district_hi":"","state_hi":"","country_hi":"","spot_hi":"","same_as":0}]}
 "groups" may only use: ${CHOICES.join(", ")}. "scope" is one of: ${SCOPES.join(", ")}.`;
 
 const generation = (variant, schema, maxOutputTokens, temperature) => ({
@@ -287,11 +292,14 @@ const tidy = (s, max) => {
   return s.length > max ? s.slice(0, max - 1).replace(/\s+\S*$/, "") + "…" : s;
 };
 
+const name = (s, max) => (isNotSaid(s) ? "" : tidy(s, max));
+
 function side(a, lang) {
   if (!a || typeof a !== "object") return null;
   const h = tidy(a.h, 110).replace(/^["'“]|["'”]$/g, "");
   if (h.length < 4) return null;
-  const q = QUESTIONS.map((k) => tidy(a[k], 220) || NOT_SAID[lang]);
+  // (Gemini sometimes writes the English "Not mentioned" inside its Hindi answers)
+  const q = QUESTIONS.map((k) => tidy(a[k], 220)).map((v) => (isNotSaid(v) ? NOT_SAID[lang] : v));
   return { h, q };
 }
 
@@ -307,14 +315,20 @@ export function clean(a) {
     groups: [...new Set((a.groups || []).filter((g) => GROUPS.includes(g)))].slice(0, 3),
     imp,
     scope: SCOPES.includes(a.scope) ? a.scope : "",
+    // (a name that is "Not mentioned" is no name; a Hindi name must be in Hindi letters)
     place: {
-      country: tidy(a.country, 60),
-      state: tidy(a.state, 60),
-      district: tidy(a.district, 60),
-      tehsil: tidy(a.tehsil, 60),
-      local: tidy(a.place, 80),
-      local_hi: tidy(a.place_hi, 80),
-      district_hi: tidy(a.district_hi, 60),
+      country: name(a.country, 60),
+      state: name(a.state, 60),
+      district: name(a.district, 60),
+      tehsil: name(a.tehsil, 60),
+      local: name(a.place, 80),
+      spot: name(a.spot, 100),
+      local_hi: inHindi(tidy(a.place_hi, 80)),
+      tehsil_hi: inHindi(tidy(a.tehsil_hi, 60)),
+      district_hi: inHindi(tidy(a.district_hi, 60)),
+      state_hi: inHindi(tidy(a.state_hi, 60)),
+      country_hi: inHindi(tidy(a.country_hi, 60)),
+      spot_hi: inHindi(tidy(a.spot_hi, 100)),
     },
     sameAs: Number(a.same_as) > 0 ? Number(a.same_as) : 0,
   };

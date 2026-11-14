@@ -61,6 +61,25 @@ test("only the site's groups: 'other' means not news for this site", async () =>
   assert.deepEqual((await summarize([story])).results[0].groups, [], "a story Gemini calls 'other' has none of the site's groups");
 });
 
+test("place details for the complete 'Where?' answer: the spot and Hindi names; 'Not mentioned' is no name", async () => {
+  const body = requestBody([story], 1);
+  const fields = body.generationConfig.responseSchema.properties.stories.items;
+  for (const k of ["spot", "spot_hi", "tehsil_hi", "state_hi", "country_hi"]) assert.ok(fields.properties[k] && fields.required.includes(k), k);
+  assert.match(body.systemInstruction.parts[0].text, /ONLY when the story names it or you are certain[^.]*never guess/, "the tehsil is never guessed");
+  assert.match(requestBody([story], 2).systemInstruction.parts[0].text, /"spot":"","place_hi":""/, "the plain-JSON request names the new fields too");
+  const s = answer.stories[0];
+  globalThis.fetch = async () =>
+    ok({ stories: [{ ...s, hi: { ...s.hi, whose: "Not mentioned" }, tehsil: "Not mentioned", spot: "Sadar Hospital", spot_hi: "सदर अस्पताल", tehsil_hi: "जानकारी नहीं", state_hi: "Uttar Pradesh", country_hi: "भारत" }] });
+  const r = (await summarize([story])).results[0];
+  assert.equal(r.place.spot, "Sadar Hospital");
+  assert.equal(r.place.spot_hi, "सदर अस्पताल");
+  assert.equal(r.place.tehsil, "", "'Not mentioned' is not a tehsil's name");
+  assert.equal(r.place.tehsil_hi, "");
+  assert.equal(r.place.state_hi, "", "a Hindi name must be in Hindi letters");
+  assert.equal(r.place.country_hi, "भारत");
+  assert.equal(r.hi.q[3], "जानकारी नहीं", "the English 'Not mentioned' inside the Hindi answers is put right");
+});
+
 test("sorting: many headlines in one request, each into the site's groups or 'other'", async () => {
   const items = [{ text: "सेंसेक्स 800 अंक चढ़ा" }, { text: "कोहली का शतक, भारत जीता" }, { text: "PM Kisan की नई किस्त" }, { text: "skipped one" }];
   const b = sortBody(items, 1);
