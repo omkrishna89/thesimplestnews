@@ -233,20 +233,13 @@ b, strong { font-weight: 600; }
 .empty { color: var(--muted); padding: 24px 6px; text-align: center; }
 
 /* a search on other news websites (GDELT, Google Trends, Google News), below our own results */
-.ox { margin: 26px 0 0; padding-top: 14px; border-top: 1px solid var(--line); }
+/* under the search results: the other websites' search status, credits and the Google News button */
+.ox { margin: 12px 0 0; }
 .ox[hidden] { display: none; }
-.ox__h { font-size: 1.05rem; margin: 0 0 4px; }
-.ox__list { list-style: none; margin: 0; padding: 0; }
-.ox__it { padding: 10px 6px; border-bottom: 1px solid var(--line); }
-.ox__it a { color: var(--text); text-decoration: none; font-weight: 600; line-height: 1.38; overflow-wrap: anywhere; }
-.ox__it a:hover { color: var(--accent); }
-.ox__meta { display: block; margin-top: 3px; font-size: .8em; color: var(--muted); }
-.ox__tag { color: var(--warn); font-weight: 600; }
 .ox__msg { color: var(--muted); margin: 12px 6px; }
 .ox__msg--wait::before { content: ""; display: inline-block; width: 12px; height: 12px; margin-right: 8px; vertical-align: -1px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: ox-spin .9s linear infinite; }
 @keyframes ox-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .ox__msg--wait::before { animation: none; } }
-.ox__more { display: flex; margin: 12px auto 0; }
 .ox__credit { margin: 10px 6px 0; font-size: .78rem; color: var(--muted); }
 .ox__gn { margin: 16px 0 0; text-align: center; }
 .ox__gn .btn { white-space: normal; text-align: center; max-width: 100%; }

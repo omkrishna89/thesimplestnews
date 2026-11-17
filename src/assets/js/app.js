@@ -28,6 +28,7 @@ $$(".gnav .chip").forEach((a) => {
   const m = /\/([a-z-]+)\/$/.exec(a.getAttribute("href") || "");
   if (m) icons[m[1]] = a.firstElementChild?.textContent || "";
 });
+icons._web = "🌐"; // news from other websites (in search results)
 const rctx = () => ({ base, proxy: PROXY, now: Date.now(), icon: (g) => icons[g] || "📰" });
 
 // ---------- language and light/dark ----------
@@ -376,14 +377,20 @@ function order(items) {
       return arr.sort((a, b) => b.t - a.t);
   }
 }
-// A search: the stories with more of the words first, each part in the reader's order (newest first, …)
+// A search: the stories with more of the words first, each part in the reader's order (newest first, …).
+// Other websites' news (found for the same words) joins the first part, by time.
 function arrange(items) {
-  if (!searching() || !list.rank) return order(items);
+  const ext = extItems();
+  if (!searching() || !list.rank) return order([...items, ...ext]);
   const by = new Map();
   for (const it of items) {
     const t = list.rank.tiers.get(it) || 0;
     if (!by.has(t)) by.set(t, []);
     by.get(t).push(it);
+  }
+  if (ext.length) {
+    const top = by.size ? Math.max(...by.keys()) : 0;
+    (by.get(top) || by.set(top, []).get(top)).push(...ext);
   }
   return [...by.keys()].sort((a, b) => b - a).flatMap((t) => order(by.get(t)));
 }
@@ -526,7 +533,10 @@ async function loadAndRender() {
   list.items = arrange(list.loaded.filter(keep));
   list.shown = 30;
   list.ready = true;
+  list.loadedFor = searching() ? list.q : null;
+  listSig = sigOf(list.items);
   render();
+  if (searching()) drawOx(); // other websites' news that arrived meanwhile: its simple headlines
 }
 
 // A nearly empty tab points to the tab with the most stories for the same groups:
@@ -601,7 +611,10 @@ async function onMore() {
   await more();
   busy = false;
 }
-$("[data-more]")?.addEventListener("click", onMore);
+$("[data-more]")?.addEventListener("click", async () => {
+  await onMore();
+  if (searching()) drawOx(); // more of the other websites' news now shows: write its headlines simply too
+});
 if ("IntersectionObserver" in window && $("[data-more]")) {
   new IntersectionObserver((e) => e[0].isIntersecting && !$("[data-more]").hidden && list.ready && onMore(), { rootMargin: "300px" }).observe($("[data-more]"));
 }
@@ -1023,7 +1036,7 @@ $("[data-search-open]")?.addEventListener("click", (e) => {
 // ---------- a search on other news websites (below our own results) ----------
 // 1. the topic's own news links when it is in "Trending" (Google Trends), 2. headlines from the GDELT Project
 // (a free, open news database; slow, and only for English words), 3. a link to the same search on Google News.
-const ox = { key: "", state: "", items: [], trend: null, ctrl: null, last: 0, shown: 10, cache: new Map() };
+const ox = { key: "", state: "", items: [], trend: null, ctrl: null, last: 0, cache: new Map() };
 const trendsData = () => getJSON("/data/trends.json");
 
 // The other websites' headlines in the shortest, simplest words: the site's free Cloudflare Worker (worker/rewrite.js)
@@ -1054,6 +1067,53 @@ async function simplify(news) {
     todo.forEach((h) => simple.wait.delete(simpleKey(h, l)));
   }
   if (searching()) drawOx();
+}
+// Hindi search words in English, for the internet search (the free AI; kept on this phone)
+const english = new Map(store.get("oxQ", []));
+async function englishFor(q) {
+  if (english.has(q)) return english.get(q);
+  try {
+    const r = await fetch(REWRITE, { method: "POST", headers: { "content-type": "text/plain" }, body: JSON.stringify({ mode: "query", q }), signal: AbortSignal.timeout?.(15000) });
+    const data = await r.json().catch(() => null);
+    if (!r.ok || typeof data?.q !== "string") return "";
+    english.set(q, data.q);
+    store.set("oxQ", [...english].slice(-100));
+    return data.q;
+  } catch {
+    return "";
+  }
+}
+// A story from the internet: its 9 short answers, written by the free AI from the article when it is opened
+const webAnswers = new Map(store.get("oxStory", []).filter((e) => Array.isArray(e) && Date.now() - e[2] < 3 * 86400e3).map(([k, v, t]) => [k, [v, t]]));
+async function webStory(it) {
+  const k = `${lang}|${it.u}`;
+  if (webAnswers.has(k)) return webAnswers.get(k)[0];
+  if (!REWRITE) return null;
+  try {
+    const r = await fetch(REWRITE, { method: "POST", headers: { "content-type": "text/plain" }, body: JSON.stringify({ mode: "story", lang, url: it.u, title: it.h0 }), signal: AbortSignal.timeout?.(30000) });
+    const data = await r.json().catch(() => null);
+    if (!r.ok || !Array.isArray(data?.story?.q)) return null;
+    webAnswers.set(k, [data.story, Date.now()]);
+    store.set("oxStory", [...webAnswers].slice(-150).map(([key, [v, t]]) => [key, v, t]));
+    return data.story;
+  } catch {
+    return null;
+  }
+}
+async function openWeb(art) {
+  const a = $(".it__link", art);
+  const it = (list.items || []).find((x) => x.i === art.dataset.id);
+  const L = T[lang];
+  art.classList.add("is-open");
+  a?.setAttribute("aria-expanded", "true");
+  const box = D.createElement("div");
+  box.className = "it__qa";
+  box.innerHTML = `<p class="qa__wait">${esc(L.webWriting)}</p>`;
+  art.append(box);
+  const st = it && (await webStory(it));
+  if (!box.isConnected) return; // closed again meanwhile
+  const go = `<div class="it__go"><a class="btn btn--go" href="${esc(it?.u || a?.href)}" target="_blank" rel="noopener nofollow">${esc(L.readAt)}${it?.src ? ` ${esc(it.src)}` : ""} ↗</a></div>`;
+  box.innerHTML = st ? `${qaHTML({ q: st.q }, lang)}<p class="ox__credit">${esc(L.webNote)}</p>${go}` : `<p class="qa__coming">${esc(L.webFail)}</p>${go}`;
 }
 function oxBox() {
   let el = $("[data-ox]");
@@ -1087,15 +1147,25 @@ async function outside(again = false) {
     ox.key = "";
     return;
   }
-  const query = parseQuery(list.q);
-  const gq = gdeltQuery(query, lang);
+  let query = parseQuery(list.q);
+  let gq = gdeltQuery(query, lang);
   const span = gdeltSpan();
   const key = `${lang}|${list.q}|${span}`;
   if (key === ox.key && !again) return drawOx(); // the same search (another tab): nothing new to fetch
   ox.key = key;
-  ox.shown = 10;
   ox.ctrl?.abort();
   ox.items = [];
+  if (!gq && REWRITE) {
+    // Hindi letters: the internet search needs English words; the free AI gives them (kept on this phone)
+    ox.state = "wait";
+    drawOx();
+    const en = await englishFor(list.q);
+    if (key !== ox.key) return;
+    if (en) {
+      query = parseQuery(en);
+      gq = gdeltQuery(query, lang);
+    }
+  }
   ox.state = gq ? "wait" : "hindi";
   if (gq && ox.cache.has(key)) {
     ox.items = ox.cache.get(key);
@@ -1138,49 +1208,68 @@ async function outside(again = false) {
   ox.state = "fail";
   drawOx();
 }
+// Other websites' news as list items (search only, World and Country tabs: it has no state or district)
+const extId = (u) => `x${[...u].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7).toString(36)}`;
+function extItems() {
+  if (!searching() || PLACE_TABS.has(list.tab)) return [];
+  const ours = new Set(list.loaded.map((it) => it.u).filter(Boolean)); // already on our site, with its answers
+  const now = Math.round(Date.now() / 1000);
+  const seen = new Set();
+  const out = [];
+  for (const n of [...(ox.trend?.news || []).map((n) => ({ ...n, tr: 1 })), ...ox.items]) {
+    if (!n.u || seen.has(n.u) || ours.has(n.u)) continue;
+    seen.add(n.u);
+    const t = n.t || now; // Google Trends' news is about now
+    if (!dayWanted(istDay(t * 1000))) continue;
+    const s = simpleOf(n.h); // the headline in simple words (the website's own one is the tooltip)
+    out.push({ web: 1, tr: n.tr, i: extId(n.u), u: n.u, src: n.src, t, h: s || n.h, h0: n.h, ho: s ? n.h : "", g: ["_web"], m: 0, p: [] });
+  }
+  return out;
+}
+// The search list drawn again when other websites' news (or its simple headlines) arrives; open stories stay open
+let listSig = "";
+const sigOf = (items) => items.slice(0, list.shown).map((it) => (it.web ? `${it.i}:${it.h}` : it.i)).join("|");
+function refreshList() {
+  if (!searching() || list.loading || !list.ready || list.loadedFor !== list.q) return;
+  const items = arrange(list.loaded.filter(keep));
+  list.items = items;
+  const sig = sigOf(items);
+  if (sig === listSig) return;
+  listSig = sig;
+  const open = $$(".it.is-open").map((a) => a.dataset.id);
+  render();
+  for (const id of open) {
+    const art = $$(".it").find((a) => a.dataset.id === id);
+    if (art) openItem(art, false);
+  }
+}
 function drawOx() {
   const box = oxBox();
   if (!box) return;
+  refreshList();
   box.hidden = !searching();
   if (box.hidden) return;
   const L = T[lang];
-  const trend = ox.trend?.news || [];
-  const seen = new Set(trend.map((n) => n.u));
-  const items = ox.items.filter((n) => !seen.has(n.u));
-  const shown = [...trend, ...items.slice(0, ox.shown)];
-  if (shown.length) simplify(shown); // asks the Worker for the ones it hasn't written yet; draws again when it answers
-  let simpler = 0;
-  const li = (n, tag = "") => {
-    const s = simpleOf(n.h); // the headline in simple words (the website's own one is the tooltip)
-    if (s) simpler++;
-    return `<li class="ox__it"><a href="${esc(n.u)}" target="_blank" rel="noopener nofollow"${s ? ` title="${esc(n.h)}"` : ""}>${esc(s || n.h)}</a><span class="ox__meta">${tag}${esc(n.src)}${n.t ? ` · ${esc(ago(n.t, lang))}` : ""}</span></li>`;
-  };
-  const rows = [...trend.map((n) => li(n, `<span class="ox__tag">🔥 Google Trends</span> · `)), ...items.slice(0, ox.shown).map((n) => li(n))];
-  const writing = REWRITE && shown.some((n) => simple.wait.has(simpleKey(n.h)));
-  const msg = {
-    wait: `<p class="ox__msg ox__msg--wait">${esc(L.oxWait)}</p>`,
-    fail: `<p class="ox__msg">${esc(L.oxFail)} <button type="button" class="btn btn--small" data-ox-retry>${esc(L.retry)}</button></p>`,
-    hindi: `<p class="ox__msg">${esc(L.oxHindi)}</p>`,
-    done: rows.length ? "" : `<p class="ox__msg">${esc(L.oxNone)}</p>`,
-  }[ox.state] || "";
-  const left = items.length - ox.shown;
+  const placeTab = PLACE_TABS.has(list.tab);
+  const shown = placeTab ? [] : (list.items || []).slice(0, list.shown).filter((it) => it.web);
+  if (shown.length) simplify(shown.map((it) => ({ h: it.h0 }))); // asks the Worker for the ones it hasn't written yet
+  const simpler = shown.some((it) => simpleOf(it.h0));
+  const writing = REWRITE && shown.some((it) => simple.wait.has(simpleKey(it.h0)));
+  const msg = placeTab
+    ? ""
+    : {
+        wait: `<p class="ox__msg ox__msg--wait">${esc(L.oxWait)}</p>`,
+        fail: `<p class="ox__msg">${esc(L.oxFail)} <button type="button" class="btn btn--small" data-ox-retry>${esc(L.retry)}</button></p>`,
+        hindi: `<p class="ox__msg">${esc(L.oxHindi)}</p>`,
+      }[ox.state] || "";
   box.lang = lang;
-  box.innerHTML = `<h2 class="ox__h">🌐 ${esc(L.ox)}</h2>
-${rows.length ? `<ol class="ox__list">${rows.join("")}</ol>` : ""}
-${left > 0 ? `<button type="button" class="btn btn--small ox__more" data-ox-more>${esc(L.oxMore(Math.min(20, left)))}</button>` : ""}
-${msg}
+  box.innerHTML = `${msg}
 ${writing ? `<p class="ox__msg ox__msg--wait">${esc(L.oxSimpleWait)}</p>` : ""}
 ${simpler ? `<p class="ox__credit">${esc(L.oxSimpleBy)}</p>` : ""}
-${items.length ? `<p class="ox__credit">${L.oxCredit('<a href="https://www.gdeltproject.org/" target="_blank" rel="noopener">GDELT Project</a>')}</p>` : ""}
+${shown.some((it) => !it.tr) ? `<p class="ox__credit">${L.oxCredit('<a href="https://www.gdeltproject.org/" target="_blank" rel="noopener">GDELT Project</a>')}</p>` : ""}
 <p class="ox__gn"><a class="btn" href="${esc(googleNewsUrl(list.q, lang))}" target="_blank" rel="noopener">${esc(L.googleNews(list.q))}</a></p>`;
 }
-D.addEventListener("click", (e) => {
-  if (e.target.closest("[data-ox-retry]")) outside(true);
-  else if (e.target.closest("[data-ox-more]")) {
-    ox.shown += 20;
-    drawOx();
-  }
-});
+D.addEventListener("click", (e) => e.target.closest("[data-ox-retry]") && outside(true));
 
 // ---------- one story: data for the answers ----------
 async function findItem(id, el) {
@@ -1226,8 +1315,8 @@ D.addEventListener("click", async (e) => {
     return;
   }
   if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
-  e.preventDefault();
   const art = a.closest(".it");
+  e.preventDefault();
   if (art.classList.contains("is-open")) {
     art.classList.remove("is-open");
     $(".it__qa", art)?.remove();
@@ -1235,17 +1324,23 @@ D.addEventListener("click", async (e) => {
     return;
   }
   closePop();
+  openItem(art, true);
+});
+// the answers of one story, under its headline (again after the list was drawn anew: learn = false)
+async function openItem(art, learnIt) {
+  if (art.hasAttribute("data-web")) return openWeb(art);
+  const a = $(".it__link", art);
   art.classList.add("is-open");
-  a.setAttribute("aria-expanded", "true");
+  a?.setAttribute("aria-expanded", "true");
   const box = D.createElement("div");
   box.className = "it__qa";
   box.innerHTML = `<p class="qa__wait">${esc(T[lang].loading)}</p>`;
   art.append(box);
   const it = await findItem(art.dataset.id, a);
   if (!box.isConnected) return; // closed again while it was loading
-  learn(it);
-  box.innerHTML = `${it ? qaHTML(it, lang) : `<p class="qa__coming">${esc(T[lang].coming)}</p>`}${goHTML(it, a.href)}`;
-});
+  if (learnIt) learn(it);
+  box.innerHTML = `${it ? qaHTML(it, lang) : `<p class="qa__coming">${esc(T[lang].coming)}</p>`}${goHTML(it, a?.href)}`;
+}
 
 // ---------- pop-up box: hover 1 second (computer) or hold 1 second (phone) ----------
 const pop = $("#pop");
@@ -1303,7 +1398,7 @@ if (pop) {
   addEventListener("keydown", (e) => e.key === "Escape" && closePop());
   if (fine) {
     D.addEventListener("mouseover", (e) => {
-      const art = e.target.closest(".it");
+      const art = e.target.closest(".it:not([data-web])");
       if (art && art !== popFor && !art.classList.contains("is-open")) {
         clearTimeout(hoverTimer);
         hoverTimer = setTimeout(() => openPop(art, false), 1000);
@@ -1328,7 +1423,7 @@ if (pop) {
     "touchstart",
     (e) => {
       const a = e.target.closest(".it__link");
-      if (!a) return;
+      if (!a || a.closest("[data-web]")) return;
       start = { x: e.touches[0].clientX, y: e.touches[0].clientY, a };
       pressTimer = setTimeout(() => {
         suppressClick = a;

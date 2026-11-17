@@ -188,3 +188,78 @@ test("Worker: when Cloudflare's free allowance is used up, Google's Gemma is the
   assert.match(r.data.model, /^gemma-/);
   assert.ok(asked(calls).length >= 1);
 });
+
+// ---------- internet news: one story's answers, and Hindi search words in English ----------
+const ARTICLE = `<html><head><title>Bank fraud | News</title><meta property="og:description" content="Police arrest two men."></head><body>
+<nav><p>Home Business Politics Sports and many other menu words here</p></nav>
+<article><h1>Two held for Rs 4 lakh bank fraud in Lucknow</h1>
+<p>Lucknow police on Monday arrested two men who posed as bank officials and cheated a retired teacher of Rs 4 lakh.</p>
+<p>The men called the teacher, Ram Prasad, saying his account would be blocked and asked for the OTP sent to his phone.</p>
+<p>Police said the money was moved to accounts in Jharkhand and that &quot;digital arrest&quot; calls are rising in the city.</p>
+</article><script>var ads = "<p>not this</p>";</script></body></html>`;
+function internet(pages) {
+  const asked = [];
+  globalThis.fetch = async (url) => {
+    const u = String(url);
+    asked.push(u);
+    if (u in pages) return new Response(pages[u], { headers: { "content-type": u.endsWith("robots.txt") ? "text/plain" : "text/html; charset=utf-8" } });
+    return new Response("not found", { status: 404 });
+  };
+  return asked;
+}
+const NINE = ["Two men cheated a teacher of Rs 4 lakh", "Two men posing as bank officials", "A retired teacher", "The teacher's bank money", "Lucknow", "Monday", "To steal money", "Bank fraud by phone", "They asked for the OTP"];
+
+test("Worker: a story from the internet gets its shortest headline and the 9 short answers", async () => {
+  const site = "https://news.example.com";
+  const asked = internet({ [`${site}/robots.txt`]: "User-agent: *\nDisallow: /private/\n", [`${site}/city/fraud-1`]: ARTICLE });
+  const AI = cloudflare((model, input) => {
+    const p = input.messages[0].content;
+    assert.match(p, /9 questions/);
+    assert.match(p, /cheated a retired teacher of Rs 4 lakh/, "the article's own paragraphs");
+    assert.match(p, /"digital arrest"/, "with its HTML entities read");
+    assert.doesNotMatch(p, /menu words|not this/, "no menus or scripts");
+    return { response: "Here you go:\n" + JSON.stringify({ h: "Two men cheat teacher of Rs 4 lakh.", q: NINE }) };
+  });
+  const r = await run(post({ mode: "story", lang: "en", url: `${site}/city/fraud-1`, title: "Two held for Rs 4 lakh bank fraud in Lucknow" }), { ...env, AI });
+  assert.equal(r.status, 200);
+  assert.equal(r.data.story.h, "Two men cheat teacher of Rs 4 lakh");
+  assert.deepEqual(r.data.story.q, NINE);
+  assert.deepEqual(asked, [`${site}/robots.txt`, `${site}/city/fraud-1`]);
+  // asked again: from memory, nothing is read or asked again
+  const again = internet({});
+  const r2 = await run(post({ mode: "story", lang: "en", url: `${site}/city/fraud-1`, title: "x" }), { ...env, AI: cloudflare(() => assert.fail("asked again")) });
+  assert.deepEqual(r2.data.story.q, NINE);
+  assert.equal(again.length, 0);
+});
+
+test("Worker: a page the website's robots.txt keeps from robots is not read", async () => {
+  const site = "https://closed.example.com";
+  const asked = internet({ [`${site}/robots.txt`]: "User-agent: *\nAllow: /\n\nUser-agent: TheSimplestNewsBot\nDisallow: /news/\n", [`${site}/news/a`]: ARTICLE });
+  const r = await run(post({ mode: "story", lang: "hi", url: `${site}/news/a`, title: "x" }), { ...env, AI: cloudflare(() => assert.fail("not asked")) });
+  assert.equal(r.status, 403);
+  assert.deepEqual(asked, [`${site}/robots.txt`], "only robots.txt");
+});
+
+test("Worker: a Hindi search becomes the English words of news headlines", async () => {
+  noGoogle();
+  const AI = cloudflare(() => ({ response: "English: Cockroach Janta Party\n" }));
+  const r = await run(post({ mode: "query", q: "कॉकरोच जनता पार्टी" }), { ...env, AI });
+  assert.equal(r.status, 200);
+  assert.equal(r.data.q, "Cockroach Janta Party");
+  const bad = await run(post({ mode: "query", q: "कुछ और" }), { ...env, AI: cloudflare(() => ({ response: "कुछ और" })) });
+  assert.equal(bad.status, 502, "an answer in Hindi letters is no English search");
+});
+
+test("Worker: a story whose text is only in the page's JSON-LD (articleBody) is read too", async () => {
+  const site = "https://jsonld.example.com";
+  const body = "The Krafton company on Monday released the BGMI 4.7 update for phones in India. It adds a yearly popularity contest with new rewards for players. Players can download it from the Play Store and the App Store from today, the company said.";
+  const page = `<html><head><title>BGMI 4.7</title><script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": [{ "@type": "NewsArticle", headline: "Krafton unveils BGMI 4.7", articleBody: body }] })}</script></head><body><div class="story">${body}</div><p>Short.</p></body></html>`;
+  internet({ [`${site}/robots.txt`]: "", [`${site}/bgmi`]: page });
+  const AI = cloudflare((model, input) => {
+    assert.match(input.messages[0].content, /yearly popularity contest/);
+    return { response: JSON.stringify({ h: "New BGMI update is out", q: NINE }) };
+  });
+  const r = await run(post({ mode: "story", lang: "en", url: `${site}/bgmi`, title: "Krafton unveils BGMI 4.7" }), { ...env, AI });
+  assert.equal(r.status, 200);
+  assert.equal(r.data.story.h, "New BGMI update is out");
+});
