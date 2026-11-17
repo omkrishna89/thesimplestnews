@@ -29,7 +29,7 @@ const SITES = ["https://thesimplestnews.com", "https://www.thesimplestnews.com",
 const LOCAL = /^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/;
 const MAX_ITEMS = 40;
 const MAX_LEN = 220; // characters in one headline sent
-const MAX_BODY = 16000;
+const MAX_BODY = 64000;
 const DAY = 86400e3;
 const TRY_MS = 12000; // one model gets 12 seconds; then the next one is asked
 const TOTAL_MS = 22000; // all of them together about 22 seconds (the website waits 25)
@@ -189,10 +189,10 @@ function inTime(run, ms) {
 // One model after the other: Cloudflare's AI first, then Google's Gemma, the best first. A model that is busy,
 // fails or is slow rests 10 minutes and the next one is asked; a model that doesn't exist doesn't count as a try.
 // read(answer) turns a model's answer into the result, or null when it can't be used (then the next model is asked).
-async function ask(env, text, read, maxTokens = 1024) {
+async function ask(env, text, read, maxTokens = 1024, opts = {}) {
   const start = Date.now();
-  const tryMs = Number(env.TRY_MS) || TRY_MS;
-  const totalMs = Number(env.TOTAL_MS) || TOTAL_MS;
+  const tryMs = opts.tryMs || Number(env.TRY_MS) || TRY_MS;
+  const totalMs = opts.totalMs || Number(env.TOTAL_MS) || TOTAL_MS;
   const rest = (name, ms = REST_MS) => resting.set(name, Date.now() + ms);
   const helpers = async function* () {
     if (env.AI?.run) for (const name of aiModels(env)) yield { name, run: () => askAI(env, name, text, maxTokens) };
@@ -465,8 +465,39 @@ Search: ${q}`;
   }
 }
 
+// ---------- job "ai": Cloudflare's AI for the site's own news robot, when Google's Gemini is busy ----------
+// Only for the robot: it signs the request with the Gemini key both have (HMAC-SHA256 of "ai|<time>", 10 minutes valid).
+async function hmacHex(key, msg) {
+  const k = await crypto.subtle.importKey("raw", new TextEncoder().encode(key), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", k, new TextEncoder().encode(msg));
+  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+function sameText(a, b) {
+  if (a.length !== b.length) return false;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return d === 0;
+}
+async function aiJob(env, body) {
+  const ts = Number(body?.ts);
+  if (!env.GEMINI_API_KEY || !ts || Math.abs(Date.now() - ts) > 10 * 60e3) return { status: 401, data: { error: "not signed" } };
+  if (!sameText(await hmacHex(env.GEMINI_API_KEY, `ai|${ts}`), String(body?.proof || ""))) return { status: 401, data: { error: "not signed" } };
+  if (!env.AI?.run) return { status: 503, data: { error: "the Worker has no AI binding" } };
+  const prompt = String(body?.prompt || "").slice(0, 60000);
+  if (!prompt) return { status: 400, data: { error: "send the prompt" } };
+  const max = Math.min(Math.max(Number(body?.max) || 2000, 64), 8000);
+  try {
+    // Cloudflare's models only (the robot comes here because Google is busy)
+    const r = await ask({ ...env, GEMINI_API_KEY: "" }, prompt, (out) => (typeof out === "string" && out.trim() ? out : null), max, { tryMs: 50000, totalMs: 60000 });
+    if (!r.value) return { status: 502, data: { error: "no answer", tried: r.tried } };
+    return { status: 200, data: { text: r.value, model: r.model, tried: r.tried } };
+  } catch (e) {
+    return { status: e.status === 429 ? 429 : 502, data: { error: String(e.message || e), tried: e.tried } };
+  }
+}
+
 // ---------- the Worker ----------
-async function rewrite(request, env) {
+async function rewrite(request, env, origin = "") {
   if (Number(request.headers.get("content-length") || 0) > MAX_BODY) return { status: 413, data: { error: "too big" } };
   let body;
   try {
@@ -476,6 +507,8 @@ async function rewrite(request, env) {
   } catch {
     return { status: 400, data: { error: "send JSON" } };
   }
+  if (body?.mode === "ai") return aiJob(env, body); // signed by the site's robot: no browser, no Origin
+  if (!okOrigin(origin)) return { status: 403, data: { error: "only for thesimplestnews.com" } };
   if (body?.mode === "story") return story(env, body);
   if (body?.mode === "query") return query(env, body);
   const lang = body?.lang === "hi" ? "hi" : "en";
@@ -539,8 +572,7 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: okOrigin(origin) ? 204 : 403, headers });
     if (request.method === "GET") return new Response(await status(env), { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
     if (request.method !== "POST") return json({ error: "use POST" }, 405, headers);
-    if (!okOrigin(origin)) return json({ error: "only for thesimplestnews.com" }, 403, headers);
-    const { status: code, data } = await rewrite(request, env);
+    const { status: code, data } = await rewrite(request, env, origin);
     return json(data, code, headers);
   },
 };

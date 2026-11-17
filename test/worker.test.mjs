@@ -263,3 +263,29 @@ test("Worker: a story whose text is only in the page's JSON-LD (articleBody) is 
   assert.equal(r.status, 200);
   assert.equal(r.data.story.h, "New BGMI update is out");
 });
+
+// ---------- job "ai": Cloudflare's AI for the site's own news robot, signed with the Gemini key ----------
+import { sign } from "../scripts/lib/worker-ai.mjs";
+const aiPost = (body) => new Request("https://simple.example.workers.dev/", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+
+test("Worker: the robot's signed request gets Cloudflare's AI (no browser, no Origin needed)", async () => {
+  globalThis.fetch = async () => assert.fail("Google is not asked: the robot comes here because Google is busy");
+  const AI = cloudflare((model, input) => ({ response: `{"items":[{"n":1,"g":["politics"]}]} for: ${input.messages[0].content.slice(-12)}` }));
+  const ts = Date.now();
+  const r = await run(aiPost({ mode: "ai", prompt: "Sort these items: 1. Rally in Patna", max: 500, ts, proof: sign(env.GEMINI_API_KEY, ts) }), { ...env, AI });
+  assert.equal(r.status, 200);
+  assert.match(r.data.text, /"politics"/);
+  assert.match(r.data.model, /^@cf\//, "one of Cloudflare's models (earlier tests leave the first ones resting)");
+  assert.equal(AI.asked.at(-1).input.max_tokens, 500);
+});
+
+test("Worker: job 'ai' refuses a wrong or old signature", async () => {
+  const AI = cloudflare(() => assert.fail("not asked"));
+  const ts = Date.now();
+  assert.equal((await run(aiPost({ mode: "ai", prompt: "x", ts, proof: sign("another key", ts) }), { ...env, AI })).status, 401);
+  const old = ts - 11 * 60e3;
+  assert.equal((await run(aiPost({ mode: "ai", prompt: "x", ts: old, proof: sign(env.GEMINI_API_KEY, old) }), { ...env, AI })).status, 401, "older than 10 minutes");
+  assert.equal((await run(aiPost({ mode: "ai", prompt: "x", ts }), { ...env, AI })).status, 401, "no signature");
+  // the other jobs still need the site's own address (Origin)
+  assert.equal((await run(aiPost({ lang: "en", items: ["x"] }), { ...env, AI })).status, 403);
+});

@@ -206,7 +206,9 @@ To check that all feeds still work: `node scripts/check-feeds.mjs` (see section 
   each run uses only its share of what is left, so the Indian morning gets short summaries too. Each run first sorts the
   new headlines (1–4 requests), then writes 12 stories per request. The 24 biggest stories go first; the rest is shared out
   so every group, every state and every state's districts get some (never more than 4 from one news feed). If Google is
-  busy ("high demand"), the robot stops and tries again in the next run. The log shows the tokens each run used — what a
+  busy ("high demand"), the robot keeps trying with longer waits while the run has time; sorting then uses smaller requests
+  (50 headlines), and if Gemini still doesn't answer, **Cloudflare's free AI** sorts the headlines (through the site's Worker,
+  signed with the Gemini key — no extra key needed). Each run leaves a short note in the database (`db.runLog`). The log shows the tokens each run used — what a
   paid plan would charge. Settings: `config/site.json` → `gemini`.
 - **GitHub Pages limits:** the site must stay under 1 GB (it is about 40–200 MB) and about 100 GB of visits a month.
   If the site becomes very popular, move it to **Cloudflare Pages** (also free, no visit limit).

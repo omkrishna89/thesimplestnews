@@ -117,3 +117,13 @@ test("busy (503) -> waits, retries once, then the next model; free limit (429) -
   globalThis.fetch = async () => err(429, "quota");
   await assert.rejects(() => summarize([story]), QuotaError);
 });
+
+test("sorting by another AI (Cloudflare's, when Gemini is busy): one plain text, and its answer read", async () => {
+  const { sortPrompt, readSort } = await import("../scripts/lib/gemini.mjs");
+  const p = sortPrompt([{ text: "Sensex jumps 800 points" }, { text: "Cricket: India win" }]);
+  assert.match(p, /1\. Sensex jumps 800 points\n2\. Cricket: India win$/);
+  assert.match(p, /"g" may only use: .*stock-market.*other/);
+  const g = readSort('Sure!\n```json\n{"items":[{"n":2,"g":["other"]},{"n":1,"g":["stock-market","business","made-up"]}]}\n```', 3);
+  assert.deepEqual(g, [["stock-market", "business"], [], null], "by number; unknown groups dropped; 'other' = no group; missing = sorted again later");
+  assert.deepEqual(readSort("not json", 2), [null, null]);
+});
