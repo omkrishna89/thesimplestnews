@@ -6,13 +6,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { siteAnswers } from "./lib/answers.mjs";
 import { loadDB } from "./lib/db.mjs";
-import { metalsView } from "./lib/metals.mjs";
 import { makePages } from "./lib/pages.mjs";
 import { STATES, placesForBrowser } from "./lib/places.mjs";
 import { ROOT, config, log } from "./lib/util.mjs";
-import { metalsBox } from "./lib/widgets.mjs";
 import { istDay, stockFile } from "../src/assets/js/ui.js";
 import { HELP_PAGES } from "./lib/help-pages.mjs";
+import { display } from "./lib/trends.mjs";
 import { groupsFromWords, wordTest } from "./lib/words.mjs";
 
 const OUT = path.resolve(ROOT, process.env.OUT_DIR || "_site");
@@ -100,7 +99,8 @@ const items = masters.map((s) => {
   // Groups: the AI's (which already include the news feed's own group). Before the AI has written a story:
   // the groups Gemini sorted its headline into — or, before that, the feed's group plus groups from clear
   // words in the headline (config/words.json).
-  const g = (ok ? s.a.g : s.sg || [...new Set([...(s.gh || []), ...groupsFromWords(s.t)])]).filter((x) => SLUGS.has(x));
+  const g0 = (ok ? s.a.g : s.sg || [...new Set([...(s.gh || []), ...groupsFromWords(s.t)])]).filter((x) => SLUGS.has(x));
+  const g = g0.includes("scams") ? ["scams"] : g0; // all scam and fraud news is in Scams & Fraud only
   const common = {
     i: s.id,
     t: Math.round(s.p / 1000),
@@ -220,14 +220,13 @@ for (const day of index.days.search) {
 }
 writeJSON("data/index.json", index);
 // "Trending" (Google Trends India): the topics of the last hours that Gemini sorted into the site's groups, and their news links
-const trends = (db.trends?.list || []).filter((t) => now - t.p < 12 * 3600e3 && t.g?.some((g) => SLUGS.has(g))).map(({ q, t, n, news }) => ({ q, t, n, news }));
+const trends = (db.trends?.list || []).filter((t) => now - t.p < 12 * 3600e3 && t.g?.some((g) => SLUGS.has(g))).map(({ q, n, news }) => ({ q, t: display(q, news.map((x) => x.h)), n, news }));
 writeJSON("data/trends.json", trends);
 writeJSON("data/places.json", placesForBrowser(db.names));
 writeJSON("data/stocks.json", config("stocks.json")?.list || []); // names for the Stocks box
 log(`[build] ${lists.size} lists, ${(jsonBytes / 1e6).toFixed(1)} MB of data files`);
 
 // ---------- pages ----------
-const metals = metalsView(db.metals);
 const ctx = {
   site,
   groups,
@@ -238,7 +237,6 @@ const ctx = {
   render: { base, proxy, now, icon: (g) => icons[g] || "📰" },
 };
 const P = makePages(ctx);
-ctx.metalsBox = metals ? (uid) => metalsBox(metals, uid, P.url) : null;
 
 // The newest stories of a list, enough for n in each language
 const latest = (key, n = STATIC_N) => {
@@ -270,10 +268,8 @@ const TAB_HI = { local: "आसपास", tehsil: "तहसील", district: 
 
 for (const slug of ["all", ...groups.map((g) => g.slug)]) {
   const n = nameOf(slug);
-  // gold & silver rates only on the Gold & Silver page
-  let extraTop = "";
-  if (slug === "all") extraTop = P.trendsRow(trends);
-  if (slug === "gold-silver" && ctx.metalsBox) extraTop = ctx.metalsBox("top");
+  // the Trending row only on Home
+  const extraTop = slug === "all" ? P.trendsRow(trends) : "";
   for (const tab of ["country", "world", "state", "district"]) {
     const key = tab === "world" ? `world/${slug}` : `in/${slug}`;
     const rel = slug === "all" ? (tab === "country" ? "index.html" : `all/${tab}/index.html`) : tab === "country" ? `${slug}/index.html` : `${slug}/${tab}/index.html`;

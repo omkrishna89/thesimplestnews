@@ -67,6 +67,13 @@ test("the exact spot comes first", () => {
   assert.equal(where("The recruitment is for Jodhpur.", "", jodhpur, IN("rj", "jodhpur", "", "jodhpur"))[0], "Jodhpur (district Jodhpur), Rajasthan, India");
 });
 
+test("several places in the place details, or another country in the answer", () => {
+  const two = { country: "India", state: "Karnataka and Himachal Pradesh", district: "Bengaluru Urban and Shimla", local: "Bengaluru and Shimla", local_hi: "बेंगलुरु और शिमला" };
+  assert.deepEqual(where("Bengaluru and Shimla", "बेंगलुरु और शिमला", two, IN("ka", "bengaluru-urban", "", "bengaluru")), ["Bengaluru and Shimla, India", "बेंगलुरु और शिमला, भारत"], "no tehsil/district labels on a list of places");
+  const p = { country: "India", state: "Bihar", district: "Begusarai", local: "Bakhorapur", local_hi: "बखोरापुर", district_hi: "बेगूसराय" };
+  assert.deepEqual(where("Bakhorapur, Bihar and USA", "बखोरापुर, बिहार और अमेरिका", p, IN("br", "begusarai", "", "bakhorapur")), ["Bakhorapur, Bihar and USA", "बखोरापुर, बिहार और अमेरिका"], "no ', India' after another country");
+});
+
 test("several places: Gemini's own words, plus the country", () => {
   assert.deepEqual(where("Bihar and Jharkhand", "बिहार और झारखंड", { country: "India", state: "Bihar" }, IN("br")), ["Bihar and Jharkhand, India", "बिहार और झारखंड, भारत"]);
   assert.equal(where("Delhi, Mumbai and Bengaluru, India.", "", { country: "India", state: "Delhi", local: "Delhi" }, IN("dl"))[0], "Delhi, Mumbai and Bengaluru, India");

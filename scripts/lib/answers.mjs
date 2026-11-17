@@ -120,6 +120,21 @@ function mentions(text, x, wider) {
   return hasJoined(text, x);
 }
 
+// Does the answer name a country (any, India too)? "USA", "the UK", "अमेरिका"
+const COUNTRY_WORDS = { en: ["usa", "us", "uk", "uae", "america", "britain", "england"], hi: [] };
+function namesCountry(text, lang, countries = {}) {
+  if (!text) return false;
+  const names = lang === "hi" ? Object.values(countries) : [...Object.keys(countries), ...COUNTRY_WORDS.en];
+  const T = tokens(text);
+  return names.some((n) => {
+    const x = tokens(n);
+    if (!x.length) return false;
+    if (x.length === 1) return T.includes(x[0]);
+    for (let i = 0; i + x.length <= T.length; i++) if (x.every((w, k) => T[i + k] === w)) return true;
+    return false;
+  });
+}
+
 // The exact spot: the one Gemini gives with the place details, or (older stories) one inside its own answer:
 // "Gorakhnath Temple, Gorakhpur" -> "Gorakhnath Temple"
 function spotOf(place, own, p, lang) {
@@ -140,9 +155,12 @@ function spotOf(place, own, p, lang) {
 //   multi — it names several places: its words, plus the country
 //   wide  — it is about a wider area than the story's town, or about another place ("Bihar"): its words stay
 //   full  — the complete location is built from the place details
+// Gemini put several places into one place detail ("Bengaluru and Shimla"): no labels then
+const listed = (x) => !!x && AND.en.test(x);
 function decide(own, p, spot) {
   const small = smallOf(p);
   if (!small.length && !p.state) return "bare";
+  if (small.some(listed)) return "multi";
   if (!own) return "full";
   const known = knownOf(p);
   if (AND.en.test(own) && tokens(own).some((t) => !known.has(t) && !GENERIC.has(t))) return "multi";
@@ -182,10 +200,17 @@ export function fullWhere({ answer, answerEn = answer, place = {}, loc = {}, lan
   const p = lang === "en" ? pEn : partsOf({ ...opt, lang });
   const own = lang === "en" ? ownEn : ownWords(answer, lang);
   const nothing = () => (isNotSaid(answer) ? NOT_SAID[lang] : tidy(answer));
-  const withCountry = () => (p.country && !namesAll(own, p.country) ? `${own}, ${p.country}` : own);
+  // the country is added only when the answer names no country itself ("Bakhorapur, Bihar and USA" stays as it is)
+  const withCountry = () => (p.country && !namesAll(own, p.country) && !namesCountry(own, lang, countries) ? `${own}, ${p.country}` : own);
 
   if (mode === "bare") return own || p.country || nothing();
   if (mode === "multi" && own) return withCountry();
+  if (mode === "multi") {
+    // no answer of its own: the place details without labels, each name once
+    const seen = [];
+    for (const x of [p.place, p.district, p.state, p.country]) if (x && !seen.some((y) => same(x, y))) seen.push(x);
+    return seen.join(", ") || nothing();
+  }
   if (mode === "wide") {
     if (own) return stateNamed || namesAll(own, p.state) ? withCountry() : own;
     // (Hindi answer missing) the same area as the English answer, when its Hindi name is known

@@ -26,37 +26,17 @@
       "किसान", "किसानों", "खेती", "फसल", "फसलों", "कृषि", "एमएसपी", "खाद", "यूरिया", "डीएपी", "धान", "गेहूं", "गेहूँ", "सरसों", "बुवाई", "पराली", "मंडी भाव", "पशुपालन", "पशुपालक", "पशुपालकों", "डेयरी", "बागवानी",
       "farmers?", "farming", "agriculture", "agricultural", "agri", "crops?", "kharif", "rabi", "MSP", "paddy", "wheat", "fertili[sz]ers?", "urea", "DAP", "stubble burning", "mandi (?:prices|rates)", "horticulture", "dairy", "sugarcane"
     ],
-    "education": [
-      "परीक्षा", "परीक्षाओं", "बोर्ड परीक्षा", "छात्र", "छात्रों", "छात्रा", "छात्राओं", "विद्यार्थी", "विद्यार्थियों", "स्कूल", "स्कूलों", "कॉलेज", "विश्वविद्यालय", "यूनिवर्सिटी", "सीबीएसई", "नीट", "जेईई", "यूपीएससी", "सीयूईटी", "दाखिला", "दाखिले", "एडमिशन", "शिक्षक", "शिक्षकों", "टीचर", "स्कॉलरशिप", "छात्रवृत्ति", "सिलेबस",
-      "exams?", "board exams?", "students?", "schools?", "colleges?", "universit(?:y|ies)", "CBSE", "ICSE", "NEET", "JEE", "UPSC", "CUET", "NTA", "IITs?", "IIMs?", "NIRF", "admissions?", "teachers?", "scholarships?", "syllabus"
-    ],
-    "jobs": [
-      "नौकरी", "नौकरियां", "नौकरियों", "सरकारी नौकरी", "वैकेंसी", "भर्ती परीक्षा", "भर्ती प्रक्रिया", "भर्ती निकली", "भर्ती के लिए", "पदों पर भर्ती", "पदों के लिए", "रिक्त पद", "रिक्तियां", "रोजगार", "रोज़गार", "एडमिट कार्ड", "रिजल्ट जारी", "परीक्षा परिणाम", "कट ऑफ", "आंसर की", "छंटनी",
-      "jobs?", "recruitment", "vacanc(?:y|ies)", "hiring", "layoffs?", "apply online", "job fair", "Rozgar Mela", "admit cards?", "answer key", "cut-?off", "notification out", "results? (?:declared|out)", "\\d+ posts"
-    ],
     "politics": [
       "चुनाव", "चुनावों", "चुनावी", "विधानसभा", "लोकसभा", "राज्यसभा", "भाजपा", "बीजेपी", "कांग्रेस", "सपा", "बसपा", "राजद", "जदयू", "टीएमसी", "आम आदमी पार्टी", "सांसद", "विधायक", "मुख्यमंत्री", "प्रधानमंत्री", "पीएम मोदी", "मोदी", "राहुल गांधी", "अखिलेश", "नीतीश", "केजरीवाल", "ममता", "मंत्री", "नेता प्रतिपक्ष", "मतदान", "गठबंधन",
       "elections?", "polls?", "BJP", "Congress", "AAP", "BSP", "RJD", "JDU", "JD\\(U\\)", "TMC", "DMK", "MLAs?", "MPs", "Lok Sabha", "Rajya Sabha", "assembly", "Chief Minister", "CM", "Prime Minister", "PM Modi", "Modi", "Rahul Gandhi", "ministers?", "opposition", "Parliament", "voters?", "voting"
-    ],
-    "health": [
-      "स्वास्थ्य", "सेहत", "बीमारी", "बीमारियों", "डॉक्टर", "डॉक्टरों", "दवा", "दवाओं", "डेंगू", "मलेरिया", "कैंसर", "डायबिटीज", "हार्ट अटैक", "वायरस", "संक्रमण", "वैक्सीन", "टीकाकरण", "एम्स", "कोलेस्ट्रॉल", "मोटापा", "ब्लड प्रेशर", "आयुर्वेद",
-      "health", "healthcare", "diseases?", "doctors?", "medicines?", "dengue", "malaria", "cancer", "diabetes", "heart attacks?", "virus", "infections?", "vaccines?", "vaccination", "AIIMS", "cholesterol", "obesity", "blood pressure", "mental health", "WHO"
     ],
     "money": [
       "म्यूचुअल फंड", "म्यूचुअल फ़ंड", "एसआईपी", "एफडी", "फिक्स्ड डिपॉजिट", "ब्याज दर", "ब्याज दरों", "रेपो रेट", "लोन", "ईएमआई", "इनकम टैक्स", "आयकर", "आईटीआर", "टैक्स स्लैब", "पीएफ", "ईपीएफओ", "यूपीआई", "क्रेडिट कार्ड", "डेबिट कार्ड", "बीमा", "पेंशन", "बचत", "आरबीआई", "बैंक", "बैंकों", "पैन कार्ड",
       "mutual funds?", "SIPs?", "FDs?", "fixed deposits?", "interest rates?", "repo rate", "loans?", "EMIs?", "income tax", "ITR", "tax slabs?", "PF", "EPFO", "UPI", "credit cards?", "debit cards?", "insurance", "pension", "savings", "RBI", "banks?", "banking", "PAN card"
     ],
-    "gold-silver": [
-      "सोने-चांदी", "सोना-चांदी", "सोने चांदी", "सोना चांदी", "सोने का भाव", "सोने का दाम", "सोने के दाम", "सोने की कीमत", "सोने की कीमतों", "सोना सस्ता", "सोना महंगा", "चांदी", "चाँदी", "सर्राफा", "गोल्ड (?:रेट|प्राइस|ईटीएफ|लोन)", "सिल्वर (?:रेट|प्राइस)",
-      "gold prices?", "gold rates?", "silver prices?", "silver rates?", "gold and silver", "bullion", "gold ETFs?", "sovereign gold bonds?"
-    ],
     "tech": [
       "स्मार्टफोन", "स्मार्टफ़ोन", "आईफोन", "एंड्रॉयड", "ऐप", "ऐप्स", "इंटरनेट", "सोशल मीडिया", "व्हाट्सएप", "गूगल", "यूट्यूब", "इंस्टाग्राम", "फेसबुक", "लैपटॉप", "गैजेट", "5जी", "सिम कार्ड", "रिचार्ज", "साइबर",
       "smartphones?", "iPhones?", "Android", "apps?", "internet", "social media", "WhatsApp", "Google", "YouTube", "Instagram", "Facebook", "laptops?", "gadgets?", "5G", "Samsung", "Xiaomi", "OnePlus", "Realme", "recharge", "tech", "technology", "cyber"
-    ],
-    "auto": [
-      "नई कार", "कार लॉन्च", "बाइक लॉन्च", "स्कूटर", "एसयूवी", "इलेक्ट्रिक वाहन", "इलेक्ट्रिक कार", "ईवी", "माइलेज", "एक्स-शोरूम", "ऑन-रोड", "मारुति", "टाटा मोटर्स", "हुंडई", "टोयोटा", "होंडा", "बजाज ऑटो", "टीवीएस", "रॉयल एनफील्ड", "महिंद्रा (?:थार|स्कॉर्पियो|एक्सयूवी|बोलेरो)", "ड्राइविंग लाइसेंस", "चालान", "फास्टैग",
-      "scooters?", "SUVs?", "EVs?", "electric vehicles?", "mileage", "ex-showroom", "on-road price", "Maruti", "Tata Motors", "Hyundai", "Toyota", "Honda", "Royal Enfield", "Mahindra (?:XUV|Thar|Scorpio|Bolero)", "two-wheelers?", "driving licen[cs]e", "challans?", "FASTag"
     ],
     "govt-schemes": [
       "योजना के तहत", "योजना का लाभ", "सरकारी योजना", "सरकारी योजनाओं", "पीएम किसान", "किसान सम्मान निधि", "आयुष्मान", "उज्ज्वला", "लाडली", "मनरेगा", "राशन कार्ड", "पेंशन योजना", "आवास योजना", "किस्त", "लाभार्थी", "लाभार्थियों",

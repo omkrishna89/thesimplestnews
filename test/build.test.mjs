@@ -33,6 +33,7 @@ test("the website builds and has the key pages", () => {
       story("eee555", { t: "कोहली का शतक, भारत जीता", s: "skip", sg: [] }),
       story("fff666", { s: "skip", a: { hi: { h: "क्रिकेट", q: nine("x") }, en: { h: "Cricket match", q: nine("x") }, g: [], imp: 5, scope: "country", place: {}, at: now - 60e3 } }),
       story("ggg777"),
+      story("hhh888", { t: "UPI से 2 लाख की ठगी", sg: ["scams", "money"] }), // scam news: only in Scams & Fraud
     ],
   };
   fs.mkdirSync(path.join(tmp, "data"));
@@ -69,9 +70,9 @@ test("the website builds and has the key pages", () => {
   const day = idx.days["d/up/barabanki"][0];
   const hi = JSON.parse(read(`data/hi/d/up/barabanki/${day}.json`));
   const en = JSON.parse(read(`data/en/d/up/barabanki/${day}.json`));
-  assert.deepEqual(hi.map((s) => s.i).sort(), ["aaa111", "bbb222", "ccc333", "ddd444"], "Hindi list: the stories in the site's groups");
+  assert.deepEqual(hi.map((s) => s.i).sort(), ["aaa111", "bbb222", "ccc333", "ddd444", "hhh888"], "Hindi list: the stories in the site's groups");
   assert.equal(en.length, 1, "English list: only the summarized one (the others are Hindi stories without their summary yet)");
-  assert.deepEqual(idx.n.hi["d/up/barabanki"], [4], "story counts per day, for 'See N stories in …'");
+  assert.deepEqual(idx.n.hi["d/up/barabanki"], [5], "story counts per day, for 'See N stories in …'");
   // the Stocks box: one file per company, found from any group
   assert.deepEqual(JSON.parse(read("data/hi/stock/reliance.json")).map((s) => s.i), ["ddd444"]);
   assert.deepEqual(JSON.parse(read("data/hi/stock/tcs.json")).map((s) => s.i), ["ddd444"]);
@@ -81,7 +82,7 @@ test("the website builds and has the key pages", () => {
   // search: every story of the day in a small form; a written story carries "k" and the other language's words
   assert.ok(idx.days.search.includes(day));
   const sHi = JSON.parse(read(`data/hi/search/${day}.json`));
-  assert.deepEqual(sHi.map((s) => s.i).sort(), ["aaa111", "bbb222", "ccc333", "ddd444"]);
+  assert.deepEqual(sHi.map((s) => s.i).sort(), ["aaa111", "bbb222", "ccc333", "ddd444", "hhh888"]);
   const written = sHi.find((s) => s.i === "aaa111");
   assert.equal(written.k, 1);
   assert.equal(written.q, undefined, "no answers in the search file (they load when a result is opened)");
@@ -100,6 +101,9 @@ test("the website builds and has the key pages", () => {
   if (!site.analytics?.ga4) assert.doesNotMatch(home, /googletagmanager/, "no Google Analytics without a Measurement ID");
   assert.ok(!fs.existsSync(path.join(out, "ads.txt")), "no ads.txt before AdSense is set up");
   assert.deepEqual(JSON.parse(read(`data/hi/s-up/business/${day}.json`)).map((s) => s.i), ["bbb222"], "sorted by Gemini into Business");
+  assert.deepEqual(JSON.parse(read(`data/hi/s-up/scams/${day}.json`)).map((s) => s.i), ["hhh888"], "scam news is in Scams & Fraud…");
+  assert.ok(!fs.existsSync(path.join(out, `data/hi/s-up/money/${day}.json`)), "…and only there");
+  for (const p of ["jobs/index.html", "gold-silver/index.html", "auto/index.html", "health/index.html", "education/index.html"]) assert.ok(!fs.existsSync(path.join(out, p)), `${p} is gone`);
   assert.deepEqual(JSON.parse(read(`data/hi/world/all/${day}.json`)).map((s) => s.i), ["aaa111"], "World holds India's news too");
   // Home, the groups and story pages have nothing but the (empty) ad spot on the right
   for (const page of ["index.html", "all/world/index.html", "business/index.html", "story/aaa111/index.html"]) {

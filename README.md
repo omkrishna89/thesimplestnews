@@ -16,22 +16,21 @@ It costs nothing to run:
 
 | Feature | How it works |
 | --- | --- |
-| News from many websites | 386 free news feeds: national (NDTV, The Hindu, ThePrint, India Today, BBC Hindi, Aaj Tak…), world, the groups, 10 states and **277 districts** (UP, Bihar, MP, Rajasthan, Delhi, Haryana, Jharkhand, Uttarakhand, Chhattisgarh, Himachal). List: `config/sources.json` |
+| News from many websites | 377 free news feeds: national (NDTV, The Hindu, ThePrint, India Today, BBC Hindi, Aaj Tak…), world, the groups, 10 states and **275 districts** (UP, Bihar, MP, Rajasthan, Delhi, Haryana, Jharkhand, Uttarakhand, Chhattisgarh, Himachal). List: `config/sources.json` |
 | Shortest, simplest headline + 9 answers | Gemini reads the full article (only where the website's robots.txt allows) and writes both languages |
 | "Where?" = the complete location | Always `[exact spot,] place (tehsil X, district Y), state, country`, e.g. **Sadar Hospital, Supaul (tehsil Supaul, district Supaul), Bihar, India** — in Hindi **जैदपुर (तहसील नवाबगंज, ज़िला बाराबंकी), उत्तर प्रदेश, भारत**. The website builds it from the place details Gemini gives with every story, so old and new stories look the same. A part that is not known is left out (the tehsil is never guessed). News about a whole state, the whole country or several places keeps Gemini's words (**Bihar, India** · **Bihar and Jharkhand, India**); news from outside India has no tehsil or district (**Paris, France**). Code: `scripts/lib/answers.mjs` |
-| 16 groups — and only these | Scams & Fraud (online, bank and UPI frauds, fake calls, digital arrest, job/loan/investment scams, big money scams and corruption), Startups, AI, Business, Auto, Stock Market, Politics, Govt Schemes, Jobs & Results, Health, Education, Gold & Silver, Bank & Money, Farming & Mandi, Tech & Mobiles, Science & Space. Every other story (cricket and sports, films, crime, accidents, weather, religion…) is left out. List: `config/groups.json` |
-| Sorting | In every run, Gemini first sorts the new headlines into the 16 groups (150 headlines in one request, so it costs little of the free limit), or "other" — those are left out and never written. The 🔥 Trending topics are sorted the same way |
+| 11 groups — and only these | Scams & Fraud (online, bank and UPI frauds, fake calls, digital arrest, job/loan/investment scams, big money scams and corruption), Startups, AI, Business, Stock Market, Politics, Govt Schemes, Bank & Money, Farming & Mandi, Tech & Mobiles, Science & Space. Every other story (cricket and sports, films, crime, accidents, weather, religion, jobs and exam results, health, schools and colleges, cars and bikes, gold and silver prices…) is left out, so all news fits in Gemini's free limit. **All scam and fraud news is only in Scams & Fraud** (not also in Bank & Money, Business…). List: `config/groups.json` |
+| Sorting | In every run, Gemini first sorts the new headlines into the 11 groups (150 headlines in one request, so it costs little of the free limit), or "other" — those are left out and never written. A leader at a festival, temple or wedding, police raids, fires and accidents, meetings that decide nothing new, wishes and birthdays are "other" too. The 🔥 Trending topics are sorted the same way |
 | Group buttons | One line of buttons; **More ▾** shows all of them, **Less ▴** one line again. Tap one group, then more: the news of **all picked groups** shows together (tap again to remove one, **Home** = all news). The reader's picks are remembered on their phone |
 | A story's groups | The AI picks them when it writes the story. Before that: the groups it sorted the headline into; before sorting, the news feed's group and clear words in the headline (सेंसेक्स, IPO → Stocks…). Words: `config/words.json` |
-| Stocks box | On Stock Market: type a stock name (Hindi or English, about 145 big companies suggested, e.g. Reliance = रिलायंस). Only news about those stocks shows, from Stock Market and Business. Remembered as the reader's watchlist |
+| Stocks | On Stock Market there is one search bar, like on every page: while typing it also suggests stocks (Hindi or English, about 145 big companies, e.g. Reliance = रिलायंस). Tap a suggestion to follow that stock: then only news about the followed stocks shows, from Stock Market and Business (remembered as the reader's watchlist). **Enter** still searches the news |
 | Area tabs on every group | District · State · Country · World. **World shows all news** (India’s and the rest of the world’s). The reader's place comes from **GPS (one tap)**; without GPS it is guessed from their internet connection. A nearly empty tab shows a link like "See 94 stories in Country →" |
 | Search | The search box on Home (and 🔍 in the top bar of every page) looks through every story of the last 7 days, in both languages, with the same tabs, sort and day choices. Spellings are forgiven (janata = janta, bharatiya = bhartiya, हिन्दी = हिंदी, कॉकरोच = कोकरोच) and small typing mistakes too; rare words count most (a common word like "party" may be missing); short forms work both ways (Cockroach Janta Party = CJP). Code: `src/assets/js/search.js` |
-| Other news websites | Below our own search results: the same search on other news websites through the free **GDELT Project** (slow: 10–20 seconds; English words only), the topic's news links from Google Trends, and a **Google News** button with the same words |
-| 🔥 Trending | Under the Home search box: what India searches on Google right now (Google Trends' free feed, every 30 minutes; Hindi and English topics). One line; **More ▾** shows the rest. Tap a topic to search it |
+| Other news websites | Below our own search results: the same search on other news websites through the free **GDELT Project** (slow: 10–20 seconds; English words only), the topic's news links from Google Trends, and a **Google News** button with the same words. Their headlines are written again in the shortest, simplest words (Hindi view: simple Hindi) by Google's free **Gemma** AI, through a free Cloudflare Worker (Step 10); the website's own headline shows when you point at it |
+| 🔥 Trending | Only on Home, under the search box: what India searches on Google right now (Google Trends' free feed, every 30 minutes; Hindi and English topics, only the ones in our groups). Names are written properly (rajat patidar → **Rajat Patidar**, ben vs mah → **Bengal vs Maharashtra**). One line; **More ▾** shows the rest. Tap a topic to search it |
 | Click a headline | 1st click: the 9 answers open right there (open as many as you like). 2nd click: closed again. The **Open news page** button at the bottom of an open story goes to its own page with **all sources** (before Gemini has written it: the news website) |
 | Hover 1 second (computer) / hold 1 second (phone) | A pop-up box with the whole story and all 9 answers |
 | Sort and day | Newest (default) · Big stories · Most important · Relevant (what this reader opens most) — and All days / Today / Yesterday / pick a day / pick dates (from … to) |
-| Gold & silver | Today's IBJA rates and 5-year charts, like on IFC knowledge. Only on the Gold & Silver page |
 | Page width | The news uses the full width. A right-hand column appears only for the side ad, once AdSense is on |
 | Look | Dark by default, **Light** button next to हिंदी / English. The language follows the phone; the reader's choice is remembered |
 | Ads | Google AdSense spots on every page (banner, in the lists, right-hand column, end of story) + Auto ads |
@@ -81,17 +80,37 @@ To run it by hand: **Actions** → **Update news** → **Run workflow**.
 Most domain sellers forward email for free: create `contact@thesimplestnews.com` → forward to your Gmail.
 The Contact page already shows this address.
 
-### Step 6 — Google Search
-Open <https://search.google.com/search-console>, add `thesimplestnews.com`, and submit the sitemaps
-`https://thesimplestnews.com/sitemap.xml` and `https://thesimplestnews.com/news-sitemap.xml`.
+### Step 6 — Google Search Console (free: proves the site is yours and gives Google the sitemaps)
+1. Open <https://search.google.com/search-console> and sign in with your Gmail.
+2. Top left, open the property menu → **Add property** → in the right-hand box (**URL prefix**) type `https://thesimplestnews.com/` → **Continue**.
+3. Under "Other verification methods" open **HTML tag**. It shows `<meta name="google-site-verification" content="ABC…xyz" />`.
+   Copy only the code between the quotes after `content=` (`ABC…xyz`).
+4. On GitHub open `config/site.json` (pencil icon) and put the code in `"searchConsole": { … "verification": "ABC…xyz" }` → **Commit changes**.
+   Then **Actions** → **Update news** → **Run workflow**, and wait until it is green (10–15 minutes).
+5. Back in Search Console → **Verify** → "Ownership verified". Keep the code in `site.json`: Google checks it again from time to time.
+6. Left menu **Sitemaps** → type `sitemap.xml` → **Submit**; then `news-sitemap.xml` → **Submit**. "Success" can take a day.
+7. Optional, Bing too: <https://www.bing.com/webmasters> → sign in → **Import** from Google Search Console (no code needed).
+
+### Step 6b — Google News
+Google News now finds news websites by itself: there is **no "submit" button** any more. The site already does what helps — a
+Google News sitemap (`news-sitemap.xml`, Step 6), news markup on every story page, and About, Contact and Privacy pages.
+New websites usually wait weeks or months; keep the site updating every 30 minutes.
+- To check: open <https://news.google.com> and search `thesimplestnews.com`.
+- Once your stories show there, you can set the name, logo (`https://thesimplestnews.com/assets/img/icon-512.png`) and contact at
+  <https://publishercenter.google.com> (same Gmail; Google may already have made the publication for you).
 
 ### Step 7 — Google AdSense (after the site has run for a couple of weeks on TheSimplestNews.com)
-1. Apply at <https://adsense.google.com> with `thesimplestnews.com`. The About, Contact, Privacy Policy, Terms and Disclaimer pages that AdSense asks for are already on the site.
-2. When approved, open `config/site.json` on GitHub (pencil icon) and fill in:
-   - `"client": "ca-pub-…"` — your publisher ID
-   - `"slots"` — the ids of 4 display ad units you create in AdSense → **Ads** → **By ad unit**: `top`, `infeed`, `side`, `story`
-3. **Commit changes.** The site rebuilds in a few minutes; `ads.txt` is made by itself.
-   Spots without an id stay hidden. Add `?ads=preview` to any page address to see where the ads go.
+AdSense is free; Google pays you. It wants "valuable, original content", so a site of short summaries can be refused the first
+time — Google then says why, and you can fix it and ask again. The About, Contact, Privacy Policy, Terms and Disclaimer pages it asks for are already on the site.
+1. Open <https://adsense.google.com> → **Get started** → sign in with your Gmail → your site `thesimplestnews.com` → country **India** → accept the terms.
+2. Fill in the payment profile (your name and address, so Google can pay you).
+3. AdSense shows a code with your **publisher ID** `ca-pub-1234567890123456` (it is public, not secret). Put it in `config/site.json` on GitHub
+   (pencil icon) → `"adsense": { … "client": "ca-pub-…" }` → **Commit changes**, then run **Update news** once. This puts the AdSense code on
+   every page and makes `ads.txt` by itself.
+4. Back in AdSense → **Sites** → `thesimplestnews.com` → tick that the code is placed → **Request review**. It takes a few days to a few weeks; Google emails you.
+5. After approval: **Ads** → **By ad unit** → make 4 **Display ads** and put their ids in `"slots"`: `top`, `infeed`, `side`, `story`
+   (Auto ads already work without them). Spots without an id stay hidden. Add `?ads=preview` to any page address to see where the ads go.
+6. When you have earned about $10, Google posts a PIN to your address: type it in AdSense so payments can start.
 
 ### Step 8 — The 30-minute timer (free, cron-job.org)
 GitHub's own timer often starts hours late, or not at all. A free outside timer presses **Run workflow** every 30 minutes instead
@@ -117,6 +136,24 @@ GitHub's own timer often starts hours late, or not at all. A free outside timer 
 2. Copy the **Measurement ID** (`G-…`), open `config/site.json` on GitHub (pencil icon) and put it in `"analytics": { "ga4": "G-…" }` → **Commit changes**.
    The Privacy Policy page then explains Google Analytics by itself. Reports: <https://analytics.google.com> → **Reports** (live readers under **Realtime**).
 
+### Step 10 — Simple headlines for "On other news websites" (free Cloudflare Worker)
+The news from other websites under the search results comes with those websites' own long headlines. A small free program on
+Cloudflare (a "Worker", `worker/rewrite.js`) asks Google's free **Gemma** AI to write each one in the shortest, simplest words.
+Gemma has its **own free daily limit** (much bigger than Gemini's), so the stories' summaries are not slowed down. Your Gemini key stays
+secret inside Cloudflare. No card is needed; Cloudflare's free plan allows 100,000 Worker requests a day. The Worker only works for thesimplestnews.com.
+1. Sign up: <https://dash.cloudflare.com/sign-up> → email + password → confirm the email.
+2. Left menu **Workers & Pages** (it may be under **Compute**) → **Create application** → **Start with Hello World!** → Worker name
+   `simple-headlines` → **Deploy**. (The first time, Cloudflare asks you to pick your free `….workers.dev` name.)
+3. **Edit code** → in the code box select everything (Ctrl+A) and delete it → open
+   <https://github.com/omkrishna89/thesimplestnews/blob/main/worker/rewrite.js> → **Copy raw file** (the two-squares button above the code)
+   → paste into Cloudflare → **Deploy**.
+4. Back on the Worker's page → **Settings** → **Variables and Secrets** → **+ Add** → Type **Secret** · Variable name `GEMINI_API_KEY` ·
+   Value: your Gemini key (the same one as on GitHub; copy it again at <https://aistudio.google.com/apikey>) → **Deploy**.
+5. Open the Worker's address (on its page, like `https://simple-headlines.yourname.workers.dev`). It should say
+   **✅ The Simplest News headline writer works. Model: gemma-…**. If it shows ❌, it says what is missing.
+6. Put the address in `config/site.json` on GitHub → `"rewrite": { … "url": "https://simple-headlines.yourname.workers.dev" }` →
+   **Commit changes**, then run **Update news** once. Search something on the site: the other websites' headlines turn simple after a few seconds.
+
 ---
 
 ## 3. Changing things
@@ -125,8 +162,8 @@ All settings are plain files in `config/`. Edit them on GitHub (pencil icon) and
 
 | File | What it holds |
 | --- | --- |
-| `config/site.json` | Name, address, email, AdSense ids, Google Analytics id, IndexNow key, how many days to keep, Gemini settings |
-| `config/groups.json` | The 25 news groups (name in Hindi/English, icon) |
+| `config/site.json` | Name, address, email, AdSense ids, Google Analytics id, Search Console code, the simple-headlines Worker's address, IndexNow key, how many days to keep, Gemini settings |
+| `config/groups.json` | The 11 news groups (name in Hindi/English, icon) |
 | `config/words.json` | Clear words that put a story into a group before the AI has written it |
 | `config/stocks.json` | Companies the Stocks box suggests (Hindi and English names, and the words that find their news) |
 | `config/sources.json` | All news feeds. `level`: country, world, state or district |
@@ -139,7 +176,7 @@ To check that all feeds still work: `node scripts/check-feeds.mjs` (see section 
 
 ## 4. Good to know
 
-- **Gemini's free limit:** a number of requests a day (about 420; Google changes it and doesn't publish it, so the robot
+- **Gemini's free limit:** a number of requests a day (about 500; Google changes it and doesn't publish it, so the robot
   learns it). Google's day starts at midnight in California (1:30 pm India time). The limit is **spread over the whole day**:
   each run uses only its share of what is left, so the Indian morning gets short summaries too. Each run first sorts the
   new headlines (1–4 requests), then writes 12 stories per request. The 24 biggest stories go first; the rest is shared out
@@ -175,7 +212,8 @@ node scripts/check-feeds.mjs        # check every news feed
 | --- | --- |
 | `scripts/update.mjs` | Reads feeds, reads articles, asks Gemini, keeps 7 days (database: `.data/db.json.gz`, saved in the `data` branch) |
 | `scripts/build.mjs` | Makes every page and the data files the pages load (`/data/{hi,en}/…/{day}.json`) |
-| `scripts/lib/` | Feed reader, article reader (robots.txt), Gemini, the 9 answers (complete "Where?"), places, gold & silver, page templates |
+| `scripts/lib/` | Feed reader, article reader (robots.txt), Gemini, the 9 answers (complete "Where?"), places, Google Trends, page templates |
+| `worker/rewrite.js` | The free Cloudflare Worker that writes other websites' headlines in simple words with Gemma (Step 10) |
 | `src/assets/js/app.js` | Everything in the browser: answers, pop-up, hold on phones, sort, days, tabs, GPS, language, light/dark |
 | `src/assets/js/ui.js` | Shared by the build and the browser: labels in both languages and the HTML of a story |
 | `src/assets/css/style.css` | The look (dark and light) |

@@ -132,11 +132,11 @@ ${gaEn}<h2>Hosting</h2>
       title: "Disclaimer · अस्वीकरण",
       hi: `<h1>अस्वीकरण</h1>
 <p>The Simplest News पर खबरें दूसरी समाचार वेबसाइटों से ली जाती हैं और AI (Google Gemini) उनका छोटा सार लिखता है। हम हर सार की जांच इंसान से नहीं कराते, इसलिए गलती हो सकती है।</p>
-<p>शेयर बाज़ार, सोना-चांदी, सेहत, नौकरी या कानून से जुड़ी खबरें सिर्फ़ जानकारी के लिए हैं — यह निवेश, डॉक्टरी या कानूनी सलाह नहीं है। सोना-चांदी के पुराने भाव अनुमानित हो सकते हैं।</p>
+<p>शेयर बाज़ार, पैसे या कानून से जुड़ी खबरें सिर्फ़ जानकारी के लिए हैं — यह निवेश या कानूनी सलाह नहीं है।</p>
 <p>कोई खबर गलत लगे या हटवानी हो तो ${mail} पर लिखें।</p>`,
       en: `<h1>Disclaimer</h1>
 <p>News on The Simplest News comes from other news websites, and AI (Google Gemini) writes the short summaries. Summaries are not checked by a person, so they can contain mistakes.</p>
-<p>Stories about the stock market, gold and silver, health, jobs or law are for information only — not investment, medical or legal advice. Older gold and silver rates may be estimates.</p>
+<p>Stories about the stock market, money or law are for information only — not investment or legal advice.</p>
 <p>If a story looks wrong or should be removed, write to ${mail}.</p>`,
     },
   ];

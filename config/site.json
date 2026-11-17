@@ -30,5 +30,13 @@
     "about": "Tells Bing, Yahoo, Yandex and others about new story pages after every update (indexnow.org). key: any 32 letters/digits; the site publishes it as /<key>.txt so they know the pages are ours. Empty = off.",
     "key": "f5032c1d2dca1898c799740cdc2a34e8"
   },
+  "rewrite": {
+    "about": "url: the address of the free Cloudflare Worker (worker/rewrite.js) that writes the 'On other news websites' headlines in simple words with Google's free Gemma model, e.g. https://simple.yourname.workers.dev. Empty = the websites' own headlines.",
+    "url": ""
+  },
+  "searchConsole": {
+    "about": "verification: the code inside Google Search Console's HTML tag (content=\"...\"), so Google knows the site is yours. Empty = no tag.",
+    "verification": ""
+  },
   "social": { "whatsapp": "", "telegram": "", "facebook": "", "x": "", "instagram": "", "youtube": "" }
 }
