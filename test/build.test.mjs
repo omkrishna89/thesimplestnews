@@ -31,6 +31,7 @@ test("the website builds and has the key pages", () => {
       story("ddd444", { t: "रिलायंस के शेयर 3% चढ़े, टीसीएस में गिरावट", sg: ["stock-market"] }),
       // left out: sorted as "other", found "other" by the writer, and not sorted yet without clear words
       story("eee555", { t: "कोहली का शतक, भारत जीता", s: "skip", sg: [] }),
+      story("iii999", { s: "ok", a: { hi: { h: "हटाई गई खबर", q: nine("x") }, en: { h: "Removed story", q: nine("x") }, g: ["politics"], imp: 9, scope: "country", place: {}, at: now - 60e3 }, sc: "country" }), // removed by the editor
       story("fff666", { s: "skip", a: { hi: { h: "क्रिकेट", q: nine("x") }, en: { h: "Cricket match", q: nine("x") }, g: [], imp: 5, scope: "country", place: {}, at: now - 60e3 } }),
       story("ggg777"),
       story("hhh888", { t: "UPI से 2 लाख की ठगी", sg: ["scams", "money"] }), // scam news: only in Scams & Fraud
@@ -40,7 +41,9 @@ test("the website builds and has the key pages", () => {
   fs.writeFileSync(path.join(tmp, "data", "db.json.gz"), zlib.gzipSync(JSON.stringify(db)));
   const out = path.join(tmp, "site");
   const indexNowOut = path.join(tmp, "indexnow.json");
-  execFileSync(process.execPath, ["scripts/build.mjs"], { env: { ...process.env, DATA_DIR: path.join(tmp, "data"), OUT_DIR: out, PATH_PREFIX: "/thesimplestnews", SITE_URL: "https://omkrishna89.github.io", INDEXNOW_OUT: indexNowOut }, stdio: "pipe" });
+  const corrections = path.join(tmp, "corrections.json");
+  fs.writeFileSync(corrections, JSON.stringify({ list: [{ story: "https://thesimplestnews.com/story/iii999/", remove: true }, { story: "aaa111", note_en: "The district was wrong.", note_hi: "ज़िला गलत था।", date: "17 Nov 2026" }] }));
+  execFileSync(process.execPath, ["scripts/build.mjs"], { env: { ...process.env, DATA_DIR: path.join(tmp, "data"), OUT_DIR: out, PATH_PREFIX: "/thesimplestnews", SITE_URL: "https://omkrishna89.github.io", INDEXNOW_OUT: indexNowOut, CORRECTIONS_FILE: corrections }, stdio: "pipe" });
   const read = (p) => fs.readFileSync(path.join(out, p), "utf8");
   const home = read("index.html");
   assert.match(home, /English headline/);
@@ -99,7 +102,26 @@ test("the website builds and has the key pages", () => {
   assert.deepEqual(indexNow.urlList, ["https://omkrishna89.github.io/thesimplestnews/story/aaa111/"]);
   assert.equal(indexNow.keyLocation, `https://omkrishna89.github.io/thesimplestnews/${site.indexNow.key}.txt`);
   if (!site.analytics?.ga4) assert.doesNotMatch(home, /googletagmanager/, "no Google Analytics without a Measurement ID");
-  assert.ok(!fs.existsSync(path.join(out, "ads.txt")), "no ads.txt before AdSense is set up");
+  if (site.adsense?.client) {
+    assert.equal(read("ads.txt"), `google.com, ${site.adsense.client.replace(/^ca-/, "")}, DIRECT, f08c47fec0942fa0\n`, "ads.txt with the publisher ID");
+    assert.match(home, new RegExp(`adsbygoogle\\.js\\?client=${site.adsense.client}`), "the AdSense code on every page");
+  } else assert.ok(!fs.existsSync(path.join(out, "ads.txt")), "no ads.txt before AdSense is set up");
+  // the editor, the Editorial Policy, and Google's news markup
+  const editorial = read("editorial-policy/index.html");
+  assert.match(editorial, /Editorial Policy/);
+  assert.match(editorial, /संपादकीय नीति/);
+  if (site.editor?.name) {
+    for (const p of ["about/index.html", "contact/index.html", "editorial-policy/index.html"]) assert.ok(read(p).includes(site.editor.name), `${p} names the editor`);
+  }
+  assert.match(home, /href="\/thesimplestnews\/editorial-policy\/"/, "the footer links the Editorial Policy");
+  assert.match(storyPage, /"author":\{"@type":"Organization","name":"The Simplest News Desk"/);
+  assert.match(storyPage, /"publishingPrinciples":"https:\/\/omkrishna89\.github\.io\/thesimplestnews\/editorial-policy\/"/);
+  // corrections (config/corrections.json): a removed story is gone everywhere; a correction note shows on the story
+  assert.ok(!fs.existsSync(path.join(out, "story/iii999/index.html")), "a removed story has no page");
+  assert.ok(!read("sitemap.xml").includes("iii999"), "…and is not in the sitemap");
+  assert.match(storyPage, /<p class="st__fix l-en" lang="en"><b>Correction \(17 Nov 2026\):<\/b> The district was wrong\.<\/p>/);
+  assert.match(storyPage, /<p class="st__fix l-hi" lang="hi"><b>सुधार \(17 Nov 2026\):<\/b> ज़िला गलत था।<\/p>/);
+  assert.match(storyPage, /"correction":"17 Nov 2026: The district was wrong\."/);
   assert.deepEqual(JSON.parse(read(`data/hi/s-up/business/${day}.json`)).map((s) => s.i), ["bbb222"], "sorted by Gemini into Business");
   assert.deepEqual(JSON.parse(read(`data/hi/s-up/scams/${day}.json`)).map((s) => s.i), ["hhh888"], "scam news is in Scams & Fraud…");
   assert.ok(!fs.existsSync(path.join(out, `data/hi/s-up/money/${day}.json`)), "…and only there");

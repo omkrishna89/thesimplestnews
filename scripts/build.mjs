@@ -11,6 +11,7 @@ import { STATES, placesForBrowser } from "./lib/places.mjs";
 import { ROOT, config, log } from "./lib/util.mjs";
 import { istDay, stockFile } from "../src/assets/js/ui.js";
 import { HELP_PAGES } from "./lib/help-pages.mjs";
+import { readCorrections } from "./lib/corrections.mjs";
 import { display } from "./lib/trends.mjs";
 import { groupsFromWords, wordTest } from "./lib/words.mjs";
 
@@ -18,6 +19,17 @@ const OUT = path.resolve(ROOT, process.env.OUT_DIR || "_site");
 const site = config("site.json");
 const groups = config("groups.json").list;
 const COUNTRIES_HI = config("countries.json").hi; // Hindi names of countries, for the "Where?" answer
+// Wrong stories the editor removed or corrected (config/corrections.json). A mistake in the file must not stop the site.
+const FIX = (() => {
+  const file = process.env.CORRECTIONS_FILE || path.join(ROOT, "config", "corrections.json");
+  if (!fs.existsSync(file)) return readCorrections(null);
+  try {
+    return readCorrections(JSON.parse(fs.readFileSync(file, "utf8")));
+  } catch (e) {
+    log("build", `config/corrections.json has a mistake, so no corrections are used: ${e.message}`);
+    return readCorrections(null);
+  }
+})();
 const SLUGS = new Set(groups.map((g) => g.slug));
 const siteUrl = (process.env.SITE_URL || site.url).replace(/\/$/, "");
 const base = (process.env.PATH_PREFIX || "").replace(/\/$/, "");
@@ -93,7 +105,7 @@ function placeName(s, lang) {
 const guessImp = (s) => Math.max(2, Math.min(6, (s.pr || 5) - 2));
 
 // The site shows ONLY news in its groups (config/groups.json). "skip" = Gemini found a story is in none of them.
-const masters = db.stories.filter((s) => s.s !== "dup" && s.s !== "skip");
+const masters = db.stories.filter((s) => s.s !== "dup" && s.s !== "skip" && !FIX.remove.has(s.id)); // removed by the editor: gone everywhere
 const items = masters.map((s) => {
   const ok = s.s === "ok" && s.a;
   // Groups: the AI's (which already include the news feed's own group). Before the AI has written a story:
@@ -295,7 +307,7 @@ for (const it of items) {
   if (!it.ok) continue;
   const s = it.s;
   const related = (byGroupRecent.get(it.g[0]) || []).filter((r) => r !== it && Math.abs(r.t - it.t) < 2 * 86400).slice(0, 5);
-  const view = { ...it.hi, i: s.id, hi: it.hi, en: it.en, g: it.g, u: s.u, pub: s.pub, also: s.also, img: s.img, t: it.t, at: s.a?.at };
+  const view = { ...it.hi, i: s.id, hi: it.hi, en: it.en, g: it.g, u: s.u, pub: s.pub, also: s.also, img: s.img, t: it.t, at: s.a?.at, fix: FIX.notes.get(s.id) };
   const keys = [`in/${it.g[0] || "all"}`, it.loc.s ? `s-${it.loc.s}/all` : "", it.loc.d ? `d/${it.loc.s}/${it.loc.d}` : ""].filter(Boolean);
   emit(`story/${s.id}/index.html`, P.storyPage(view, related, keys), { prio: "0.6", lastmod: new Date(s.a?.at || s.p).toISOString() });
   storyPages++;
@@ -326,7 +338,8 @@ for (const [key] of lists) {
 }
 
 // help pages (about, contact, privacy, terms, disclaimer) and 404
-for (const hp of HELP_PAGES(site)) emit(`${hp.slug}/index.html`, P.textPage({ path: `/${hp.slug}/`, title: `${hp.title} — The Simplest News`, hi: hp.hi, en: hp.en }), { prio: "0.3" });
+if (FIX.remove.size || FIX.notes.size) log("build", `corrections: ${FIX.remove.size} stories removed, ${FIX.notes.size} with a correction note`);
+for (const hp of HELP_PAGES(site, { groups, base })) emit(`${hp.slug}/index.html`, P.textPage({ path: `/${hp.slug}/`, title: `${hp.title} — The Simplest News`, hi: hp.hi, en: hp.en }), { prio: "0.3" });
 write("404.html", P.textPage({ path: "/404.html", title: "404 — The Simplest News", hi: `<h1>यह पेज नहीं मिला</h1><p><a href="${base}/">होम पेज पर जाएं</a></p>`, en: `<h1>Page not found</h1><p><a href="${base}/">Go to the home page</a></p>` }));
 
 // ---------- robots, sitemaps, ads.txt, app manifest ----------
