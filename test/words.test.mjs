@@ -9,10 +9,8 @@ const has = (title, group) => groupsFromWords(title).includes(group);
 test("clear words find their group", () => {
   assert.ok(has("द बोनस मार्केट अपडेट: सेंसेक्स 1225 अंक चढ़ा, निफ्टी 23400 के पार", "stock-market"));
   assert.ok(has("Mahanadi Coalfields IPO: नवंबर में आ सकता है इश्यू", "stock-market"));
-  assert.ok(has("SBI Recruitment 2026: Apply Online for 60 Posts", "jobs"));
   assert.ok(has("AI से काम लेना ही काफी नहीं", "ai"));
   assert.ok(has("ISRO to launch Gaganyaan test flight", "science"));
-  assert.ok(has("सोने-चांदी के दाम आज फिर बढ़े", "gold-silver"));
   assert.ok(has("स्टार्टअप ने जुटाए 50 करोड़", "startup"));
   assert.ok(has("साइबर ठगों ने बुजुर्ग से 20 लाख ठगे", "scams"));
   assert.ok(has("Digital arrest scam: retired teacher loses ₹50 lakh", "scams"));
@@ -20,11 +18,10 @@ test("clear words find their group", () => {
 
 test("look-alike words don't", () => {
   assert.ok(!has("शाहरुख खान बर्थडे: पुरानी तस्वीर शेयर करते हुए अजय देवगन ने किया विश", "stock-market"), "शेयर करना = to share a photo");
-  assert.ok(!has("बुजुर्ग को अस्पताल में भर्ती कराया गया", "jobs"), "अस्पताल में भर्ती = admitted to hospital");
   assert.ok(!has("AIIMS doctors begin strike", "ai"), "AI inside AIIMS");
   assert.ok(!has("Mandi district: landslide blocks highway", "farming"), "Mandi is also a district");
-  assert.ok(!has("गोल्ड मेडल जीतकर लौटीं पहलवान", "gold-silver"), "a gold medal is sports");
   assert.deepEqual(groupsFromWords("सड़क हादसे में दो युवकों की मौत"), [], "road accidents are not one of the site's groups");
+  assert.deepEqual(groupsFromWords("SBI Recruitment 2026: Apply Online for 60 Posts"), [], "nor jobs");
 });
 
 test("words in CAPITALS match exactly, others ignore case", () => {

@@ -27,6 +27,20 @@ test("Google Trends: English and Hindi topics with their news links", () => {
   assert.equal(display("gta vi ps5", ["GTA VI on PS5: release date leaked", "Sony's PS5 price"]), "GTA VI PS5", "word by word when the whole topic isn't in a headline");
 });
 
+test("Google Trends: names written properly even when the headlines don't have them", () => {
+  assert.equal(display("rajat patidar", ["IND vs PAK: भारत के बाद पाकिस्तान ने भी किया टीम का ऐलान"]), "Rajat Patidar", "every word with a capital letter");
+  assert.equal(display("ben vs mah", ["Maharashtra takes the lead against Bengal", "Bengal vs Maharashtra, Ranji Trophy Live"]), "Bengal vs Maharashtra", "short words written in full");
+  assert.equal(display("im game", ["From Dulquer Salmaan's 'I'm Game' to more"]), "I'm Game", "the apostrophe the searchers left out");
+  assert.equal(display("women's big bash league", ["Last-ball thriller gives Sixers winning start"]), "Women's Big Bash League");
+  assert.equal(display("bbl women", ["Women's BBL: Sixers win"]), "BBL Women", "a word as a headline writes it");
+  assert.equal(display("8th pay commission news", ["8th Pay Commission: what changes"]), "8th Pay Commission News");
+  assert.equal(display("दिवाली", ["दिवाली पर बाज़ार में रौनक"]), "दिवाली");
+  const bgmi = ["Krafton unveils BGMI 4.7 update with annual popularity competition", "PUBG MOBILE launches Version 4.7 with the Ancient Beast"];
+  assert.equal(display("battlegrounds mobile india", bgmi), "Battlegrounds Mobile India", "a long word in capitals (a brand's styling) is not copied");
+  assert.equal(display("bgmi new update", bgmi), "BGMI New Update", "short words in capitals are");
+  assert.equal(display("icici bank share price", ["ICICI Bank shares jump 3%"]), "ICICI Bank Share Price");
+});
+
 test("Google Trends: topics of the last 8 hours, the most searched first", () => {
   const now = Date.parse("2026-11-04T12:00:00Z");
   const old = [

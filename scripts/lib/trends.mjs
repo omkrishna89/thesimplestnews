@@ -21,18 +21,55 @@ export function traffic(s) {
   return Math.round(parseFloat(m[1].replace(/,/g, "")) * (/k/i.test(m[2]) ? 1e3 : /m/i.test(m[2]) ? 1e6 : 1));
 }
 
-// The topic as the news writes it: "bengal vs maharashtra" -> "Bengal vs Maharashtra", "gta vi ps5" -> "GTA VI PS5"
-// (the whole topic from a headline, else word by word; and a capital first letter)
+// The topic as the news writes it:
+//   "bengal vs maharashtra" -> "Bengal vs Maharashtra", "gta vi ps5" -> "GTA VI PS5" (as a headline writes it)
+//   "ben vs mah" -> "Bengal vs Maharashtra"  (a headline writes the short words in full)
+//   "im game" -> "I'm Game"                   (apostrophes left out by the searchers)
+//   "rajat patidar" -> "Rajat Patidar"        (no headline has it: every word with a capital letter)
+const SMALL = new Set(["vs", "v", "and", "or", "of", "the", "in", "on", "at", "to", "for", "by", "from", "with", "a", "an"]);
+const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const APOS = "['’ʼ]?"; // an apostrophe may be left out
+const LETTER = "[\\p{L}\\p{M}\\p{N}]";
+// the words, letter by letter with an optional apostrophe between, and spaces or dashes between words
+const pattern = (words) => words.map((w) => [...w].map(esc).join(APOS)).join("[\\s-]+");
 export function display(topic, titles = []) {
-  const find = (w) => {
-    const re = new RegExp(`(?:^|[^\\p{L}\\p{N}])(${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+")})(?![\\p{L}\\p{N}])`, "iu");
+  const words = topic.trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return topic;
+  const find = (re) => {
     for (const t of titles) {
       const m = re.exec(t);
       if (m) return m[1];
     }
     return null;
   };
-  const out = find(topic) || topic.split(" ").map((w) => find(w) || w).join(" ");
+  const whole = (ws) => find(new RegExp(`(?<!${LETTER})(${pattern(ws)})(?!${LETTER})`, "iu"));
+  // 1. the whole topic, as a headline writes it
+  let out = whole(words);
+  // 2. short words a headline writes in full: every word starts a word of the headline, in the same order
+  if (!out && words.length > 1 && words.some((w) => !SMALL.has(w.toLowerCase()))) {
+    const re = new RegExp(`(?<!${LETTER})(${words.map((w) => (SMALL.has(w.toLowerCase()) ? esc(w) : `${esc(w)}${LETTER}*`)).join("[\\s-]+")})(?!${LETTER})`, "iu");
+    out = find(re);
+  }
+  // 3. word by word: as a headline writes the word, else with a capital letter (small words stay small).
+  //    All capitals only for short words (BGMI, CJI, ICICI): a longer word in capitals is a brand's styling ("PUBG MOBILE").
+  if (!out) {
+    const forms = (w) => {
+      const re = new RegExp(`(?<!${LETTER})(${pattern([w])})(?!${LETTER})`, "giu");
+      return titles.flatMap((h) => [...h.matchAll(re)].map((m) => m[1])).filter((s) => s !== s.toLowerCase());
+    };
+    const letters = (s) => s.replace(/[^\p{L}]/gu, "").length;
+    out = words
+      .map((w, i) => {
+        const seen = forms(w);
+        const mixed = seen.find((s) => s !== s.toUpperCase()); // "Mobile", "iPhone"
+        if (mixed) return mixed;
+        const caps = seen.find((s) => letters(s) <= 5);
+        if (caps) return caps;
+        if (/\p{Script=Devanagari}/u.test(w) || (i > 0 && SMALL.has(w.toLowerCase()))) return w;
+        return w[0].toUpperCase() + w.slice(1);
+      })
+      .join(" ");
+  }
   return out[0].toUpperCase() + out.slice(1);
 }
 

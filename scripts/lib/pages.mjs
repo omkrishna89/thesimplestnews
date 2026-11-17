@@ -22,6 +22,10 @@ export function makePages(ctx) {
   const url = (p) => `${base}${p}`;
   const abs = (p) => `${ctx.siteUrl}${p}`;
   const ads = site.adsense || {};
+  // Google Search Console's check that the site is ours (config/site.json > searchConsole > verification: the code from its HTML tag)
+  const verify = /^[\w-]{10,100}$/.test(site.searchConsole?.verification || "") ? site.searchConsole.verification : "";
+  // the free Worker that writes other websites' headlines in simple words (worker/rewrite.js)
+  const rewrite = /^https:\/\/[\w.-]+(\/[\w./-]*)?$/.test(site.rewrite?.url || "") ? site.rewrite.url : "";
   const adOn = !!ads.client;
 
   const ad = (slot, cls = "") => {
@@ -54,6 +58,7 @@ ${noindex ? '<meta name="robots" content="noindex, follow">' : '<meta name="robo
 <meta property="og:url" content="${esc(abs(path))}">
 <meta property="og:image" content="${esc(img)}">
 <meta name="twitter:card" content="summary_large_image">
+${verify ? `<meta name="google-site-verification" content="${esc(verify)}">` : ""}
 <link rel="icon" href="${url("/assets/img/icon.svg")}" type="image/svg+xml">
 <link rel="apple-touch-icon" href="${url("/assets/img/icon-192.png")}">
 <link rel="manifest" href="${url("/manifest.webmanifest")}">
@@ -105,7 +110,7 @@ ${groups.map((g) => chip(g.slug, g.icon, g.nav_hi || g.hi, g.nav_en || g.en)).jo
 
   const page = (opts, body, active) =>
     `${head(opts)}
-<body data-page="${esc(opts.kind || "page")}"${opts.data ? ` data-view='${esc(JSON.stringify(opts.data))}'` : ""} data-base="${esc(base)}">
+<body data-page="${esc(opts.kind || "page")}"${opts.data ? ` data-view='${esc(JSON.stringify(opts.data))}'` : ""} data-base="${esc(base)}"${rewrite ? ` data-rewrite="${esc(rewrite)}"` : ""}>
 <a class="skip" href="#main">${bi("खबरों पर जाएं", "Skip to news")}</a>
 ${header(active)}
 ${body}
@@ -164,8 +169,7 @@ ${footer()}
     const h1hi = g ? `${g.icon} ${g.hi}` : T.hi.all;
     const h1en = g ? `${g.icon} ${g.en}` : T.en.all;
     const view = { group, tab };
-    const wide = group === "gold-silver"; // the rates are this page's main content
-    const body = `<main id="main" class="wrap${wide ? " wrap--wide" : ""}">
+    const body = `<main id="main" class="wrap">
 <div class="main">
 ${ad("top", "ad--top")}
 <div class="pagehead"><h1>${bi(esc(h1hi), esc(h1en))}</h1>${g ? `<p class="pagehead__about">${bi(esc(g.about_hi), esc(g.about_en))}</p>` : ""}</div>

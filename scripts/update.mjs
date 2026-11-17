@@ -12,7 +12,6 @@ import { readArticle, allowedByRobots } from "./lib/article.mjs";
 import { loadDB, saveDB, similarity, words } from "./lib/db.mjs";
 import { parseFeed } from "./lib/feeds.mjs";
 import { NOT_SAID, PRIMARY, QUESTIONS, QuotaError, dailyLimitOf, hasKey, requestShapes, sortHeadlines, summarize } from "./lib/gemini.mjs";
-import { updateMetals } from "./lib/metals.mjs";
 import { googleDay, learnLimit, msToReset, runBudget } from "./lib/pace.mjs";
 import { pickForAI } from "./lib/pick.mjs";
 import { COVERED, districtSlug, placeSlug, stateCode } from "./lib/places.mjs";
@@ -243,10 +242,13 @@ function mockAnswer(s) {
 // The site's groups only (config/groups.json)
 const GROUP_SLUGS = new Set(config("groups.json").list.map((g) => g.slug));
 const ours = (groups = []) => groups.filter((g) => GROUP_SLUGS.has(g));
+// All scam and fraud news is in Scams & Fraud only (not also in Bank & Money, Business, Politics…)
+const onlyScams = (groups = []) => (groups.includes("scams") ? ["scams"] : groups);
 
 function apply(story, r, model) {
   // Gemini's groups, plus the news feed's own group (a Business feed's story is Business news)
-  const groups = [...new Set([...(r.groups || []), ...ours(story.gh)])].slice(0, 4);
+  const all = [...new Set([...(r.groups || []), ...ours(story.gh)])].slice(0, 4);
+  const groups = onlyScams(all);
   story.a = { hi: r.hi, en: r.en, g: groups, imp: r.imp, scope: r.scope, place: r.place, m: model, at: Date.now() };
   story.loc = locate(story);
   story.sc = scopeOf(story, story.loc);
@@ -297,7 +299,7 @@ async function sortNew(maxRequests) {
   const topics = (db.trends?.list || []).filter((t) => !t.g);
   const items = [
     ...topics.map((t) => ({ t, text: `Trending Google search in India: "${t.t}". Its news: ${t.news.map((n) => n.h).join(" | ")}` })),
-    ...stories.map((s) => ({ s, text: `${s.t}${s.x ? ` — ${clip(s.x, 160)}` : ""}` })),
+    ...stories.map((s) => ({ s, text: `${s.t}${s.x ? ` — ${clip(s.x, 300)}` : ""}` })),
   ];
   if (!items.length || maxRequests <= 0) return 0;
   const size = Number(process.env.GEMINI_SORT_BATCH || site.gemini.sortBatch || 150);
@@ -321,7 +323,7 @@ async function sortNew(maxRequests) {
     requests++;
     if (r.usage) countTokens(r.model, r.usage, { sorted: part.length });
     part.forEach((it, j) => {
-      const g = r.groups[j];
+      const g = r.groups[j] && onlyScams(r.groups[j]);
       if (!g) return; // skipped by Gemini: sorted again next time
       if (it.t) it.t.g = g;
       else {
@@ -468,13 +470,10 @@ async function trends() {
 // ---------- 4. gold & silver ----------
 async function extras() {
   if (args.has("--no-fetch")) return;
-  if (!db.metals?.checked || now - db.metals.checked > 2.5 * 3600e3) {
-    db.metals = await updateMetals(db.metals || {});
-    log(`[metals] IBJA ${db.metals.ibja ? `${db.metals.ibja.date} ${db.metals.ibja.session}` : "not available"}, history ${db.metals.intl ? "ok" : "not available"}`);
-  }
-  // trailers & songs are not on the site any more (no Movies group)
+  // trailers & songs and the gold & silver rates are not on the site any more (no Movies or Gold & Silver group)
   delete db.videos;
   delete db.videosAt;
+  delete db.metals;
 }
 
 // ---------- 5. forget old stories ----------

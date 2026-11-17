@@ -15,8 +15,8 @@ const GROUPS = GROUP_LIST.map((g) => g.slug);
 export const OTHER = "other";
 const CHOICES = [...GROUPS, OTHER];
 // The same rules for sorting and for writing, so Gemini doesn't sort a story in and then find it out after writing it
-const NOT_OURS = "cricket or other sports, films, TV and celebrities, other crime (theft, murder, fights) and police and court cases that are not about fraud, accidents and disasters, war, terror attacks and the army, festivals, temples and religion, horoscope, weather";
-const POLITICS = `"politics" = elections, political parties, politicians and the laws and government decisions they make — not police work, festival arrangements, wars abroad or the army. "scams" = frauds that cheat people (online, cyber, bank, UPI, OTP, fake calls, 'digital arrest', job, loan and investment scams, chit funds), fraudsters caught, warnings on how to stay safe, big money scams, bank-loan frauds, government scams and corruption cases`;
+const NOT_OURS = "cricket or other sports, films, TV and celebrities, other crime (theft, murder, fights) and police and court cases that are not about fraud, accidents and disasters, war, terror attacks and the army, festivals, fairs, temples and religion, horoscope, weather and pollution, jobs, recruitment and exam results, schools, colleges and admissions, health, hospitals and diseases, cars and bikes, gold and silver prices";
+const POLITICS = `"politics" = elections, political parties, politicians and the laws and government decisions they make — not police work, festival arrangements, wars abroad or the army. "scams" = frauds that cheat people (online, cyber, bank, UPI, OTP, fake calls, 'digital arrest', job, loan and investment scams, chit funds), fraudsters caught, warnings on how to stay safe, big money scams, bank-loan frauds, government scams and corruption cases. A story about a scam or fraud goes ONLY into "scams", never into another group as well`;
 const KEY = process.env.GEMINI_API_KEY || "";
 const BASE = process.env.GEMINI_BASE || "https://generativelanguage.googleapis.com/v1beta";
 const MODELS = (process.env.GEMINI_MODEL ? process.env.GEMINI_MODEL.split(",") : site.gemini.models).map((m) => m.trim()).filter(Boolean);
@@ -128,6 +128,7 @@ ${GROUP_LIST.map((g) => `- ${g.slug}: ${g.en} (${g.about_en})`).join("\n")}
 
 For every numbered item give "g": 1 to 3 group slugs from the list, best first. ${POLITICS}.
 If the item fits none of the groups (for example ${NOT_OURS}), give ["${OTHER}"]. When in doubt, give ["${OTHER}"].
+These are "other" too, even when a leader or an officer is in them: a visit to a festival, fair, temple, wedding or function; police patrols, raids and arrests (unless for fraud); fires, floods and accidents; a meeting, inspection or review that decides nothing new for people; wishes, tributes and birthdays.
 Reply with JSON {"items":[{"n":1,"g":["politics"]}]} with exactly one entry for every item, using its number "n".`;
 
 const SORT_SCHEMA = {

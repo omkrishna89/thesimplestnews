@@ -287,7 +287,7 @@ function keep(it) {
 
 // All news about the reader's stocks at once: one small file per listed company (made by the build), and for names
 // typed by the reader that aren't in the list, the day files of all groups, India and world.
-const WIDE = ["all", "stock-market", "business", "tech", "ai", "startup", "money", "auto", "jobs"];
+const WIDE = ["all", "stock-market", "business", "tech", "ai", "startup", "money"];
 async function loadWatch() {
   const idx = await index();
   Object.assign(list, { keys: [], loaded: [], ids: new Set(), next: 0, days: [] });
@@ -840,19 +840,24 @@ D.fonts?.ready.then(() => {
 });
 
 // ---------- the Stocks box (when Stocks is the only group picked) ----------
+// One search bar: on the Stocks page the news search box also suggests stock names; picking one follows that stock.
+const stockView = () => !!view?.tab && !searching() && list.groups.length === 1 && list.groups[0] === "stock-market";
 function stockBox() {
-  const show = !!view?.tab && list.groups.length === 1 && list.groups[0] === "stock-market";
+  const show = stockView();
   let box = $("[data-stocks]");
   if (!show) {
     if (box) box.hidden = true;
+    closeSuggest();
     return;
   }
+  const sb = searchBox(true);
+  if (sb) sb.hidden = false;
   if (!box) {
     box = D.createElement("div");
     box.className = "stk";
     box.dataset.stocks = "";
-    box.innerHTML = `<div class="stk__f"><span aria-hidden="true">🔍</span><input type="search" class="stk__in" data-stk-in autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" role="combobox" aria-expanded="false" aria-controls="stk-sug" aria-autocomplete="list"></div><ul class="stk__sug" id="stk-sug" role="listbox" data-stk-sug hidden></ul><div class="stk__list" data-stk-list></div>`;
-    ($(".tabs") || $("[data-lists]"))?.before(box);
+    box.innerHTML = `<div class="stk__list" data-stk-list></div>`;
+    ((sb && !sb.hidden && sb) || $(".tabs") || $("[data-lists]"))?.[sb ? "after" : "before"](box);
     wireStockBox(box);
   }
   box.hidden = false;
@@ -862,9 +867,6 @@ async function drawWatch() {
   const box = $("[data-stocks]");
   if (!box || box.hidden) return;
   const L = T[lang];
-  const input = $("[data-stk-in]", box);
-  input.placeholder = L.stockPh;
-  input.setAttribute("aria-label", L.stockPh);
   const entries = watch.length ? await watchEntries() : [];
   const name = (w) => (lang === "hi" ? w.hi || w.en : w.en || w.hi);
   $("[data-stk-list]", box).innerHTML = entries.length
@@ -879,16 +881,33 @@ function setWatch(next) {
   drawWatch();
   loadAndRender();
 }
-async function suggest(q) {
-  const box = $("[data-stocks]");
-  const ul = $("[data-stk-sug]", box);
-  const input = $("[data-stk-in]", box);
-  q = q.trim();
-  if (!q) {
+// the stock suggestions under the search box
+function suggestList() {
+  const form = $("[data-search]");
+  if (!form) return null;
+  let ul = $("[data-stk-sug]", form);
+  if (!ul) {
+    ul = D.createElement("ul");
+    ul.className = "stk__sug";
+    ul.id = "stk-sug";
+    ul.setAttribute("role", "listbox");
+    ul.dataset.stkSug = "";
     ul.hidden = true;
-    input.setAttribute("aria-expanded", "false");
-    return;
+    form.append(ul);
   }
+  return ul;
+}
+function closeSuggest() {
+  const ul = $("[data-stk-sug]");
+  if (ul) ul.hidden = true;
+  $("[data-search-in]")?.setAttribute("aria-expanded", "false");
+}
+async function suggest(q) {
+  const ul = suggestList();
+  const input = $("[data-search-in]");
+  if (!ul || !input) return;
+  q = q.trim();
+  if (!q || !stockView()) return closeSuggest();
   const lq = q.toLowerCase();
   const have = new Set(watch.map((w) => w.s).filter(Boolean));
   const score = (s) => {
@@ -911,37 +930,39 @@ async function suggest(q) {
   input.setAttribute("aria-expanded", "true");
 }
 function wireStockBox(box) {
-  const input = $("[data-stk-in]", box);
-  const ul = $("[data-stk-sug]", box);
-  const close = () => {
-    ul.hidden = true;
-    input.setAttribute("aria-expanded", "false");
-  };
-  const add = (w) => {
-    if (!watch.some((x) => (w.s ? x.s === w.s : x.t?.toLowerCase() === w.t.toLowerCase()))) setWatch([...watch, w]);
-    input.value = "";
-    close();
-  };
-  input.addEventListener("input", () => suggest(input.value));
-  input.addEventListener("focus", () => {
-    stocksData();
-    if (input.value) suggest(input.value);
-  });
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") return close();
-    if (e.key !== "Enter") return;
-    e.preventDefault();
-    if (!ul.hidden) $("button", ul)?.click();
-  });
+  // the followed stocks: remove one, or all
   box.addEventListener("click", (e) => {
     const b = e.target.closest("button");
     if (!b) return;
-    if (b.dataset.stkAdd) add({ s: b.dataset.stkAdd });
-    else if (b.hasAttribute("data-stk-free")) input.value.trim() && add({ t: input.value.trim().slice(0, 40) });
-    else if (b.dataset.stkX !== undefined) setWatch(watch.filter((_, i) => i !== Number(b.dataset.stkX)));
+    if (b.dataset.stkX !== undefined) setWatch(watch.filter((_, i) => i !== Number(b.dataset.stkX)));
     else if (b.hasAttribute("data-stk-clear")) setWatch([]);
   });
-  D.addEventListener("click", (e) => !box.contains(e.target) && close());
+  // the search box: typing on the Stocks page suggests stocks (Enter still searches the news)
+  const form = $("[data-search]");
+  const input = $("[data-search-in]");
+  if (!form || !input || form.dataset.stocksWired) return;
+  form.dataset.stocksWired = "1";
+  input.setAttribute("aria-controls", "stk-sug");
+  const add = (w) => {
+    if (!watch.some((x) => (w.s ? x.s === w.s : x.t?.toLowerCase() === w.t.toLowerCase()))) setWatch([...watch, w]);
+    input.value = "";
+    closeSuggest();
+  };
+  input.addEventListener("input", () => stockView() && suggest(input.value));
+  input.addEventListener("focus", () => {
+    if (!stockView()) return;
+    stocksData();
+    if (input.value) suggest(input.value);
+  });
+  input.addEventListener("keydown", (e) => e.key === "Escape" && closeSuggest());
+  form.addEventListener("submit", closeSuggest);
+  form.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-stk-sug] button");
+    if (!b) return;
+    if (b.dataset.stkAdd) add({ s: b.dataset.stkAdd });
+    else if (b.hasAttribute("data-stk-free")) input.value.trim() && add({ t: input.value.trim().slice(0, 40) });
+  });
+  D.addEventListener("click", (e) => !form.contains(e.target) && closeSuggest());
 }
 
 // ---------- the search box (always on Home; on other pages after 🔍 in the top bar) ----------
@@ -966,7 +987,7 @@ function searchBox(show = false) {
   }
   const L = T[lang];
   const input = $("[data-search-in]", box);
-  input.placeholder = L.searchPh;
+  input.placeholder = stockView() ? L.stockSearchPh : L.searchPh;
   input.setAttribute("aria-label", L.search);
   $("[data-search-go]", box).textContent = L.search;
   if (D.activeElement !== input) input.value = list.q;
@@ -1004,6 +1025,36 @@ $("[data-search-open]")?.addEventListener("click", (e) => {
 // (a free, open news database; slow, and only for English words), 3. a link to the same search on Google News.
 const ox = { key: "", state: "", items: [], trend: null, ctrl: null, last: 0, shown: 10, cache: new Map() };
 const trendsData = () => getJSON("/data/trends.json");
+
+// The other websites' headlines in the shortest, simplest words: the site's free Cloudflare Worker (worker/rewrite.js)
+// asks Google's free Gemma model. Until it answers (or when it can't), the websites' own headlines show.
+const REWRITE = B.dataset.rewrite || "";
+const SIMPLE_DAYS = 3;
+const simple = { got: new Map(), wait: new Set(), pause: 0 };
+for (const e of store.get("oxSimple", [])) if (Array.isArray(e) && Date.now() - e[2] < SIMPLE_DAYS * 86400e3) simple.got.set(e[0], [e[1], e[2]]);
+const simpleKey = (h, l = lang) => `${l}|${h}`;
+const simpleOf = (h) => simple.got.get(simpleKey(h))?.[0] || "";
+async function simplify(news) {
+  if (!REWRITE || Date.now() < simple.pause) return;
+  const l = lang;
+  const todo = [...new Set(news.map((n) => n.h).filter((h) => h && !simple.got.has(simpleKey(h, l)) && !simple.wait.has(simpleKey(h, l))))].slice(0, 30);
+  if (!todo.length) return;
+  todo.forEach((h) => simple.wait.add(simpleKey(h, l)));
+  try {
+    // text/plain: a "simple" request, so the browser doesn't first ask the Worker for permission
+    const r = await fetch(REWRITE, { method: "POST", headers: { "content-type": "text/plain" }, body: JSON.stringify({ lang: l, items: todo }), signal: AbortSignal.timeout?.(25000) });
+    const data = await r.json().catch(() => null);
+    if (!r.ok || !Array.isArray(data?.items)) throw new Error(String(r.status));
+    const at = Date.now();
+    todo.forEach((h, i) => simple.got.set(simpleKey(h, l), [typeof data.items[i] === "string" ? data.items[i] : "", at])); // "" = keep the website's own
+    store.set("oxSimple", [...simple.got].slice(-400).map(([k, [v, t]]) => [k, v, t]));
+  } catch {
+    simple.pause = Date.now() + 60e3; // the Worker is busy or away: the websites' own headlines, and again in a minute
+  } finally {
+    todo.forEach((h) => simple.wait.delete(simpleKey(h, l)));
+  }
+  if (searching()) drawOx();
+}
 function oxBox() {
   let el = $("[data-ox]");
   if (!el) {
@@ -1096,9 +1147,16 @@ function drawOx() {
   const trend = ox.trend?.news || [];
   const seen = new Set(trend.map((n) => n.u));
   const items = ox.items.filter((n) => !seen.has(n.u));
-  const li = (n, tag = "") =>
-    `<li class="ox__it"><a href="${esc(n.u)}" target="_blank" rel="noopener nofollow">${esc(n.h)}</a><span class="ox__meta">${tag}${esc(n.src)}${n.t ? ` · ${esc(ago(n.t, lang))}` : ""}</span></li>`;
+  const shown = [...trend, ...items.slice(0, ox.shown)];
+  if (shown.length) simplify(shown); // asks the Worker for the ones it hasn't written yet; draws again when it answers
+  let simpler = 0;
+  const li = (n, tag = "") => {
+    const s = simpleOf(n.h); // the headline in simple words (the website's own one is the tooltip)
+    if (s) simpler++;
+    return `<li class="ox__it"><a href="${esc(n.u)}" target="_blank" rel="noopener nofollow"${s ? ` title="${esc(n.h)}"` : ""}>${esc(s || n.h)}</a><span class="ox__meta">${tag}${esc(n.src)}${n.t ? ` · ${esc(ago(n.t, lang))}` : ""}</span></li>`;
+  };
   const rows = [...trend.map((n) => li(n, `<span class="ox__tag">🔥 Google Trends</span> · `)), ...items.slice(0, ox.shown).map((n) => li(n))];
+  const writing = REWRITE && shown.some((n) => simple.wait.has(simpleKey(n.h)));
   const msg = {
     wait: `<p class="ox__msg ox__msg--wait">${esc(L.oxWait)}</p>`,
     fail: `<p class="ox__msg">${esc(L.oxFail)} <button type="button" class="btn btn--small" data-ox-retry>${esc(L.retry)}</button></p>`,
@@ -1111,6 +1169,8 @@ function drawOx() {
 ${rows.length ? `<ol class="ox__list">${rows.join("")}</ol>` : ""}
 ${left > 0 ? `<button type="button" class="btn btn--small ox__more" data-ox-more>${esc(L.oxMore(Math.min(20, left)))}</button>` : ""}
 ${msg}
+${writing ? `<p class="ox__msg ox__msg--wait">${esc(L.oxSimpleWait)}</p>` : ""}
+${simpler ? `<p class="ox__credit">${esc(L.oxSimpleBy)}</p>` : ""}
 ${items.length ? `<p class="ox__credit">${L.oxCredit('<a href="https://www.gdeltproject.org/" target="_blank" rel="noopener">GDELT Project</a>')}</p>` : ""}
 <p class="ox__gn"><a class="btn" href="${esc(googleNewsUrl(list.q, lang))}" target="_blank" rel="noopener">${esc(L.googleNews(list.q))}</a></p>`;
 }
