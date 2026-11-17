@@ -1,0 +1,4 @@
+{
+  "about": "Fix or remove a wrong story (README: 'Fix or remove a wrong story'). One line per story inside the [ ] of \"list\", with a comma between two lines. \"story\": the story's address, e.g. https://thesimplestnews.com/story/96665c1da439/. Remove it: \"remove\": true. Or a correction note shown at the top of the story: \"note_en\" and \"note_hi\". \"date\": the day of the fix. Examples: { \"story\": \"https://thesimplestnews.com/story/96665c1da439/\", \"remove\": true, \"date\": \"17 Nov 2026\" } and { \"story\": \"https://thesimplestnews.com/story/ec4887e95b7b/\", \"note_en\": \"The district is Barabanki, not Lucknow.\", \"note_hi\": \"ज़िला बाराबंकी है, लखनऊ नहीं।\", \"date\": \"17 Nov 2026\" }",
+  "list": []
+}

@@ -1,7 +1,16 @@
-// About, Contact, Privacy Policy, Terms and Disclaimer — in Hindi and English.
+// About, Editorial Policy, Contact, Privacy Policy, Terms and Disclaimer — in Hindi and English.
 // Google AdSense asks for these pages. Change the text here if anything about the site changes.
-export function HELP_PAGES(site) {
+const h = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+export function HELP_PAGES(site, { groups = [], base = "" } = {}) {
   const mail = `<a href="mailto:${site.email}">${site.email}</a>`;
+  // the editor (config/site.json > editor); the Hindi pages show the name as it is written there
+  const ed = site.editor || {};
+  const name = h(ed.name);
+  const titleEn = h(ed.title_en || "Editor");
+  const titleHi = h(ed.title_hi || "संपादक");
+  const policy = `${base}/editorial-policy/`;
+  const topics = (lang) => groups.map((g) => h(lang === "hi" ? g.hi : g.en)).join(", ");
   const updated = site.analytics?.ga4 ? "4 November 2026" : "3 November 2026";
   // only when Google Analytics is switched on in config/site.json
   const gaHi = site.analytics?.ga4
@@ -28,7 +37,9 @@ export function HELP_PAGES(site) {
 <li>जो वेबसाइट robots.txt से रोबोट को मना करती हैं, उनके पेज हम नहीं पढ़ते।</li>
 <li>उत्तर प्रदेश, बिहार, मध्य प्रदेश, राजस्थान, दिल्ली, हरियाणा, झारखंड, उत्तराखंड, छत्तीसगढ़ और हिमाचल प्रदेश की ज़िला और तहसील स्तर की खबरें भी।</li>
 </ul>
-<p>AI से गलती हो सकती है। ज़रूरी फ़ैसले से पहले मूल खबर ज़रूर पढ़ें। गलती दिखे तो ${mail} पर बताएं।</p>`,
+<p>AI से गलती हो सकती है। ज़रूरी फ़ैसले से पहले मूल खबर ज़रूर पढ़ें। गलती दिखे तो ${mail} पर बताएं।</p>
+<h2>कौन चलाता है</h2>
+<p>${name ? `<b>${titleHi}:</b> ${name}। ` : ""}साइट पर छपने वाली हर खबर की ज़िम्मेदारी संपादक की है। खबरें कैसे चुनी और लिखी जाती हैं, यह हमारी <a href="${policy}">संपादकीय नीति</a> में है।</p>`,
       en: `<h1>About us</h1>
 <p><b>The Simplest News</b> (${site.domain}) gives you every story in the shortest, simplest words — in Hindi and in English.</p>
 <h2>How it works</h2>
@@ -39,7 +50,9 @@ export function HELP_PAGES(site) {
 <li>We don't read pages of websites that ask robots to stay away (robots.txt).</li>
 <li>District and tehsil news for Uttar Pradesh, Bihar, Madhya Pradesh, Rajasthan, Delhi, Haryana, Jharkhand, Uttarakhand, Chhattisgarh and Himachal Pradesh.</li>
 </ul>
-<p>AI can make mistakes. Please read the original story before any important decision. Found a mistake? Write to ${mail}.</p>`,
+<p>AI can make mistakes. Please read the original story before any important decision. Found a mistake? Write to ${mail}.</p>
+<h2>Who runs it</h2>
+<p>${name ? `<b>${titleEn}:</b> ${name}. ` : ""}The editor is responsible for everything the site publishes. How stories are chosen and written: our <a href="${policy}">Editorial Policy</a>.</p>`,
     },
     {
       slug: "contact",
@@ -49,13 +62,61 @@ export function HELP_PAGES(site) {
 <h2>गलती, शिकायत या खबर हटाने का अनुरोध</h2>
 <p>किसी खबर के सार में गलती हो, या आप किसी समाचार संस्था की ओर से अपनी खबर हटवाना चाहते हैं, तो खबर का लिंक भेजें। हम 24 घंटे में जवाब देने और 15 दिन में शिकायत सुलझाने की कोशिश करते हैं।</p>
 <h2>शिकायत अधिकारी (Grievance Officer)</h2>
-<p>The Simplest News टीम · ${mail}</p>`,
+<p>${name ? `${name} (${titleHi})` : "The Simplest News टीम"} · ${mail}</p>`,
       en: `<h1>Contact us</h1>
 <p>Email: ${mail}</p>
 <h2>Mistakes, complaints and removal requests</h2>
 <p>If a summary has a mistake, or you represent a news organisation and want a story removed, send us the link. We aim to reply within 24 hours and to resolve complaints within 15 days.</p>
 <h2>Grievance Officer</h2>
-<p>The Simplest News team · ${mail}</p>`,
+<p>${name ? `${name} (${titleEn})` : "The Simplest News team"} · ${mail}</p>`,
+    },
+    {
+      slug: "editorial-policy",
+      title: "Editorial Policy · संपादकीय नीति",
+      hi: `<h1>संपादकीय नीति</h1>
+<p><i>आखिरी बदलाव: 17 नवंबर 2026</i></p>
+<h2>हम कौन हैं</h2>
+<p><b>The Simplest News</b> (${site.domain})${name ? ` · <b>${titleHi}:</b> ${name}` : ""}। साइट पर छपने वाली हर खबर की ज़िम्मेदारी संपादक की है। संपर्क: ${mail}</p>
+<h2>हम क्या छापते हैं</h2>
+<p>वो खबरें जो लोगों के पैसे, काम और अधिकारों से जुड़ी हैं${groups.length ? ` — इन ${groups.length} विषयों में: ${topics("hi")}` : ""}। बाकी खबरें (खेल, फ़िल्में, अपराध, हादसे, मौसम, धर्म…) हम नहीं छापते।</p>
+<h2>खबरें कहां से आती हैं</h2>
+<p>भारत और दुनिया के जाने-माने समाचार संस्थानों की सार्वजनिक RSS फ़ीड से — राष्ट्रीय और क्षेत्रीय अख़बार, टीवी चैनल और न्यूज़ वेबसाइटें, जैसे NDTV, The Hindu, ThePrint, India Today, BBC Hindi और आज तक। जो वेबसाइट robots.txt से रोबोट को मना करती हैं, उनके पेज हम नहीं पढ़ते।</p>
+<h2>खबर कैसे लिखी जाती है</h2>
+<ol>
+<li>हर 30 मिनट में हमारा रोबोट नई हेडलाइन इकट्ठा करता है।</li>
+<li>Google Gemini (AI) हर हेडलाइन को हमारे विषयों में बांटता है; बाकी छोड़ दी जाती हैं।</li>
+<li>Gemini मूल खबर पढ़कर सबसे छोटा शीर्षक और 9 छोटे जवाब (क्या, कौन, किसे, किसका, कहां, कब, क्यों, कौन-सा, कैसे) हिंदी और अंग्रेज़ी में लिखता है — सिर्फ़ मूल खबर की बातों से।</li>
+<li>हर खबर के साथ उसका स्रोत और मूल खबर का लिंक होता है।</li>
+</ol>
+<p>छोटे सार AI लिखता है और वे अपने-आप छपते हैं: छपने से पहले कोई व्यक्ति हर सार नहीं जांचता। इसीलिए हर खबर के साथ मूल खबर का लिंक है। खोज के नतीजों में दूसरी वेबसाइटों की हेडलाइन Google का Gemma AI आसान शब्दों में लिखता है; असली हेडलाइन और खबर उसी वेबसाइट पर है।</p>
+<h2>सच्चाई और निष्पक्षता</h2>
+<p>हम अपनी राय नहीं जोड़ते, और वो बात नहीं लिखते जो मूल खबर में नहीं है। राजनीति में हम किसी का पक्ष नहीं लेते। एक ही खबर कई वेबसाइटें छापें, तो हम उन सबके लिंक एक साथ दिखाते हैं।</p>
+<h2>गलती सुधार</h2>
+<p>गलती दिखे तो खबर का लिंक ${mail} पर भेजें। हम 24 घंटे में जवाब देने की कोशिश करते हैं। गलत सार पर सबसे ऊपर तारीख के साथ <b>सुधार</b> लिखा जाता है; अगर खबर ही गलत हो, तो उसे हटा दिया जाता है।</p>
+<h2>स्वतंत्रता</h2>
+<p>कोई हमें कोई खबर छापने, बदलने या छिपाने के लिए पैसे नहीं देता। विज्ञापन Google AdSense के होते हैं; उनसे यह तय नहीं होता कि कौन-सी खबर छपेगी।</p>`,
+      en: `<h1>Editorial Policy</h1>
+<p><i>Last updated: 17 November 2026</i></p>
+<h2>Who we are</h2>
+<p><b>The Simplest News</b> (${site.domain})${name ? ` · <b>${titleEn}:</b> ${name}` : ""}. The editor is responsible for everything the site publishes. Contact: ${mail}</p>
+<h2>What we publish</h2>
+<p>News that matters for people's money, work and rights${groups.length ? `, in ${groups.length} topics: ${topics("en")}` : ""}. Other news (sports, films, crime, accidents, weather, religion…) is left out.</p>
+<h2>Where the news comes from</h2>
+<p>The public RSS feeds of established Indian and world news organisations — national and regional newspapers, TV channels and news websites such as NDTV, The Hindu, ThePrint, India Today, BBC Hindi and Aaj Tak. We don't read pages of websites that ask robots to stay away (robots.txt).</p>
+<h2>How a story is written</h2>
+<ol>
+<li>Every 30 minutes our robot collects new headlines.</li>
+<li>Google Gemini (AI) sorts each headline into our topics; the rest is left out.</li>
+<li>Gemini reads the original article and writes the shortest headline and 9 short answers (what, who, whom, whose, where, when, why, which, how) in Hindi and English — using only facts from the original.</li>
+<li>Every story shows its source and links to the original article.</li>
+</ol>
+<p>The short versions are written by AI and published automatically: a person does not check each one before it appears. That is why every story links to the original. Under search results, headlines from other websites are written in simpler words by Google's Gemma AI; the original headline and story are on that website.</p>
+<h2>Accuracy and fairness</h2>
+<p>We add no opinions and nothing that the original story does not say. We don't take sides in politics. When several websites report the same story, we show all their links together.</p>
+<h2>Corrections</h2>
+<p>Found a mistake? Send the story's link to ${mail}. We aim to reply within 24 hours. A wrong summary gets a dated <b>Correction</b> note at its top; a story that is wrong as a whole is removed.</p>
+<h2>Independence</h2>
+<p>No one pays us to publish, change or hide a story. Ads come from Google AdSense and don't decide which stories appear.</p>`,
     },
     {
       slug: "privacy",

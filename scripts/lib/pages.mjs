@@ -99,7 +99,7 @@ ${groups.map((g) => chip(g.slug, g.icon, g.nav_hi || g.hi, g.nav_en || g.en)).jo
     const link = (p, hi, en) => `<a href="${url(p)}">${bi(hi, en)}</a>`;
     return `<footer class="ft"><div class="ft__in">
 <p class="ft__brand"><b>The Simplest News</b> · ${bi(esc(site.tagline.hi), esc(site.tagline.en))}</p>
-<p class="ft__links">${link("/about/", "हमारे बारे में", "About")} · ${link("/contact/", "संपर्क", "Contact")} · ${link("/privacy/", "प्राइवेसी पॉलिसी", "Privacy Policy")} · ${link("/terms/", "शर्तें", "Terms")} · ${link("/disclaimer/", "अस्वीकरण", "Disclaimer")}</p>
+<p class="ft__links">${link("/about/", "हमारे बारे में", "About")} · ${link("/editorial-policy/", "संपादकीय नीति", "Editorial Policy")} · ${link("/contact/", "संपर्क", "Contact")} · ${link("/privacy/", "प्राइवेसी पॉलिसी", "Privacy Policy")} · ${link("/terms/", "शर्तें", "Terms")} · ${link("/disclaimer/", "अस्वीकरण", "Disclaimer")}</p>
 <p class="ft__note">${bi(
       "हर खबर का छोटा सार और 9 जवाब AI (Google Gemini) ने मूल खबर से लिखे हैं; हर खबर के साथ मूल वेबसाइट का लिंक है। गलती दिखे तो हमें बताएं।",
       "Each short summary and its 9 answers are written by AI (Google Gemini) from the original story, which is always linked. Spotted a mistake? Tell us.",
@@ -194,6 +194,10 @@ ${sidebar()}
     const sources = [{ u: s.u, pub: s.pub }, ...(s.also || [])]
       .map((a) => `<li><a href="${esc(a.u)}" target="_blank" rel="noopener nofollow">${bi(esc(a.pub.hi), esc(a.pub.en))} ↗</a></li>`)
       .join("");
+    // the editor's correction (config/corrections.json), at the top of the story
+    const fix = s.fix
+      ? ["hi", "en"].map((lang) => `<p class="st__fix l-${lang}" lang="${lang}"><b>${esc(T[lang].correction)}${s.fix.date ? ` (${esc(s.fix.date)})` : ""}:</b> ${esc(s.fix[lang])}</p>`).join("")
+      : "";
     const shareUrl = abs(`/story/${s.i}/`);
     const share = `<div class="share">
 <a class="btn btn--wa" href="https://wa.me/?text=${encodeURIComponent(`${s.hi.h} ${shareUrl}`)}" target="_blank" rel="noopener">WhatsApp</a>
@@ -207,6 +211,7 @@ ${sidebar()}
 <article class="st" data-id="${s.i}">
 <div class="st__groups">${groupsLine}</div>
 ${["hi", "en"].map((lang) => `<div class="l-${lang}" lang="${lang}">${head1(lang)}${meta(lang)}</div>`).join("")}
+${fix}
 ${["hi", "en"].map((lang) => `<div class="l-${lang}" lang="${lang}">${qaHTML(L(lang), lang)}</div>`).join("")}
 ${photo}
 <section class="st__src"><h2>${biT("sources")}</h2><ul>${sources}</ul></section>
@@ -227,7 +232,9 @@ ${sidebar()}
       dateModified: new Date((s.at || s.t * 1000)).toISOString(),
       image: s.img ? [s.img] : undefined,
       isBasedOn: s.u,
-      publisher: { "@type": "Organization", name: site.name.en, logo: { "@type": "ImageObject", url: abs("/assets/img/icon-512.png") } },
+      author: { "@type": "Organization", name: "The Simplest News Desk", url: abs("/about/") },
+      publisher: { "@type": "Organization", name: site.name.en, url: abs("/"), logo: { "@type": "ImageObject", url: abs("/assets/img/icon-512.png") }, publishingPrinciples: abs("/editorial-policy/") },
+      correction: s.fix ? `${s.fix.date ? `${s.fix.date}: ` : ""}${s.fix.en}` : undefined,
       mainEntityOfPage: shareUrl,
     };
     return page(

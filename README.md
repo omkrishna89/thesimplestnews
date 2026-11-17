@@ -34,6 +34,8 @@ It costs nothing to run:
 | Page width | The news uses the full width. A right-hand column appears only for the side ad, once AdSense is on |
 | Look | Dark by default, **Light** button next to हिंदी / English. The language follows the phone; the reader's choice is remembered |
 | Ads | Google AdSense spots on every page (banner, in the lists, right-hand column, end of story) + Auto ads |
+| Trust pages | About (with the editor, **Om Krishna, Founder & Editor**), **Editorial Policy** (how stories are chosen and written by AI, corrections, independence), Contact (grievance officer), Privacy Policy, Terms, Disclaimer. Every story page tells Google its author (The Simplest News Desk), publisher and editorial policy. Editor: `config/site.json` → `editor` |
+| Corrections | A wrong story can be removed, or get a dated correction note at its top — see "Fix or remove a wrong story" below |
 | Stories kept | 7 days, also the ones Gemini has not written (so the search finds a whole week). Gemini writes a story only in its first 36 hours; until then it shows "summary coming soon", after that just its headline and link |
 | Search engines | Sitemaps for Google and Bing; after every update the new story pages are sent to Bing, Yahoo, Yandex and others through **IndexNow**, so they appear within minutes |
 | Visitor statistics | Google Analytics, once its Measurement ID is in `config/site.json` (Step 9). It loads after the page, so reading is not slowed |
@@ -104,9 +106,8 @@ AdSense is free; Google pays you. It wants "valuable, original content", so a si
 time — Google then says why, and you can fix it and ask again. The About, Contact, Privacy Policy, Terms and Disclaimer pages it asks for are already on the site.
 1. Open <https://adsense.google.com> → **Get started** → sign in with your Gmail → your site `thesimplestnews.com` → country **India** → accept the terms.
 2. Fill in the payment profile (your name and address, so Google can pay you).
-3. AdSense shows a code with your **publisher ID** `ca-pub-1234567890123456` (it is public, not secret). Put it in `config/site.json` on GitHub
-   (pencil icon) → `"adsense": { … "client": "ca-pub-…" }` → **Commit changes**, then run **Update news** once. This puts the AdSense code on
-   every page and makes `ads.txt` by itself.
+3. Your **publisher ID** (AdSense → **Account** → **Settings** → **Account information**) is already in `config/site.json` →
+   `"adsense": { … "client": "ca-pub-3030782557899421" }`. It puts the AdSense code on every page and makes `ads.txt` by itself.
 4. Back in AdSense → **Sites** → `thesimplestnews.com` → tick that the code is placed → **Request review**. It takes a few days to a few weeks; Google emails you.
 5. After approval: **Ads** → **By ad unit** → make 4 **Display ads** and put their ids in `"slots"`: `top`, `infeed`, `side`, `story`
    (Auto ads already work without them). Spots without an id stay hidden. Add `?ads=preview` to any page address to see where the ads go.
@@ -174,8 +175,20 @@ All settings are plain files in `config/`. Edit them on GitHub (pencil icon) and
 | `config/sources.json` | All news feeds. `level`: country, world, state or district |
 | `config/places.json` | States, and other spellings of district names (e.g. Allahabad = Prayagraj) |
 | `config/countries.json` | Hindi names of countries, for the "Where?" answer of news from outside India |
+| `config/corrections.json` | Wrong stories: removed, or with a correction note (see below) |
 
 To check that all feeds still work: `node scripts/check-feeds.mjs` (see section 5).
+
+### Fix or remove a wrong story
+1. Open the story's own page on the site and copy its address, e.g. `https://thesimplestnews.com/story/96665c1da439/`.
+2. On GitHub open `config/corrections.json` → pencil icon.
+3. Between the `[` and `]` after `"list":`, add one line per story (put a comma between two lines):
+   - **Remove it** from the whole site:
+     `{ "story": "https://thesimplestnews.com/story/96665c1da439/", "remove": true, "date": "17 Nov 2026" }`
+   - **Or add a correction note** at the top of the story, in both languages:
+     `{ "story": "https://thesimplestnews.com/story/96665c1da439/", "note_en": "The district is Barabanki, not Lucknow.", "note_hi": "ज़िला बाराबंकी है, लखनऊ नहीं।", "date": "17 Nov 2026" }`
+4. **Commit changes.** The site changes with the next update (within 30 minutes), or run **Update news** by hand.
+   If the file has a typing mistake (like a missing comma), the site keeps working without the corrections and the run's log says so.
 
 ---
 
