@@ -8,7 +8,9 @@
 //   1. dash.cloudflare.com > Workers & Pages > Create > Worker > Deploy, then "Edit code": paste this file, Deploy.
 //   2. Settings > Variables and Secrets > Add > Secret: GEMINI_API_KEY = the same Gemini key as on GitHub.
 //   3. Put the Worker's address (https://<name>.<you>.workers.dev) in config/site.json > "rewrite" > "url".
-// Optional (plain text variable): GEMMA_MODEL = model names to use, in order (e.g. gemma-4-26b-a4b-it,gemma-3-27b-it).
+// Cloudflare's own free AI is asked first: Settings > Bindings > Add > Workers AI, variable name AI (README, Step 10).
+// Optional plain-text variables: AI_MODEL = Cloudflare models to use, in order (e.g. @cf/google/gemma-3-12b-it).
+// GEMMA_MODEL = Google models to use, in order (e.g. gemma-4-26b-a4b-it,gemma-3-27b-it).
 // Empty = the Worker lists Google's Gemma models itself: the fast new ones first.
 // A model that is busy, fails or takes more than 12 seconds rests for 10 minutes, and the next one is asked.
 //
@@ -127,55 +129,106 @@ function readList(text, n, lang) {
   return list.map((s) => tidy(s, lang));
 }
 
-// One model after the other, the best first; a model that is busy, fails or is slow rests and the next one is asked.
+// ---------- Cloudflare's own AI (Workers AI): asked first when the Worker has the "AI" binding ----------
+// Free: a daily allowance of "neurons" (a few hundred requests). Models that Cloudflare has removed are skipped.
+const AI_MODELS = ["@cf/google/gemma-3-12b-it", "@cf/meta/llama-4-scout-17b-16e-instruct", "@cf/mistralai/mistral-small-3.1-24b-instruct", "@cf/meta/llama-3.1-8b-instruct-fast"];
+const aiModels = (env) => (env.AI_MODEL ? String(env.AI_MODEL).split(",").map((s) => s.trim()).filter(Boolean) : AI_MODELS);
+async function askAI(env, name, text) {
+  let r;
+  try {
+    r = await env.AI.run(name, { messages: [{ role: "user", content: text }], max_tokens: 1024, temperature: 0.2 });
+  } catch (e) {
+    const m = String(e?.message || e);
+    // a model Cloudflare doesn't have (any more) / the free daily allowance used up / anything else
+    const status = /5007|no such model|not found|unknown model/i.test(m) ? 404 : /4006|neuron|allocation|limit/i.test(m) ? 429 : 502;
+    throw Object.assign(new Error(`${name}: ${m.slice(0, 120)}`), { status });
+  }
+  const out = typeof r === "string" ? r : (r?.response ?? r?.choices?.[0]?.message?.content ?? r?.result?.response);
+  if (typeof out === "string") return out;
+  if (out && typeof out === "object") return JSON.stringify(out); // some models hand back the list already read
+  throw Object.assign(new Error(`${name} gave no text`), { status: 502 });
+}
+
+// ---------- Google's Gemma (the backup) ----------
+async function askGemma(env, name, text, signal) {
+  const r = await fetch(`${API}/models/${encodeURIComponent(name)}:generateContent`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+    body: JSON.stringify({ contents: [{ role: "user", parts: [{ text }] }], generationConfig: { temperature: 0.2, maxOutputTokens: 4096 } }),
+    signal,
+  });
+  if (r.status === 404 && !env.GEMMA_MODEL) known.at = 0; // a model is gone: read Google's list again next time
+  if (!r.ok) throw Object.assign(new Error(`${name} answered ${r.status}`), { status: r.status });
+  const data = await r.json();
+  return (data.candidates?.[0]?.content?.parts || [])
+    .filter((p) => !p.thought && typeof p.text === "string")
+    .map((p) => p.text)
+    .join("");
+}
+
+// an answer within ms milliseconds, or a "504"
+function inTime(run, ms) {
+  const ctrl = new AbortController();
+  let timer;
+  const late = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      ctrl.abort();
+      reject(Object.assign(new Error(`no answer in ${Math.round(ms / 1000)} seconds`), { status: 504 }));
+    }, ms);
+  });
+  return Promise.race([run(ctrl.signal), late]).finally(() => clearTimeout(timer));
+}
+
+// One model after the other: Cloudflare's AI first, then Google's Gemma, the best first. A model that is busy,
+// fails or is slow rests 10 minutes and the next one is asked; a model that doesn't exist doesn't count as a try.
 async function ask(env, lang, items) {
   const start = Date.now();
   const tryMs = Number(env.TRY_MS) || TRY_MS;
   const totalMs = Number(env.TOTAL_MS) || TOTAL_MS;
-  const list = await models(env);
-  const now = Date.now();
-  const awake = list.filter((m) => !(resting.get(m) > now));
-  const order = awake.length ? awake : list; // all resting: ask them anyway
+  const text = prompt(lang, items);
   const rest = (name, ms = REST_MS) => resting.set(name, Date.now() + ms);
+  const helpers = async function* () {
+    if (env.AI?.run) for (const name of aiModels(env)) yield { name, run: () => askAI(env, name, text) };
+    if (env.GEMINI_API_KEY) {
+      let list = [];
+      try {
+        list = await models(env);
+      } catch {}
+      for (const name of list) yield { name, run: (signal) => askGemma(env, name, text, signal) };
+    }
+  };
+  // the resting ones last (they are asked only when no other one is left)
+  const all = [];
+  for await (const h of helpers()) all.push(h);
+  const now = Date.now();
+  const order = [...all.filter((h) => !(resting.get(h.name) > now)), ...all.filter((h) => resting.get(h.name) > now)];
+  let tries = 0;
   let failed = null;
   let unreadable = null;
-  for (const name of order.slice(0, MAX_TRIES)) {
+  for (const h of order) {
+    if (tries >= MAX_TRIES) break;
     const left = totalMs - (Date.now() - start);
     if (left < Math.min(1500, tryMs)) break;
-    let text;
+    let out;
     try {
-      const r = await fetch(`${API}/models/${encodeURIComponent(name)}:generateContent`, {
-        method: "POST",
-        headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-        body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt(lang, items) }] }], generationConfig: { temperature: 0.2, maxOutputTokens: 4096 } }),
-        signal: AbortSignal.timeout(Math.min(tryMs, left)),
-      });
-      if (r.status === 404 && !env.GEMMA_MODEL) known.at = 0; // a model is gone: read Google's list again next time
-      if (!r.ok) {
-        rest(name, r.status === 404 ? DAY : REST_MS);
-        failed = Object.assign(new Error(`${name} answered ${r.status}`), { status: r.status });
-        continue;
-      }
-      const data = await r.json();
-      text = (data.candidates?.[0]?.content?.parts || [])
-        .filter((p) => !p.thought && typeof p.text === "string")
-        .map((p) => p.text)
-        .join("");
+      out = await inTime(h.run, Math.min(tryMs, left));
     } catch (e) {
-      rest(name); // no answer in time (or a broken answer)
-      failed = Object.assign(new Error(`${name} did not answer in ${Math.round(Math.min(tryMs, left) / 1000)} seconds`), { status: 504 });
+      failed = Object.assign(new Error(e.status === 504 ? `${h.name}: ${e.message}` : String(e.message || e)), { status: e.status || 502 });
+      rest(h.name, e.status === 404 ? DAY : REST_MS);
+      if (e.status !== 404) tries++;
       continue;
     }
-    const got = readList(text, items.length, lang);
+    tries++;
+    const got = readList(out, items.length, lang);
     if (got.some(Boolean)) {
-      resting.delete(name);
-      return { model: name, items: got };
+      resting.delete(h.name);
+      return { model: h.name, items: got };
     }
-    rest(name); // an answer that can't be read: the next model
-    unreadable = { model: name, items: got };
+    rest(h.name); // an answer that can't be read: the next model
+    unreadable = { model: h.name, items: got };
   }
   if (unreadable) return unreadable;
-  throw failed || Object.assign(new Error("no Gemma model could be asked"), { status: 502 });
+  throw failed || Object.assign(new Error("no model could be asked"), { status: 502 });
 }
 
 // ---------- the Worker ----------
@@ -197,7 +250,7 @@ async function rewrite(request, env) {
   const out = heads.map((h) => memo.get(key(h)) ?? null);
   const todo = [...new Set(heads.filter((h, i) => h && out[i] === null && !memo.has(key(h))))];
   if (todo.length) {
-    if (!env.GEMINI_API_KEY) return { status: 500, data: { error: "the Worker has no GEMINI_API_KEY secret" } };
+    if (!env.AI?.run && !env.GEMINI_API_KEY) return { status: 500, data: { error: "the Worker has neither the AI binding nor the GEMINI_API_KEY secret" } };
     let got;
     let model;
     try {
@@ -219,15 +272,22 @@ async function rewrite(request, env) {
 }
 
 async function status(env) {
-  if (!env.GEMINI_API_KEY) return "❌ Not ready: add the secret GEMINI_API_KEY (Settings > Variables and Secrets), then open this page again.";
-  try {
-    const list = await models(env);
-    const now = Date.now();
-    const order = list.map((m) => (resting.get(m) > now ? `${m} (resting)` : m)).join(", ");
-    return `✅ The Simplest News headline writer works.\nGemma models, in order: ${order}.\nPut this page's address in config/site.json > "rewrite" > "url".`;
-  } catch (e) {
-    return `❌ ${e.message || e}`;
+  const now = Date.now();
+  const show = (list) => list.map((m) => (resting.get(m) > now ? `${m} (resting)` : m)).join(", ");
+  const ai = env.AI?.run ? `on — models, in order: ${show(aiModels(env))}` : 'off (add a "Workers AI" binding named AI: Settings > Bindings)';
+  let gemma = "off (no GEMINI_API_KEY secret)";
+  if (env.GEMINI_API_KEY) {
+    try {
+      gemma = `on — models, in order: ${show(await models(env))}`;
+    } catch (e) {
+      gemma = `❌ ${e.message || e}`;
+    }
   }
+  const ok = !!env.AI?.run || /^on/.test(gemma);
+  return `${ok ? "✅ The Simplest News headline writer works." : "❌ Not ready: add the AI binding or the GEMINI_API_KEY secret, then open this page again."}
+Cloudflare AI (first): ${ai}.
+Google Gemma (backup): ${gemma}.
+Put this page's address in config/site.json > "rewrite" > "url".`;
 }
 
 export default {
