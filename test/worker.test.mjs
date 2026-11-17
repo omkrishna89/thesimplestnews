@@ -133,11 +133,57 @@ test("Worker: opening its address in a browser says whether it works", async () 
   google(() => "");
   const ok = await run(new Request("https://simple.example.workers.dev/"));
   assert.match(ok.data, /✅/);
-  assert.match(ok.data, /Gemma models, in order: gemma-4-26b-a4b-it( \(resting\))?, gemma-4-31b-it( \(resting\))?, gemma-3-27b-it/);
+  assert.match(ok.data, /Cloudflare AI \(first\): off/);
+  assert.match(ok.data, /Google Gemma \(backup\): on — models, in order: gemma-4-26b-a4b-it( \(resting\))?, gemma-4-31b-it( \(resting\))?, gemma-3-27b-it/);
   const no = await run(new Request("https://simple.example.workers.dev/"), {});
-  assert.match(no.data, /❌ Not ready: add the secret GEMINI_API_KEY/);
+  assert.match(no.data, /❌ Not ready: add the AI binding or the GEMINI_API_KEY secret/);
+  assert.equal((await run(post({ lang: "en", items: ["Nothing to ask"] }), {})).status, 500, "neither Cloudflare's AI nor a Gemini key");
   // a model named in GEMMA_MODEL is used as it is
   const calls = google(() => '["Simple"]');
   await run(post({ lang: "en", items: ["A headline for the chosen model"] }), { ...env, GEMMA_MODEL: "gemma-3-1b-it, gemma-2-9b-it" });
   assert.deepEqual(asked(calls), ["gemma-3-1b-it"], "models named in GEMMA_MODEL, in that order");
+});
+
+// a pretend Cloudflare AI (the Worker's "AI" binding): how each model answers, and what it was asked
+function cloudflare(how) {
+  const asked = [];
+  return { asked, run: async (model, input) => (asked.push({ model, input }), how(model, input)) };
+}
+const noGoogle = () => (globalThis.fetch = async () => assert.fail("Google is not asked when Cloudflare's AI answers"));
+
+test("Worker: Cloudflare's own AI writes first (when the Worker has the AI binding)", async () => {
+  noGoogle();
+  const AI = cloudflare(() => ({ response: '["Gold price rises", "Petrol cheaper"]' }));
+  const r = await run(post({ lang: "en", items: ["Gold prices surge to record high amid global uncertainty", "Petrol, diesel prices cut by Rs 2 per litre"] }), { ...env, AI });
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.data.items, ["Gold price rises", "Petrol cheaper"]);
+  assert.equal(r.data.model, "@cf/google/gemma-3-12b-it");
+  assert.equal(AI.asked[0].input.messages[0].role, "user");
+  assert.match(AI.asked[0].input.messages[0].content, /1\. Gold prices surge to record high/);
+  const page = await run(new Request("https://simple.example.workers.dev/"), { ...env, AI });
+  assert.match(page.data, /Cloudflare AI \(first\): on — models, in order: @cf\/google\/gemma-3-12b-it/);
+});
+
+test("Worker: a Cloudflare model that is gone is skipped; an answer already read as a list is fine", async () => {
+  noGoogle();
+  const AI = cloudflare((model) => {
+    if (model === "@cf/x/gone") throw new Error("AiError: 5007: No such model @cf/x/gone");
+    return { response: ["सोना महंगा हुआ"] };
+  });
+  const r = await run(post({ lang: "hi", items: ["Gold rates jump again today in Delhi"] }), { ...env, AI, AI_MODEL: "@cf/x/gone, @cf/x/works" });
+  assert.deepEqual(r.data.items, ["सोना महंगा हुआ"]);
+  assert.equal(r.data.model, "@cf/x/works");
+  assert.deepEqual(AI.asked.map((a) => a.model), ["@cf/x/gone", "@cf/x/works"]);
+});
+
+test("Worker: when Cloudflare's free allowance is used up, Google's Gemma is the backup", async () => {
+  const AI = cloudflare(() => {
+    throw new Error("AiError: 4006: you have used up your daily free allocation of 10,000 neurons");
+  });
+  const calls = google(() => '["Rupee gains"]');
+  const r = await run(post({ lang: "en", items: ["Rupee rises 20 paise against US dollar in early trade"] }), { ...env, AI, AI_MODEL: "@cf/x/full" });
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.data.items, ["Rupee gains"]);
+  assert.match(r.data.model, /^gemma-/);
+  assert.ok(asked(calls).length >= 1);
 });
