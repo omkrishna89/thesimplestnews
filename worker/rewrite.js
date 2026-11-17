@@ -8,10 +8,12 @@
 //   1. dash.cloudflare.com > Workers & Pages > Create > Worker > Deploy, then "Edit code": paste this file, Deploy.
 //   2. Settings > Variables and Secrets > Add > Secret: GEMINI_API_KEY = the same Gemini key as on GitHub.
 //   3. Put the Worker's address (https://<name>.<you>.workers.dev) in config/site.json > "rewrite" > "url".
-// Optional (plain text variable): GEMMA_MODEL = a model name (e.g. gemma-3-27b-it). Empty = the Worker picks the best Gemma.
+// Optional (plain text variable): GEMMA_MODEL = model names to use, in order (e.g. gemma-4-26b-a4b-it,gemma-3-27b-it).
+// Empty = the Worker lists Google's Gemma models itself: the fast new ones first.
+// A model that is busy, fails or takes more than 12 seconds rests for 10 minutes, and the next one is asked.
 //
 // The website sends:  POST {"lang": "en" | "hi", "items": ["headline", ...]}   (at most 40 headlines)
-// The Worker answers: {"items": ["simple headline" | null, ...]}               (null = keep the website's own headline)
+// The Worker answers: {"items": ["simple headline" | null, ...], "model": "…"} (null = keep the website's own headline)
 // Opening the Worker's address in a browser shows whether it works.
 
 const API = "https://generativelanguage.googleapis.com/v1beta";
@@ -22,11 +24,16 @@ const MAX_ITEMS = 40;
 const MAX_LEN = 220; // characters in one headline sent
 const MAX_BODY = 16000;
 const DAY = 86400e3;
+const TRY_MS = 12000; // one model gets 12 seconds; then the next one is asked
+const TOTAL_MS = 22000; // all of them together about 22 seconds (the website waits 25)
+const REST_MS = 10 * 60e3; // a busy, failing or slow model rests 10 minutes
+const MAX_TRIES = 3; // models asked for one request at most (each try uses the free limit)
 const WORDS = { en: 8, hi: 10 }; // what Gemma is asked for
 const MOST = { en: 12, hi: 15 }; // longer answers are thrown away
 
 const memo = new Map(); // "lang|headline" -> simple headline (kept while this copy of the Worker runs)
-let picked = { name: "", at: 0 };
+const resting = new Map(); // model -> until when it is not asked
+let known = { list: [], at: 0 }; // Google's Gemma models, best first (read again every day)
 
 const okOrigin = (o) => SITES.includes(o) || LOCAL.test(o || "");
 function cors(origin) {
@@ -36,26 +43,30 @@ function cors(origin) {
 }
 const json = (data, status, headers) => new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers } });
 
-// ---------- which Gemma model ----------
-// The newest Gemma, and the biggest of it: "gemma-3-27b-it" before "gemma-3-12b-it" before "gemma-3n-e4b-it".
-function rank(name) {
-  const m = /^gemma-(\d+(?:\.\d+)?)(n?)-(?:e)?(\d+(?:\.\d+)?)b/.exec(name) || [];
-  const version = Number(m[1]) || 0;
-  const size = Math.min(Number(m[3]) || 0, 900);
-  return version * 10000 - (m[2] ? 5000 : 0) + size + (/-it$/.test(name) ? 0.5 : 0);
+// ---------- which Gemma models, in which order ----------
+// First the fast ones of the newest Gemma ("26b-a4b": 26 billion parameters, but only 4 billion work on each word),
+// then the others by size, a newer Gemma counting a little bigger:
+// gemma-4-26b-a4b-it, gemma-4-31b-it, gemma-3-27b-it, gemma-3-12b-it, gemma-4-e4b-it, gemma-3n-e4b-it, …
+function score(name) {
+  const m = /^gemma-(\d+(?:\.\d+)?)(n?)-(e?)(\d+(?:\.\d+)?)b(?:-a(\d+(?:\.\d+)?)b)?/.exec(name);
+  if (!m) return -1e6;
+  const version = Number(m[1]);
+  const size = Math.min(Number(m[4]), 900) * (version >= 4 ? 1.3 : 1) * (m[2] ? 0.9 : 1);
+  const fast = m[5] ? 1e5 + version * 1e3 : 0; // a "mixture of experts" model: big but quick
+  return fast + size - (/-it$/.test(name) ? 0 : 5e5); // only instruction-tuned ("-it") models follow instructions well
 }
-async function model(env, fresh = false) {
-  if (env.GEMMA_MODEL) return String(env.GEMMA_MODEL).replace(/^models\//, "").trim();
-  if (!fresh && picked.name && Date.now() - picked.at < DAY) return picked.name;
+async function models(env, fresh = false) {
+  if (env.GEMMA_MODEL) return String(env.GEMMA_MODEL).split(",").map((s) => s.replace(/^\s*models\//, "").trim()).filter(Boolean);
+  if (!fresh && known.list.length && Date.now() - known.at < DAY) return known.list;
   const r = await fetch(`${API}/models?pageSize=1000`, { headers: { "x-goog-api-key": env.GEMINI_API_KEY } });
   if (!r.ok) throw new Error(`Google answered ${r.status} for the list of models${r.status === 400 || r.status === 403 ? " (is GEMINI_API_KEY right?)" : ""}`);
-  const names = ((await r.json()).models || [])
+  const list = ((await r.json()).models || [])
     .filter((m) => /^models\/gemma-/.test(m.name || "") && (m.supportedGenerationMethods || []).includes("generateContent"))
     .map((m) => m.name.slice("models/".length))
-    .sort((a, b) => rank(b) - rank(a));
-  if (!names.length) throw new Error("Google has no Gemma model for this key");
-  picked = { name: names[0], at: Date.now() };
-  return picked.name;
+    .sort((a, b) => score(b) - score(a));
+  if (!list.length) throw new Error("Google has no Gemma model for this key");
+  known = { list, at: Date.now() };
+  return list;
 }
 
 // ---------- what Gemma is asked ----------
@@ -92,16 +103,20 @@ function tidy(s, lang) {
   if (lang === "hi" ? !DEVANAGARI.test(s) : !LATIN.test(s) || DEVANAGARI.test(s)) return null; // the wrong language
   return s;
 }
-function readList(text, n, lang) {
-  const t = String(text || "").replace(/```(?:json)?/gi, "");
-  const a = t.indexOf("[");
-  const b = t.lastIndexOf("]");
-  let list = null;
-  if (a >= 0 && b > a) {
+function lastList(t) {
+  const end = t.lastIndexOf("]");
+  for (let i = t.lastIndexOf("[", end); end > 0 && i >= 0; i = i > 0 ? t.lastIndexOf("[", i - 1) : -1) {
     try {
-      list = JSON.parse(t.slice(a, b + 1));
+      const v = JSON.parse(t.slice(i, end + 1));
+      if (Array.isArray(v)) return v;
     } catch {}
   }
+  return null;
+}
+function readList(text, n, lang) {
+  const t = String(text || "").replace(/```(?:json)?/gi, "");
+  // the last JSON list: a model that "thinks" first may write other brackets before its answer
+  let list = lastList(t);
   if (!Array.isArray(list)) {
     // numbered lines: "1. ...", "2) ..."
     const lines = [...t.matchAll(/^\s*(\d{1,2})[.):]\s+(.+?)\s*$/gm)];
@@ -112,31 +127,55 @@ function readList(text, n, lang) {
   return list.map((s) => tidy(s, lang));
 }
 
+// One model after the other, the best first; a model that is busy, fails or is slow rests and the next one is asked.
 async function ask(env, lang, items) {
-  let name = await model(env);
-  for (let tries = 0; tries < 2; tries++) {
-    const r = await fetch(`${API}/models/${encodeURIComponent(name)}:generateContent`, {
-      method: "POST",
-      headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-      body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt(lang, items) }] }], generationConfig: { temperature: 0.2, maxOutputTokens: 2048 } }),
-    });
-    if (r.status === 404 && !env.GEMMA_MODEL && tries === 0) {
-      name = await model(env, true); // the model is gone: pick again
+  const start = Date.now();
+  const tryMs = Number(env.TRY_MS) || TRY_MS;
+  const totalMs = Number(env.TOTAL_MS) || TOTAL_MS;
+  const list = await models(env);
+  const now = Date.now();
+  const awake = list.filter((m) => !(resting.get(m) > now));
+  const order = awake.length ? awake : list; // all resting: ask them anyway
+  const rest = (name, ms = REST_MS) => resting.set(name, Date.now() + ms);
+  let failed = null;
+  let unreadable = null;
+  for (const name of order.slice(0, MAX_TRIES)) {
+    const left = totalMs - (Date.now() - start);
+    if (left < Math.min(1500, tryMs)) break;
+    let text;
+    try {
+      const r = await fetch(`${API}/models/${encodeURIComponent(name)}:generateContent`, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+        body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt(lang, items) }] }], generationConfig: { temperature: 0.2, maxOutputTokens: 4096 } }),
+        signal: AbortSignal.timeout(Math.min(tryMs, left)),
+      });
+      if (r.status === 404 && !env.GEMMA_MODEL) known.at = 0; // a model is gone: read Google's list again next time
+      if (!r.ok) {
+        rest(name, r.status === 404 ? DAY : REST_MS);
+        failed = Object.assign(new Error(`${name} answered ${r.status}`), { status: r.status });
+        continue;
+      }
+      const data = await r.json();
+      text = (data.candidates?.[0]?.content?.parts || [])
+        .filter((p) => !p.thought && typeof p.text === "string")
+        .map((p) => p.text)
+        .join("");
+    } catch (e) {
+      rest(name); // no answer in time (or a broken answer)
+      failed = Object.assign(new Error(`${name} did not answer in ${Math.round(Math.min(tryMs, left) / 1000)} seconds`), { status: 504 });
       continue;
     }
-    if (!r.ok) {
-      const e = new Error(`Gemma answered ${r.status}`);
-      e.status = r.status;
-      throw e;
+    const got = readList(text, items.length, lang);
+    if (got.some(Boolean)) {
+      resting.delete(name);
+      return { model: name, items: got };
     }
-    const data = await r.json();
-    const text = (data.candidates?.[0]?.content?.parts || [])
-      .filter((p) => !p.thought && typeof p.text === "string")
-      .map((p) => p.text)
-      .join("");
-    return readList(text, items.length, lang);
+    rest(name); // an answer that can't be read: the next model
+    unreadable = { model: name, items: got };
   }
-  throw new Error("no Gemma model answered");
+  if (unreadable) return unreadable;
+  throw failed || Object.assign(new Error("no Gemma model could be asked"), { status: 502 });
 }
 
 // ---------- the Worker ----------
@@ -160,10 +199,11 @@ async function rewrite(request, env) {
   if (todo.length) {
     if (!env.GEMINI_API_KEY) return { status: 500, data: { error: "the Worker has no GEMINI_API_KEY secret" } };
     let got;
+    let model;
     try {
-      got = await ask(env, lang, todo);
+      ({ items: got, model } = await ask(env, lang, todo));
     } catch (e) {
-      return { status: e.status === 429 ? 429 : 502, data: { error: String(e.message || e), items: out } };
+      return { status: e.status === 429 ? 429 : e.status === 504 ? 504 : 502, data: { error: String(e.message || e), items: out } };
     }
     // a headline Gemma could not write is not asked again (unless its whole answer was unreadable)
     const readable = got.some(Boolean);
@@ -173,14 +213,18 @@ async function rewrite(request, env) {
       memo.set(key(h), got[i]);
     });
     heads.forEach((h, i) => (out[i] = memo.get(key(h)) ?? null));
+    return { status: 200, data: { items: out, model } };
   }
-  return { status: 200, data: { items: out } };
+  return { status: 200, data: { items: out, model: "memory" } };
 }
 
 async function status(env) {
   if (!env.GEMINI_API_KEY) return "❌ Not ready: add the secret GEMINI_API_KEY (Settings > Variables and Secrets), then open this page again.";
   try {
-    return `✅ The Simplest News headline writer works. Model: ${await model(env)}.\nPut this page's address in config/site.json > "rewrite" > "url".`;
+    const list = await models(env);
+    const now = Date.now();
+    const order = list.map((m) => (resting.get(m) > now ? `${m} (resting)` : m)).join(", ");
+    return `✅ The Simplest News headline writer works.\nGemma models, in order: ${order}.\nPut this page's address in config/site.json > "rewrite" > "url".`;
   } catch (e) {
     return `❌ ${e.message || e}`;
   }

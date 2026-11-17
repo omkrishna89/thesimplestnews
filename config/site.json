@@ -32,7 +32,7 @@
   },
   "rewrite": {
     "about": "url: the address of the free Cloudflare Worker (worker/rewrite.js) that writes the 'On other news websites' headlines in simple words with Google's free Gemma model, e.g. https://simple.yourname.workers.dev. Empty = the websites' own headlines.",
-    "url": ""
+    "url": "https://simple-headlines.omkrishna89.workers.dev"
   },
   "searchConsole": {
     "about": "verification: the code inside Google Search Console's HTML tag (content=\"...\"), so Google knows the site is yours. Empty = no tag.",

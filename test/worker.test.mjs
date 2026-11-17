@@ -9,25 +9,37 @@ const env = { GEMINI_API_KEY: "test-key" };
 const realFetch = globalThis.fetch;
 afterEach(() => (globalThis.fetch = realFetch));
 
+const gen = ["generateContent"];
 const MODELS = {
   models: [
-    { name: "models/gemini-flash-lite-latest", supportedGenerationMethods: ["generateContent"] },
-    { name: "models/gemma-3-4b-it", supportedGenerationMethods: ["generateContent"] },
-    { name: "models/gemma-3n-e4b-it", supportedGenerationMethods: ["generateContent"] },
+    { name: "models/gemini-flash-lite-latest", supportedGenerationMethods: gen },
+    { name: "models/gemma-3-4b-it", supportedGenerationMethods: gen },
+    { name: "models/gemma-4-e4b-it", supportedGenerationMethods: gen },
+    { name: "models/gemma-3n-e4b-it", supportedGenerationMethods: gen },
+    { name: "models/gemma-4-31b-it", supportedGenerationMethods: gen },
     { name: "models/gemma-3-27b-it", supportedGenerationMethods: ["generateContent", "countTokens"] },
-    { name: "models/gemma-3-12b-it", supportedGenerationMethods: ["generateContent"] },
+    { name: "models/gemma-4-26b-a4b-it", supportedGenerationMethods: gen },
+    { name: "models/gemma-3-12b-it", supportedGenerationMethods: gen },
     { name: "models/embedding-001", supportedGenerationMethods: ["embedContent"] },
   ],
 };
-// a pretend Google: answers the list of models, and every headline request with answer(prompt)
-function google(answer, { status = 200 } = {}) {
+const asked = (calls) => calls.filter((c) => c.url.includes(":generateContent")).map((c) => /models\/([^:]+):/.exec(c.url)[1]);
+// a pretend Google: answers the list of models, and every headline request with answer(prompt).
+// per: how one model behaves instead (a status number, or "hang" = never answers)
+function google(answer, { status = 200, per = {} } = {}) {
   const calls = [];
   globalThis.fetch = async (url, opts = {}) => {
     const u = String(url);
     calls.push({ url: u, opts });
     assert.equal(opts.headers?.["x-goog-api-key"], "test-key", "the key goes in a header, never in the address");
     if (u.includes("/models?")) return new Response(JSON.stringify(MODELS));
-    if (status !== 200) return new Response("{}", { status });
+    const how = per[/models\/([^:]+):/.exec(u)?.[1]] ?? status;
+    if (how === "hang") {
+      // like a real request that never answers: it keeps Node running until the Worker gives up on it
+      const alive = setInterval(() => {}, 1000);
+      return new Promise((_, reject) => opts.signal?.addEventListener("abort", () => (clearInterval(alive), reject(opts.signal.reason))));
+    }
+    if (how !== 200) return new Response("{}", { status: how });
     const body = JSON.parse(opts.body);
     const text = answer(body.contents[0].parts[0].text, body);
     return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] }));
@@ -40,7 +52,7 @@ const run = async (req, e = env) => {
   return { status: r.status, headers: r.headers, data: r.headers.get("content-type")?.includes("json") ? await r.json() : await r.text() };
 };
 
-test("Worker: the biggest, newest Gemma writes the headlines; Gemini's own limit is not used", async () => {
+test("Worker: the fast new Gemma writes the headlines; Gemini's own limit is not used", async () => {
   const calls = google((p) => {
     assert.match(p, /at most 8 words/);
     assert.match(p, /1\. Sensex tanks 800 points as FIIs pull out amid global sell-off/);
@@ -52,7 +64,8 @@ test("Worker: the biggest, newest Gemma writes the headlines; Gemini's own limit
   assert.deepEqual(r.data.items, ["Sensex falls 800 points", "RBI keeps loan rate same"], "no full stop at the end");
   assert.equal(r.headers.get("access-control-allow-origin"), SITE);
   const ask = calls.find((c) => c.url.includes(":generateContent"));
-  assert.match(ask.url, /models\/gemma-3-27b-it:generateContent$/);
+  assert.match(ask.url, /models\/gemma-4-26b-a4b-it:generateContent$/, "26b-a4b: big, but only 4b work on each word, so it is quick");
+  assert.equal(r.data.model, "gemma-4-26b-a4b-it");
   const body = JSON.parse(ask.opts.body);
   assert.equal(body.systemInstruction, undefined, "Gemma takes no system instruction: everything is in the message");
   assert.equal(body.generationConfig.responseMimeType, undefined, "and no JSON mode");
@@ -68,6 +81,20 @@ test("Worker: Hindi headlines in Hindi letters; an answer in the wrong language,
   google(() => '1. सेंसेक्स 800 अंक गिरा\n2. RBI keeps rate same\n3. ' + "बहुत ".repeat(20).trim());
   const r = await run(post({ lang: "hi", items: ["Sensex crashes 800 pts", "RBI holds repo rate", "A very long headline about many things"] }));
   assert.deepEqual(r.data.items, ["सेंसेक्स 800 अंक गिरा", null, null]);
+});
+
+test("Worker: a busy model or one that doesn't answer in time rests, and the next one writes", async () => {
+  const calls = google(() => 'Thinking: [a] or [b]? Keep it short.\n["Sensex falls", "RBI holds rate"]', { per: { "gemma-4-26b-a4b-it": 503, "gemma-4-31b-it": "hang" } });
+  const fast = { ...env, TRY_MS: 50 };
+  const r = await run(post({ lang: "en", items: ["Sensex tanks on heavy selling", "RBI holds repo rate steady"] }), fast);
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.data.items, ["Sensex falls", "RBI holds rate"], "the last list in the answer, after the model's thinking");
+  assert.deepEqual(asked(calls), ["gemma-4-26b-a4b-it", "gemma-4-31b-it", "gemma-3-27b-it"]);
+  assert.equal(r.data.model, "gemma-3-27b-it");
+  // the next reader: the resting models are not asked
+  const next = google(() => '["Gold up"]');
+  await run(post({ lang: "en", items: ["Gold price rises sharply today"] }), fast);
+  assert.deepEqual(asked(next), ["gemma-3-27b-it"]);
 });
 
 test("Worker: when the answer has the wrong number of headlines, the website's own headlines stay", async () => {
@@ -106,11 +133,11 @@ test("Worker: opening its address in a browser says whether it works", async () 
   google(() => "");
   const ok = await run(new Request("https://simple.example.workers.dev/"));
   assert.match(ok.data, /✅/);
-  assert.match(ok.data, /gemma-3-27b-it/);
+  assert.match(ok.data, /Gemma models, in order: gemma-4-26b-a4b-it( \(resting\))?, gemma-4-31b-it( \(resting\))?, gemma-3-27b-it/);
   const no = await run(new Request("https://simple.example.workers.dev/"), {});
   assert.match(no.data, /❌ Not ready: add the secret GEMINI_API_KEY/);
   // a model named in GEMMA_MODEL is used as it is
   const calls = google(() => '["Simple"]');
-  await run(post({ lang: "en", items: ["A headline for the chosen model"] }), { ...env, GEMMA_MODEL: "gemma-3-12b-it" });
-  assert.match(calls.at(-1).url, /models\/gemma-3-12b-it:generateContent$/);
+  await run(post({ lang: "en", items: ["A headline for the chosen model"] }), { ...env, GEMMA_MODEL: "gemma-3-1b-it, gemma-2-9b-it" });
+  assert.deepEqual(asked(calls), ["gemma-3-1b-it"], "models named in GEMMA_MODEL, in that order");
 });

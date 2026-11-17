@@ -150,9 +150,14 @@ secret inside Cloudflare. No card is needed; Cloudflare's free plan allows 100,0
 4. Back on the Worker's page → **Settings** → **Variables and Secrets** → **+ Add** → Type **Secret** · Variable name `GEMINI_API_KEY` ·
    Value: your Gemini key (the same one as on GitHub; copy it again at <https://aistudio.google.com/apikey>) → **Deploy**.
 5. Open the Worker's address (on its page, like `https://simple-headlines.yourname.workers.dev`). It should say
-   **✅ The Simplest News headline writer works. Model: gemma-…**. If it shows ❌, it says what is missing.
+   **✅ The Simplest News headline writer works.** and list the Gemma models it uses, in order. If it shows ❌, it says what is missing.
 6. Put the address in `config/site.json` on GitHub → `"rewrite": { … "url": "https://simple-headlines.yourname.workers.dev" }` →
    **Commit changes**, then run **Update news** once. Search something on the site: the other websites' headlines turn simple after a few seconds.
+
+The Worker asks the fast new Gemma first (`gemma-4-26b-a4b-it`), then the bigger and older ones. A model that is busy, fails or takes
+more than 12 seconds rests for 10 minutes and the next one is asked (at most 3 for one search). To choose the models yourself, add a
+plain-text variable `GEMMA_MODEL` in **Settings** → **Variables and Secrets**, e.g. `gemma-3-27b-it` (several: separated by commas).
+**When `worker/rewrite.js` changes:** open the Worker → **Edit code** → Ctrl+A → paste the new file (step 3) → **Deploy**.
 
 ---
 
