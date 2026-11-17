@@ -278,6 +278,21 @@ export async function summarize(stories) {
 
 // Sorts items ({ text }) into the site's groups: { model, usage, groups } — for each item its groups,
 // [] = "other" (none of the site's groups), or null where Gemini skipped it (it is sorted again next time).
+// The same sorting as one plain text, for another AI (Cloudflare's, when Gemini is busy), and reading its answer
+export const sortPrompt = (items) =>
+  `${SORT_SYSTEM}\n"g" may only use: ${CHOICES.join(", ")}. Reply with JSON only.\n\nItems:\n${items.map((it, i) => `${i + 1}. ${String(it.text).replace(/\s+/g, " ").trim()}`).join("\n")}`;
+export function readSort(text, n) {
+  let list = [];
+  try {
+    list = parseAnswer(text)?.items || [];
+  } catch {}
+  return Array.from({ length: n }, (_, i) => {
+    const a = Array.isArray(list) ? byNumber(list, i) : null;
+    if (!a || !Array.isArray(a.g)) return null;
+    return [...new Set(a.g.filter((g) => GROUPS.includes(g)))].slice(0, 3);
+  });
+}
+
 export async function sortHeadlines(items) {
   const r = await ask((v) => sortBody(items, v), "items");
   const groups = items.map((_, i) => {

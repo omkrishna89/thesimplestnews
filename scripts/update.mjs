@@ -11,11 +11,12 @@ import { inHindi, isNotSaid } from "./lib/answers.mjs";
 import { readArticle, allowedByRobots } from "./lib/article.mjs";
 import { loadDB, saveDB, similarity, words } from "./lib/db.mjs";
 import { parseFeed } from "./lib/feeds.mjs";
-import { NOT_SAID, PRIMARY, QUESTIONS, QuotaError, dailyLimitOf, hasKey, requestShapes, sortHeadlines, summarize } from "./lib/gemini.mjs";
+import { NOT_SAID, PRIMARY, QUESTIONS, QuotaError, dailyLimitOf, hasKey, readSort, requestShapes, sortHeadlines, sortPrompt, summarize } from "./lib/gemini.mjs";
 import { googleDay, learnLimit, msToReset, runBudget } from "./lib/pace.mjs";
 import { pickForAI } from "./lib/pick.mjs";
 import { COVERED, districtSlug, placeSlug, stateCode } from "./lib/places.mjs";
 import { updateTrends } from "./lib/trends.mjs";
+import { workerAI, workerReady } from "./lib/worker-ai.mjs";
 import { clip, config, get, hash, log, plain, pool, sleep, TZ } from "./lib/util.mjs";
 import { groupsFromWords } from "./lib/words.mjs";
 import { AI_HOURS } from "../src/assets/js/ui.js";
@@ -292,7 +293,10 @@ function noteLimit() {
 // Many headlines in one request, so this costs little of the free limit. "other" = not news for this site:
 // the story is left out and never written.
 // What each run did (kept in the database as db.runLog): requests, stories written, and how often Gemini was busy
-const runStats = { sortReq: 0, sortBusy: 0, writeReq: 0, wrote: 0, busy: 0, why: "" };
+const runStats = { sortReq: 0, sortBusy: 0, sortCf: 0, writeReq: 0, wrote: 0, busy: 0, why: "" };
+const SORT_SMALL = 50; // a busy Gemini takes small requests more easily
+const CF_BATCH = 100; // headlines in one request to Cloudflare's AI (headlines only: its free daily allowance is small)
+const CF_MAX = 4; // requests to Cloudflare's AI in one run
 async function sortNew(maxRequests) {
   const fresh = db.stories.filter((s) => s.s === "new" && !s.sg && now - s.p < AI_MAX_AGE);
   // a news feed of one of the site's groups needs no sorting
@@ -308,30 +312,62 @@ async function sortNew(maxRequests) {
   let requests = 0;
   let kept = 0;
   let other = 0;
-  for (let i = 0; i < items.length && requests < maxRequests; i += size) {
-    const part = items.slice(i, i + size);
-    let r;
-    try {
-      if (MOCK) r = { model: "mock", groups: part.map((it) => (it.s ? ours(groupsFromWords(it.s.t)) : ["business"])) };
-      else {
-        if (requests > 0) await sleep(Number(process.env.GEMINI_PAUSE_MS || site.gemini.pauseMs));
-        r = await sortHeadlines(part.map((it) => ({ text: it.text })));
+  // Gemini first, in parts of 150; when it is busy, parts of 50; when even those fail, Cloudflare's free AI sorts
+  // the headlines (headline only, 100 at a time, at most 4 requests a run)
+  const queue = [];
+  for (let i = 0; i < items.length; i += size) queue.push(items.slice(i, i + size));
+  let geminiDown = false;
+  while (queue.length && requests < maxRequests) {
+    let part = queue.shift();
+    let r = null;
+    if (!geminiDown) {
+      try {
+        if (MOCK) r = { model: "mock", groups: part.map((it) => (it.s ? ours(groupsFromWords(it.s.t)) : ["business"])) };
+        else {
+          if (requests > 0 || runStats.sortBusy) await sleep(Number(process.env.GEMINI_PAUSE_MS || site.gemini.pauseMs));
+          r = await sortHeadlines(part.map((it) => ({ text: it.text })));
+        }
+        requests++;
+        runStats.sortReq++;
+      } catch (err) {
+        if (err instanceof QuotaError) noteLimit();
+        else runStats.sortBusy++;
+        log(`[sort] Gemini: ${String(err.message).slice(0, 160)}`);
+        if (!(err instanceof QuotaError) && part.length > SORT_SMALL && Date.now() - started < RUN_BUDGET_MS / 2) {
+          // a busy Gemini takes small requests more easily: the same headlines again, 50 at a time
+          const small = [];
+          for (let j = 0; j < part.length; j += SORT_SMALL) small.push(part.slice(j, j + SORT_SMALL));
+          queue.unshift(...small);
+          log(`[sort] trying again with ${small.length} smaller requests of ${SORT_SMALL}`);
+          await sleep(15e3);
+          continue;
+        }
+        geminiDown = true; // even a small request failed: Cloudflare's AI for the rest of this run
       }
-    } catch (err) {
-      if (err instanceof QuotaError) noteLimit();
-      // Gemini busy: wait and sort the same headlines again (twice at most), while this run has time
-      else if (runStats.sortBusy < 2 && Date.now() - started + 60e3 < RUN_BUDGET_MS / 2) {
-        runStats.sortBusy++;
-        log(`[sort] ${String(err.message).slice(0, 160)} — trying again in ${30 * runStats.sortBusy} s`);
-        await sleep(30e3 * runStats.sortBusy);
-        i -= size;
-        continue;
-      }
-      log(`[sort] ${String(err.message).slice(0, 160)} — the rest is sorted next time`);
-      break;
     }
-    requests++;
-    runStats.sortReq++;
+    if (!r) {
+      if (!workerReady() || runStats.sortCf >= CF_MAX) {
+        queue.unshift(part);
+        break;
+      }
+      // Cloudflare's AI: a bigger part (100), headlines only
+      const rest = queue.flat();
+      queue.length = 0;
+      const all = [...part, ...rest];
+      part = all.slice(0, CF_BATCH);
+      for (let j = CF_BATCH; j < all.length; j += CF_BATCH) queue.push(all.slice(j, j + CF_BATCH));
+      try {
+        const text = sortPrompt(part.map((it) => ({ text: it.s ? it.s.t : it.text })));
+        const out = await workerAI(text, 3000);
+        r = { model: out.model, groups: readSort(out.text, part.length) };
+        runStats.sortCf++;
+        log(`[sort] Cloudflare's AI (${out.model}) sorted ${r.groups.filter(Boolean).length} of ${part.length} headlines`);
+      } catch (err) {
+        log(`[sort] ${String(err.message).slice(0, 160)} — the rest is sorted next time`);
+        queue.unshift(part);
+        break;
+      }
+    }
     if (r.usage) countTokens(r.model, r.usage, { sorted: part.length });
     part.forEach((it, j) => {
       const g = r.groups[j] && onlyScams(r.groups[j]);
@@ -346,7 +382,7 @@ async function sortNew(maxRequests) {
     });
   }
   const left = items.length - kept - other;
-  log(`[sort] ${requests} requests: ${kept} in the site's groups, ${other} other (left out)${left ? `, ${left} wait for the next run` : ""}`);
+  log(`[sort] ${requests} Gemini requests${runStats.sortCf ? ` + ${runStats.sortCf} by Cloudflare's AI` : ""}: ${kept} in the site's groups, ${other} other (left out)${left ? `, ${left} wait for the next run` : ""}`);
   return requests;
 }
 
@@ -481,8 +517,8 @@ async function ai() {
   await writeStories(budget - sorted);
   db.aiShape.v = requestShapes.get();
   // this run in a few numbers (the last 200 runs, about 4 days)
-  const { sortReq, sortBusy, writeReq, wrote, busy, why } = runStats;
-  db.runLog = [...(db.runLog || []), { at: now, budget, sortReq, sortBusy, writeReq, wrote, busy, why: why || "done" }].slice(-200);
+  const { sortReq, sortBusy, sortCf, writeReq, wrote, busy, why } = runStats;
+  db.runLog = [...(db.runLog || []), { at: now, budget, sortReq, sortBusy, sortCf, writeReq, wrote, busy, why: why || "done" }].slice(-200);
 }
 
 // "Trending now": what India searches on Google (sorted into the site's groups in step 2)
