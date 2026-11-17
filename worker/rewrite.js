@@ -9,7 +9,7 @@
 //   2. Settings > Variables and Secrets > Add > Secret: GEMINI_API_KEY = the same Gemini key as on GitHub.
 //   3. Put the Worker's address (https://<name>.<you>.workers.dev) in config/site.json > "rewrite" > "url".
 // Cloudflare's own free AI is asked first: Settings > Bindings > Add > Workers AI, variable name AI (README, Step 10).
-// Optional plain-text variables: AI_MODEL = Cloudflare models to use, in order (e.g. @cf/google/gemma-3-12b-it).
+// Optional plain-text variables: AI_MODEL = Cloudflare models to use, in order (e.g. @cf/mistralai/mistral-small-3.1-24b-instruct).
 // GEMMA_MODEL = Google models to use, in order (e.g. gemma-4-26b-a4b-it,gemma-3-27b-it).
 // Empty = the Worker lists Google's Gemma models itself: the fast new ones first.
 // A model that is busy, fails or takes more than 12 seconds rests for 10 minutes, and the next one is asked.
@@ -130,8 +130,10 @@ function readList(text, n, lang) {
 }
 
 // ---------- Cloudflare's own AI (Workers AI): asked first when the Worker has the "AI" binding ----------
-// Free: a daily allowance of "neurons" (a few hundred requests). Models that Cloudflare has removed are skipped.
-const AI_MODELS = ["@cf/google/gemma-3-12b-it", "@cf/meta/llama-4-scout-17b-16e-instruct", "@cf/mistralai/mistral-small-3.1-24b-instruct", "@cf/meta/llama-3.1-8b-instruct-fast"];
+// Free: a daily allowance of "neurons" (a few hundred requests). Models that Cloudflare has removed, or that this
+// account may not use, are skipped. Measured on 17 Nov 2026: Mistral Small 3.1 answered in 0.6–1.8 s, in good English
+// and Hindi; Llama 4 Scout in 2–5 s, but its Hindi could not be used; Gemma 3 12B: "not allowed" for this account.
+const AI_MODELS = ["@cf/mistralai/mistral-small-3.1-24b-instruct", "@cf/meta/llama-4-scout-17b-16e-instruct", "@cf/meta/llama-3.1-8b-instruct-fast", "@cf/google/gemma-3-12b-it"];
 const aiModels = (env) => (env.AI_MODEL ? String(env.AI_MODEL).split(",").map((s) => s.trim()).filter(Boolean) : AI_MODELS);
 async function askAI(env, name, text) {
   let r;
@@ -140,7 +142,7 @@ async function askAI(env, name, text) {
   } catch (e) {
     const m = String(e?.message || e);
     // a model Cloudflare doesn't have (any more) / the free daily allowance used up / anything else
-    const status = /5007|no such model|not found|unknown model/i.test(m) ? 404 : /4006|neuron|allocation|limit/i.test(m) ? 429 : 502;
+    const status = /5007|5018|no such model|not found|unknown model|not allowed to access/i.test(m) ? 404 : /4006|neuron|allocation|limit/i.test(m) ? 429 : 502;
     throw Object.assign(new Error(`${name}: ${m.slice(0, 120)}`), { status });
   }
   const out = typeof r === "string" ? r : (r?.response ?? r?.choices?.[0]?.message?.content ?? r?.result?.response);
@@ -205,14 +207,18 @@ async function ask(env, lang, items) {
   let tries = 0;
   let failed = null;
   let unreadable = null;
+  const tried = []; // which models were asked, how long each took, and why one failed (shown in the answer, for checking)
   for (const h of order) {
     if (tries >= MAX_TRIES) break;
     const left = totalMs - (Date.now() - start);
     if (left < Math.min(1500, tryMs)) break;
     let out;
+    const t0 = Date.now();
     try {
       out = await inTime(h.run, Math.min(tryMs, left));
+      tried.push({ m: h.name, ms: Date.now() - t0 });
     } catch (e) {
+      tried.push({ m: h.name, ms: Date.now() - t0, e: String(e.message || e).slice(0, 100) });
       failed = Object.assign(new Error(e.status === 504 ? `${h.name}: ${e.message}` : String(e.message || e)), { status: e.status || 502 });
       rest(h.name, e.status === 404 ? DAY : REST_MS);
       if (e.status !== 404) tries++;
@@ -222,13 +228,14 @@ async function ask(env, lang, items) {
     const got = readList(out, items.length, lang);
     if (got.some(Boolean)) {
       resting.delete(h.name);
-      return { model: h.name, items: got };
+      return { model: h.name, items: got, tried };
     }
     rest(h.name); // an answer that can't be read: the next model
-    unreadable = { model: h.name, items: got };
+    tried[tried.length - 1].e = "answer could not be read";
+    unreadable = { model: h.name, items: got, tried };
   }
   if (unreadable) return unreadable;
-  throw failed || Object.assign(new Error("no model could be asked"), { status: 502 });
+  throw Object.assign(failed || Object.assign(new Error("no model could be asked"), { status: 502 }), { tried });
 }
 
 // ---------- the Worker ----------
@@ -253,10 +260,11 @@ async function rewrite(request, env) {
     if (!env.AI?.run && !env.GEMINI_API_KEY) return { status: 500, data: { error: "the Worker has neither the AI binding nor the GEMINI_API_KEY secret" } };
     let got;
     let model;
+    let tried;
     try {
-      ({ items: got, model } = await ask(env, lang, todo));
+      ({ items: got, model, tried } = await ask(env, lang, todo));
     } catch (e) {
-      return { status: e.status === 429 ? 429 : e.status === 504 ? 504 : 502, data: { error: String(e.message || e), items: out } };
+      return { status: e.status === 429 ? 429 : e.status === 504 ? 504 : 502, data: { error: String(e.message || e), items: out, tried: e.tried } };
     }
     // a headline Gemma could not write is not asked again (unless its whole answer was unreadable)
     const readable = got.some(Boolean);
@@ -266,7 +274,7 @@ async function rewrite(request, env) {
       memo.set(key(h), got[i]);
     });
     heads.forEach((h, i) => (out[i] = memo.get(key(h)) ?? null));
-    return { status: 200, data: { items: out, model } };
+    return { status: 200, data: { items: out, model, tried } };
   }
   return { status: 200, data: { items: out, model: "memory" } };
 }

@@ -157,12 +157,15 @@ secret inside Cloudflare. No card is needed; Cloudflare's free plan allows 100,0
 6. Put the address in `config/site.json` on GitHub → `"rewrite": { … "url": "https://simple-headlines.yourname.workers.dev" }` →
    **Commit changes**, then run **Update news** once. Search something on the site: the other websites' headlines turn simple after a few seconds.
 
-The Worker asks **Cloudflare's own free AI** first (Workers AI: `@cf/google/gemma-3-12b-it`, then other models Cloudflare has; a free
+The Worker asks **Cloudflare's own free AI** first (Workers AI: Mistral Small 3.1 — about 1 second, good Hindi — then other models; a free
 daily allowance of "neurons", enough for a few hundred searches), and **Google's Gemma** only as a backup (on 17 Nov 2026 Google's free
 Gemma 4 models were too busy to use). A model that is busy, fails or takes more than 12 seconds rests for 10 minutes and the next one is
 asked (at most 3 for one search). To choose the models yourself, add plain-text variables in **Settings** → **Variables and Secrets**:
 `AI_MODEL` (Cloudflare's, e.g. `@cf/meta/llama-4-scout-17b-16e-instruct`) and `GEMMA_MODEL` (Google's) — several separated by commas.
-**When `worker/rewrite.js` changes:** open the Worker → **Edit code** → Ctrl+A → paste the new file (step 3) → **Deploy**.
+**When `worker/rewrite.js` changes:** Claude deploys it through Cloudflare's API, with an API token ("Edit Cloudflare Workers",
+saved only in Claude's private environment "The Simplest News"; delete it anytime at <https://dash.cloudflare.com/profile/api-tokens>).
+By hand: open the Worker → **Edit code** → Ctrl+A → paste the new file (step 3) → **Deploy**.
+Each answer of the Worker lists the models it asked and how long each took ("tried"), to check its speed.
 
 ---
 

@@ -157,23 +157,24 @@ test("Worker: Cloudflare's own AI writes first (when the Worker has the AI bindi
   const r = await run(post({ lang: "en", items: ["Gold prices surge to record high amid global uncertainty", "Petrol, diesel prices cut by Rs 2 per litre"] }), { ...env, AI });
   assert.equal(r.status, 200);
   assert.deepEqual(r.data.items, ["Gold price rises", "Petrol cheaper"]);
-  assert.equal(r.data.model, "@cf/google/gemma-3-12b-it");
+  assert.equal(r.data.model, "@cf/mistralai/mistral-small-3.1-24b-instruct", "the fastest one, with good Hindi");
   assert.equal(AI.asked[0].input.messages[0].role, "user");
   assert.match(AI.asked[0].input.messages[0].content, /1\. Gold prices surge to record high/);
   const page = await run(new Request("https://simple.example.workers.dev/"), { ...env, AI });
-  assert.match(page.data, /Cloudflare AI \(first\): on — models, in order: @cf\/google\/gemma-3-12b-it/);
+  assert.match(page.data, /Cloudflare AI \(first\): on — models, in order: @cf\/mistralai\/mistral-small-3\.1-24b-instruct/);
 });
 
 test("Worker: a Cloudflare model that is gone is skipped; an answer already read as a list is fine", async () => {
   noGoogle();
   const AI = cloudflare((model) => {
     if (model === "@cf/x/gone") throw new Error("AiError: 5007: No such model @cf/x/gone");
+    if (model === "@cf/x/locked") throw new Error("AiError: 5018: This account is not allowed to access @cf/x/locked.");
     return { response: ["सोना महंगा हुआ"] };
   });
-  const r = await run(post({ lang: "hi", items: ["Gold rates jump again today in Delhi"] }), { ...env, AI, AI_MODEL: "@cf/x/gone, @cf/x/works" });
+  const r = await run(post({ lang: "hi", items: ["Gold rates jump again today in Delhi"] }), { ...env, AI, AI_MODEL: "@cf/x/gone, @cf/x/locked, @cf/x/works" });
   assert.deepEqual(r.data.items, ["सोना महंगा हुआ"]);
   assert.equal(r.data.model, "@cf/x/works");
-  assert.deepEqual(AI.asked.map((a) => a.model), ["@cf/x/gone", "@cf/x/works"]);
+  assert.deepEqual(AI.asked.map((a) => a.model), ["@cf/x/gone", "@cf/x/locked", "@cf/x/works"], "models this account can't use don't count as tries");
 });
 
 test("Worker: when Cloudflare's free allowance is used up, Google's Gemma is the backup", async () => {
