@@ -30,15 +30,15 @@ export const T = {
     searching: "खोज रहे हैं…",
     noResults: (q, n) => `${n > 1 ? `पिछले ${n} दिनों में` : "आज"} हमारी साइट पर “${q}” की कोई खबर नहीं मिली। दूसरे शब्द आज़माएं, या नीचे दूसरी वेबसाइटों की खबरें देखें।`,
     trending: "ट्रेंडिंग",
-    ox: "दूसरी न्यूज़ वेबसाइटों पर",
-    oxWait: "दूसरी वेबसाइटों पर खोज रहे हैं… इसमें 10–20 सेकंड लग सकते हैं।",
-    oxFail: "दूसरी वेबसाइटों से अभी जवाब नहीं आया।",
-    oxNone: "दूसरी वेबसाइटों पर भी इसकी कोई खबर नहीं मिली।",
-    oxHindi: "दूसरी वेबसाइटों पर खोजने के लिए अंग्रेज़ी शब्द लिखें, जैसे: cockroach janta party",
-    oxMore: (n) => `और ${n} खबरें दिखाएं`,
-    oxCredit: (a) => `दूसरी वेबसाइटों की ये खबरें ${a} ने ढूंढीं। लिंक उन्हीं वेबसाइटों पर खुलते हैं।`,
+    oxWait: "पूरे इंटरनेट पर और खबरें खोज रहे हैं… इसमें 10–20 सेकंड लग सकते हैं।",
+    oxFail: "इंटरनेट की खोज से अभी जवाब नहीं आया।",
+    oxHindi: "पूरे इंटरनेट पर खोजने के लिए अंग्रेज़ी शब्द भी लिख सकते हैं, जैसे: cockroach janta party",
+    oxCredit: (a) => `इंटरनेट की खबरें ${a} की मदद से मिलीं।`,
     oxSimpleWait: "✨ हेडलाइन आसान शब्दों में लिख रहे हैं…",
-    oxSimpleBy: "✨ हेडलाइन आसान शब्दों में Google के Gemma AI ने लिखी हैं। असली हेडलाइन और खबर उस वेबसाइट पर है।",
+    oxSimpleBy: "✨ इंटरनेट की खबरें AI ने आसान शब्दों में लिखी हैं; पूरी खबर उसकी वेबसाइट पर है।",
+    webWriting: "✨ यह खबर आसान शब्दों में लिख रहे हैं…",
+    webNote: "✨ ये जवाब AI ने अभी उस वेबसाइट की खबर से लिखे हैं; गलती हो सकती है।",
+    webFail: "अभी इसके जवाब नहीं लिखे जा सके। पूरी खबर वेबसाइट पर पढ़ें।",
     retry: "फिर कोशिश करें",
     googleNews: (q) => `“${q}” की सारी खबरें Google News पर देखें ↗`,
     coming: "छोटा सार जल्द आएगा",
@@ -105,15 +105,15 @@ export const T = {
     searching: "Searching…",
     noResults: (q, n) => `No news about “${q}” on our site ${n > 1 ? `in the last ${n} days` : "today"}. Try other words, or see other websites below.`,
     trending: "Trending",
-    ox: "On other news websites",
-    oxWait: "Looking on other news websites… this can take 10–20 seconds.",
-    oxFail: "Other news websites did not answer just now.",
-    oxNone: "No news about it on other websites either.",
-    oxHindi: "To search other websites, type English words, e.g. cockroach janta party",
-    oxMore: (n) => `Show ${n} more`,
-    oxCredit: (a) => `These stories from other websites were found by ${a}. Links open on those websites.`,
+    oxWait: "Searching the whole internet for more news… this can take 10–20 seconds.",
+    oxFail: "The internet search did not answer just now.",
+    oxHindi: "To search the whole internet, you can also type English words, e.g. cockroach janta party",
+    oxCredit: (a) => `News from the internet found with the help of ${a}.`,
     oxSimpleWait: "✨ Writing the headlines in simple words…",
-    oxSimpleBy: "✨ Headlines in simple words by Google's Gemma AI. The original headline and story are on that website.",
+    oxSimpleBy: "✨ News from the internet is written in simple words by AI; the full story is on its website.",
+    webWriting: "✨ Writing this news in simple words…",
+    webNote: "✨ These answers were just written by AI from that website's story; it can make mistakes.",
+    webFail: "The answers could not be written just now. Read the full story on the website.",
     retry: "Try again",
     googleNews: (q) => `See all news about “${q}” on Google News ↗`,
     coming: "Short summary coming soon",
@@ -231,11 +231,12 @@ export function itemHTML(item, lang, ctx) {
   const ext = done ? "" : ` target="_blank" rel="noopener nofollow"`;
   const img = item.img ? `<img class="it__img" src="${esc(thumb(item.img, 144, 144, ctx.proxy))}" data-full="${esc(item.img)}" alt="" loading="lazy" decoding="async" width="72" height="72">` : `<span class="it__img it__img--icon" aria-hidden="true">${ctx.icon(item.g?.[0])}</span>`;
   const big = item.big ? `<span class="badge badge--big">${L.big}</span>` : "";
-  const coming = done || !young(item, ctx.now) ? "" : `<span class="badge">${L.coming}</span>`;
+  // web: news found on the internet (in search results): it looks like ours; a tap shows answers the AI writes then
+  const coming = done || item.web || !young(item, ctx.now) ? "" : `<span class="badge">${L.coming}</span>`;
   const place = item.pn ? `<span class="it__place">${esc(item.pn)}</span>` : "";
   const also = item.n ? `<span class="it__also">${esc(L.alsoN(item.n))}</span>` : "";
-  return `<article class="it" data-id="${item.i}">
-<a class="it__link" href="${esc(href)}"${ext} data-id="${item.i}">${img}<span class="it__body"><span class="it__h">${big}${esc(item.h)}</span>
+  return `<article class="it" data-id="${item.i}"${item.web ? " data-web" : ""}>
+<a class="it__link" href="${esc(href)}"${ext} data-id="${item.i}"${item.ho ? ` title="${esc(item.ho)}"` : ""}>${img}<span class="it__body"><span class="it__h">${big}${esc(item.h)}</span>
 <span class="it__meta">${esc(item.src)} · <time datetime="${new Date(item.t * 1000).toISOString()}">${esc(ago(item.t, lang, ctx.now))}</time>${place ? ` · ${place}` : ""}${also ? ` · ${also}` : ""} ${coming}</span></span></a>
 </article>`;
 }

@@ -291,6 +291,8 @@ function noteLimit() {
 // ---------- 2. Gemini sorts new headlines (and trending topics) into the site's groups ----------
 // Many headlines in one request, so this costs little of the free limit. "other" = not news for this site:
 // the story is left out and never written.
+// What each run did (kept in the database as db.runLog): requests, stories written, and how often Gemini was busy
+const runStats = { sortReq: 0, sortBusy: 0, writeReq: 0, wrote: 0, busy: 0, why: "" };
 async function sortNew(maxRequests) {
   const fresh = db.stories.filter((s) => s.s === "new" && !s.sg && now - s.p < AI_MAX_AGE);
   // a news feed of one of the site's groups needs no sorting
@@ -317,10 +319,19 @@ async function sortNew(maxRequests) {
       }
     } catch (err) {
       if (err instanceof QuotaError) noteLimit();
+      // Gemini busy: wait and sort the same headlines again (twice at most), while this run has time
+      else if (runStats.sortBusy < 2 && Date.now() - started + 60e3 < RUN_BUDGET_MS / 2) {
+        runStats.sortBusy++;
+        log(`[sort] ${String(err.message).slice(0, 160)} — trying again in ${30 * runStats.sortBusy} s`);
+        await sleep(30e3 * runStats.sortBusy);
+        i -= size;
+        continue;
+      }
       log(`[sort] ${String(err.message).slice(0, 160)} — the rest is sorted next time`);
       break;
     }
     requests++;
+    runStats.sortReq++;
     if (r.usage) countTokens(r.model, r.usage, { sorted: part.length });
     part.forEach((it, j) => {
       const g = r.groups[j] && onlyScams(r.groups[j]);
@@ -351,11 +362,13 @@ async function writeStories(maxRequests) {
   for (let i = 0; i < list.length; i += batchSize) {
     if (Date.now() - started > RUN_BUDGET_MS) {
       log("[ai] time is up for this run; the rest waits for the next run");
+      runStats.why = "time";
       break;
     }
     const batch = list.slice(i, i + batchSize);
     // read the full articles (only where the website allows robots)
     await pool(batch, 8, async (s) => {
+      if (s._text) return; // already read (the same stories again after Gemini was busy)
       const art = await readArticle(s.u).catch((e) => ({ ok: false, reason: e.message }));
       s._text = art.ok ? art.text : [s.t, s.x].filter(Boolean).join(". ");
       if (!s.img && art.image) s.img = art.image;
@@ -380,20 +393,29 @@ async function writeStories(maxRequests) {
         );
       }
     } catch (err) {
-      for (const s of batch) delete s._text;
       if (err instanceof QuotaError) {
         log(`[ai] free limit reached: ${err.message.slice(0, 120)} — the rest waits for the next run`);
         for (const s of batch) s.tr--; // not their fault
         noteLimit();
+        runStats.why = "limit";
         break;
       }
       for (const s of batch) s.tr--; // Gemini didn't answer: not these stories' fault
       log(`[ai] batch failed: ${String(err.message).slice(0, 160)}`);
-      // Google's free service is busy (or refuses the request): stop for now, the next run tries again
-      if (++failedInARow >= 2) {
-        log("[ai] Gemini failed twice in a row; the rest waits for the next run");
+      // Google's free service is busy ("high demand"): wait a little longer each time (30 s, 60 s … 3 minutes) and
+      // try the same stories again, while this run has time. Failed requests don't use the free limit, and the
+      // robot's time on GitHub is free for this public repository.
+      failedInARow++;
+      runStats.busy++;
+      const wait = Math.min(180e3, 30e3 * failedInARow);
+      if (Date.now() - started + wait > RUN_BUDGET_MS - 60e3) {
+        log("[ai] Gemini is still busy and this run's time is nearly up; the rest waits for the next run");
+        runStats.why = "busy";
         break;
       }
+      log(`[ai] Gemini is busy: the same stories again in ${wait / 1000} s`);
+      await sleep(wait);
+      i -= batchSize; // the same batch again
       continue;
     }
     failedInARow = 0;
@@ -406,6 +428,7 @@ async function writeStories(maxRequests) {
       if (r.sameAs && r.sameAs !== j + 1 && batch[r.sameAs - 1]?.s === "ok") markDuplicate(s, batch[r.sameAs - 1]);
     });
     const written = out.results.filter(Boolean).length;
+    runStats.wrote += written;
     const u = out.usage;
     if (u) {
       countTokens(out.model, u, { stories: written });
@@ -416,7 +439,11 @@ async function writeStories(maxRequests) {
     }
     log(`[ai] batch ${i / batchSize + 1}: ${written}/${batch.length} written by ${out.model}${out.variant ? ` (request shape ${out.variant})` : ""}${u ? ` · tokens: ${n0(u.in)} in, ${n0(u.out)} out, ${n0(u.think)} thinking` : ""}`);
   }
-  for (const s of list) if (s.s === "new" && s.tr >= 3) s.s = "fail";
+  for (const s of list) {
+    delete s._text; // the articles' text is never saved
+    if (s.s === "new" && s.tr >= 3) s.s = "fail";
+  }
+  runStats.writeReq = calls;
   dedupeHeadlines(fresh);
   if (run.stories) {
     const per = (v) => n0(v / run.stories);
@@ -453,6 +480,9 @@ async function ai() {
   const sorted = await sortNew(Math.min(SORT_MAX, budget));
   await writeStories(budget - sorted);
   db.aiShape.v = requestShapes.get();
+  // this run in a few numbers (the last 200 runs, about 4 days)
+  const { sortReq, sortBusy, writeReq, wrote, busy, why } = runStats;
+  db.runLog = [...(db.runLog || []), { at: now, budget, sortReq, sortBusy, writeReq, wrote, busy, why: why || "done" }].slice(-200);
 }
 
 // "Trending now": what India searches on Google (sorted into the site's groups in step 2)
@@ -467,7 +497,7 @@ async function trends() {
   }
 }
 
-// ---------- 4. gold & silver ----------
+// ---------- 4. extras ----------
 async function extras() {
   if (args.has("--no-fetch")) return;
   // trailers & songs and the gold & silver rates are not on the site any more (no Movies or Gold & Silver group)
