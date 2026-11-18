@@ -175,6 +175,7 @@ export const requestShapes = {
 async function callModel(model, makeBody, key) {
   for (;;) {
     const variant = variantOf.get(model) || 0;
+    tries.set(model, triesOf(model) + 1);
     const res = await fetch(`${BASE}/models/${encodeURIComponent(model)}:generateContent`, {
       method: "POST",
       headers: { "content-type": "application/json", "x-goog-api-key": KEY },
@@ -191,6 +192,7 @@ async function callModel(model, makeBody, key) {
         throw err;
       }
       dailyLimits.set(model, { value: Number(q.value) || 0 });
+      lastLimit = `${model}: ${q.id || "no quota id"}${q.value ? ` = ${q.value}` : ""} · ${firstLine(text).slice(0, 120)}`;
       throw new QuotaError(`${model}: free limit reached (429)${q.id ? ` ${q.id}${q.value ? ` = ${q.value}` : ""}` : ` ${firstLine(text)}`}`);
     }
     if (res.status === 400 && variant < VARIANTS - 1) {
@@ -235,6 +237,12 @@ const firstLine = (text) => {
 };
 
 const outOfQuota = new Set();
+// Every request sent to each model in this run, answered or not: Google counts failed tries ("busy") against the
+// free daily limit too, so the day is planned by tries, not only by answers
+const tries = new Map();
+export const triesOf = (model) => tries.get(model) || 0;
+// Google's own words the last time it refused for a limit (kept in the run's note)
+export let lastLimit = "";
 
 // Asks the models in order. Returns { model, variant, list, usage } (usage = the tokens this request used).
 // Throws QuotaError when every model's free limit is used up, or the last error when no model could answer.
@@ -254,8 +262,10 @@ async function ask(makeBody, key) {
         }
         log(`[gemini] ${String(err.message).slice(0, 200)}`);
         if (broken.has(model)) break;
-        // "high demand" (503), too many requests this minute (429), a timeout or a broken answer: wait a little and try once more
-        if (attempt === 1) await sleep(err.status === 429 ? 30000 : err.status === 503 ? 15000 : 4000);
+        // "high demand" (503): no second try now (every try counts against the free daily limit); the next model.
+        // Too many requests this minute (429), a timeout or a broken answer: wait a little and try once more.
+        if (err.status === 503) break;
+        if (attempt === 1) await sleep(err.status === 429 ? 30000 : 4000);
       }
     }
   }
