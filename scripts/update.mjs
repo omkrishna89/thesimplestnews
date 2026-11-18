@@ -11,7 +11,7 @@ import { inHindi, isNotSaid } from "./lib/answers.mjs";
 import { readArticle, allowedByRobots } from "./lib/article.mjs";
 import { loadDB, saveDB, similarity, words } from "./lib/db.mjs";
 import { parseFeed } from "./lib/feeds.mjs";
-import { NOT_SAID, PRIMARY, QUESTIONS, QuotaError, dailyLimitOf, hasKey, readSort, requestShapes, sortHeadlines, sortPrompt, summarize } from "./lib/gemini.mjs";
+import { NOT_SAID, PRIMARY, QUESTIONS, QuotaError, dailyLimitOf, hasKey, lastLimit, readSort, requestShapes, sortHeadlines, sortPrompt, summarize, triesOf } from "./lib/gemini.mjs";
 import { googleDay, learnLimit, msToReset, runBudget } from "./lib/pace.mjs";
 import { pickForAI } from "./lib/pick.mjs";
 import { COVERED, districtSlug, placeSlug, stateCode } from "./lib/places.mjs";
@@ -266,7 +266,14 @@ function apply(story, r, model) {
 const n0 = (v) => Math.round(v).toLocaleString("en-IN");
 const today = () => (db.aiUsage ||= {})[googleDay(Date.now())] ||= {};
 // The free limit is planned for the main model; the stand-in models have their own (small) limits
-const usedToday = () => today()[PRIMARY]?.req || 0;
+// today's use of the free limit: every try, answered or not (Google counts both); days before tries were counted: answers
+const usedToday = () => Math.max(today()[PRIMARY]?.req || 0, today()[PRIMARY]?.tries || 0);
+let usedAtStart = 0; // today's tries before this run (set by ai())
+function saveTries() {
+  const d = (today()[PRIMARY] ||= { req: 0, stories: 0, sorted: 0, in: 0, out: 0, think: 0 });
+  d.tries = Math.max(d.tries || 0, usedAtStart + triesOf(PRIMARY), d.req || 0);
+}
+const MAX_BUSY = 3; // writing: at most 3 waits for a busy Gemini in one run (each new try counts against the free limit)
 function countTokens(model, u, { stories = 0, sorted = 0 } = {}) {
   const days = (db.aiUsage ||= {});
   const d = (today()[model] ||= { req: 0, stories: 0, sorted: 0, in: 0, out: 0, think: 0 });
@@ -293,7 +300,8 @@ function noteLimit() {
 // Many headlines in one request, so this costs little of the free limit. "other" = not news for this site:
 // the story is left out and never written.
 // What each run did (kept in the database as db.runLog): requests, stories written, and how often Gemini was busy
-const runStats = { sortReq: 0, sortBusy: 0, sortCf: 0, writeReq: 0, wrote: 0, busy: 0, why: "" };
+const runStats = { sortReq: 0, sortBusy: 0, sortCf: 0, writeReq: 0, wrote: 0, busy: 0, why: "", limit: "", lastErr: "" };
+let runTries = Infinity; // set by ai(): this run's share of the free limit, in tries
 const SORT_SMALL = 50; // a busy Gemini takes small requests more easily
 const CF_BATCH = 100; // headlines in one request to Cloudflare's AI (headlines only: its free daily allowance is small)
 const CF_MAX = 4; // requests to Cloudflare's AI in one run
@@ -330,8 +338,10 @@ async function sortNew(maxRequests) {
         requests++;
         runStats.sortReq++;
       } catch (err) {
-        if (err instanceof QuotaError) noteLimit();
-        else runStats.sortBusy++;
+        if (err instanceof QuotaError) {
+          noteLimit();
+          runStats.limit ||= lastLimit;
+        } else runStats.sortBusy++;
         log(`[sort] Gemini: ${String(err.message).slice(0, 160)}`);
         if (!(err instanceof QuotaError) && part.length > SORT_SMALL && Date.now() - started < RUN_BUDGET_MS / 2) {
           // a busy Gemini takes small requests more easily: the same headlines again, 50 at a time
@@ -396,6 +406,11 @@ async function writeStories(maxRequests) {
   let calls = 0;
   let failedInARow = 0;
   for (let i = 0; i < list.length; i += batchSize) {
+    if (!MOCK && triesOf(PRIMARY) >= runTries) {
+      log(`[ai] this run's share of the free limit is used (${triesOf(PRIMARY)} tries); the rest waits for the next run`);
+      runStats.why ||= "share";
+      break;
+    }
     if (Date.now() - started > RUN_BUDGET_MS) {
       log("[ai] time is up for this run; the rest waits for the next run");
       runStats.why = "time";
@@ -434,6 +449,7 @@ async function writeStories(maxRequests) {
         for (const s of batch) s.tr--; // not their fault
         noteLimit();
         runStats.why = "limit";
+        runStats.limit = lastLimit;
         break;
       }
       for (const s of batch) s.tr--; // Gemini didn't answer: not these stories' fault
@@ -443,8 +459,9 @@ async function writeStories(maxRequests) {
       // robot's time on GitHub is free for this public repository.
       failedInARow++;
       runStats.busy++;
-      const wait = Math.min(180e3, 30e3 * failedInARow);
-      if (Date.now() - started + wait > RUN_BUDGET_MS - 60e3) {
+      runStats.lastErr = String(err.message).slice(0, 160);
+      const wait = Math.min(180e3, 60e3 * failedInARow); // 1, 2, 3 minutes
+      if (failedInARow > MAX_BUSY || Date.now() - started + wait > RUN_BUDGET_MS - 60e3) {
         log("[ai] Gemini is still busy and this run's time is nearly up; the rest waits for the next run");
         runStats.why = "busy";
         break;
@@ -513,12 +530,15 @@ async function ai() {
   }
   const budget = runBudget({ limit: db.aiLimit.req, used: usedToday(), msLeft: msToReset(now) });
   log(`[ai] free limit ${db.aiLimit.from === "google" ? "" : "~"}${db.aiLimit.req} requests a day for ${PRIMARY}${db.aiLimit.from === "google" ? " (Google's number)" : ""}, ${usedToday()} used today; this run may use ${budget}`);
+  runTries = budget; // this run's share of the free limit, counted in tries (answered or not)
+  usedAtStart = usedToday();
   const sorted = await sortNew(Math.min(SORT_MAX, budget));
   await writeStories(budget - sorted);
+  saveTries();
   db.aiShape.v = requestShapes.get();
   // this run in a few numbers (the last 200 runs, about 4 days)
-  const { sortReq, sortBusy, sortCf, writeReq, wrote, busy, why } = runStats;
-  db.runLog = [...(db.runLog || []), { at: now, budget, sortReq, sortBusy, sortCf, writeReq, wrote, busy, why: why || "done" }].slice(-200);
+  const { sortReq, sortBusy, sortCf, writeReq, wrote, busy, why, limit, lastErr } = runStats;
+  db.runLog = [...(db.runLog || []), { at: now, budget, tries: triesOf(PRIMARY), sortReq, sortBusy, sortCf, writeReq, wrote, busy, why: why || "done", ...(limit ? { limit } : {}), ...(lastErr ? { lastErr } : {}) }].slice(-200);
 }
 
 // "Trending now": what India searches on Google (sorted into the site's groups in step 2)
