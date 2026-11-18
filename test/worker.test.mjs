@@ -289,3 +289,47 @@ test("Worker: job 'ai' refuses a wrong or old signature", async () => {
   // the other jobs still need the site's own address (Origin)
   assert.equal((await run(aiPost({ lang: "en", items: ["x"] }), { ...env, AI })).status, 403);
 });
+
+test("Worker: job 'ai' can ask one model only (stories: Mistral), and says the tokens it used", async () => {
+  globalThis.fetch = async () => assert.fail("Google is not asked");
+  const mistral = "@cf/mistralai/mistral-small-3.1-24b-instruct";
+  const AI = cloudflare(() => ({ response: '{"stories":[]}', usage: { prompt_tokens: 1200, completion_tokens: 800, total_tokens: 2000 } }));
+  const ts = Date.now();
+  const r = await run(aiPost({ mode: "ai", prompt: "Write these stories", max: 5000, models: [mistral], ts, proof: sign(env.GEMINI_API_KEY, ts) }), { ...env, AI });
+  assert.equal(r.status, 200);
+  assert.equal(r.data.model, mistral);
+  assert.deepEqual(r.data.usage, { prompt_tokens: 1200, completion_tokens: 800, total_tokens: 2000 });
+  assert.deepEqual([...new Set(AI.asked.map((a) => a.model))], [mistral], "no other model");
+  // Mistral fails: no other model writes instead
+  const down = cloudflare(() => {
+    throw new Error("busy");
+  });
+  const r2 = await run(aiPost({ mode: "ai", prompt: "Write", models: [mistral], ts, proof: sign(env.GEMINI_API_KEY, ts) }), { ...env, AI: down });
+  assert.equal(r2.status, 502);
+  assert.deepEqual([...new Set(down.asked.map((a) => a.model))], [mistral]);
+  // a model the Worker doesn't know: refused (not some other model instead)
+  const r3 = await run(aiPost({ mode: "ai", prompt: "Write", models: ["@cf/made/up"], ts, proof: sign(env.GEMINI_API_KEY, ts) }), { ...env, AI });
+  assert.equal(r3.status, 400);
+});
+
+test("the robot's part of Cloudflare's free daily allowance: half of it, and sorting at most a fifth of that", async () => {
+  const { cfLeft, cfUse, neuronsOf } = await import("../scripts/lib/worker-ai.mjs");
+  const mistral = "@cf/mistralai/mistral-small-3.1-24b-instruct";
+  // 1,000,000 tokens sent + 1,000,000 answered = 31,876 + 50,488 neurons (Cloudflare's price list)
+  assert.equal(Math.round(neuronsOf({ model: mistral, usage: { prompt_tokens: 1e6, completion_tokens: 1e6 } })), 82364);
+  // without Cloudflare's numbers: about one token per 2.5 letters
+  assert.equal(Math.round(neuronsOf({ model: mistral, text: "x".repeat(2500) }, "y".repeat(2500))), Math.round((1000 * 31876 + 1000 * 50488) / 1e6));
+  const db = {};
+  const day1 = Date.parse("2026-11-18T10:00:00Z");
+  assert.equal(cfLeft(db, "write", day1), 5000);
+  assert.equal(cfLeft(db, "sort", day1), 1000);
+  cfUse(db, day1).sort += 900;
+  assert.equal(cfLeft(db, "sort", day1), 100);
+  assert.equal(cfLeft(db, "write", day1), 4100, "writing gets the rest");
+  cfUse(db, day1).write += 4500;
+  assert.equal(cfLeft(db, "sort", day1), 0, "nothing left for anything");
+  assert.equal(cfLeft(db, "write", day1), 0);
+  // Cloudflare's day starts at midnight UTC
+  assert.equal(cfLeft(db, "write", Date.parse("2026-11-19T00:01:00Z")), 5000);
+  assert.equal(db.cfUse.day, "2026-11-19");
+});

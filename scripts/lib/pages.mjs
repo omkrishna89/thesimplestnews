@@ -101,8 +101,8 @@ ${groups.map((g) => chip(g.slug, g.icon, g.nav_hi || g.hi, g.nav_en || g.en)).jo
 <p class="ft__brand"><b>The Simplest News</b> · ${bi(esc(site.tagline.hi), esc(site.tagline.en))}</p>
 <p class="ft__links">${link("/about/", "हमारे बारे में", "About")} · ${link("/editorial-policy/", "संपादकीय नीति", "Editorial Policy")} · ${link("/contact/", "संपर्क", "Contact")} · ${link("/privacy/", "प्राइवेसी पॉलिसी", "Privacy Policy")} · ${link("/terms/", "शर्तें", "Terms")} · ${link("/disclaimer/", "अस्वीकरण", "Disclaimer")}</p>
 <p class="ft__note">${bi(
-      "हर खबर का छोटा सार और 9 जवाब AI (Google Gemini) ने मूल खबर से लिखे हैं; हर खबर के साथ मूल वेबसाइट का लिंक है। गलती दिखे तो हमें बताएं।",
-      "Each short summary and its 9 answers are written by AI (Google Gemini) from the original story, which is always linked. Spotted a mistake? Tell us.",
+      "हर खबर का छोटा सार और 9 जवाब AI (Google Gemini, या Gemini व्यस्त हो तो Mistral) ने मूल खबर से लिखे हैं; हर खबर के साथ मूल वेबसाइट का लिंक है। गलती दिखे तो हमें बताएं।",
+      "Each short summary and its 9 answers are written by AI (Google Gemini, or Mistral when Gemini is busy) from the original story, which is always linked. Spotted a mistake? Tell us.",
     )}</p>
 <p class="ft__note">© ${new Date().getFullYear()} The Simplest News · ${esc(site.domain)}</p>
 </div></footer>`;

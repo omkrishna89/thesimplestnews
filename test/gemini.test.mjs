@@ -127,3 +127,21 @@ test("sorting by another AI (Cloudflare's, when Gemini is busy): one plain text,
   assert.deepEqual(g, [["stock-market", "business"], [], null], "by number; unknown groups dropped; 'other' = no group; missing = sorted again later");
   assert.deepEqual(readSort("not json", 2), [null, null]);
 });
+
+test("writing by another AI (Cloudflare's, when Gemini can't): one plain text, and its answer read like Gemini's", async () => {
+  const { writePrompt, readWrite } = await import("../scripts/lib/gemini.mjs");
+  const p = writePrompt([story, { ...story, title: "Second story" }]);
+  assert.match(p, /editor of "The Simplest News"/, "the same instructions as Gemini gets");
+  assert.match(p, /Reply with JSON only, exactly in this shape/, "the answer's shape spelled out (no answer format setting)");
+  assert.match(p, /### Story 1\nSource: Amar Ujala[\s\S]*### Story 2[\s\S]*Title: Second story/);
+  const half = { ...answer.stories[0], n: 2, en: { h: "" } }; // the English side missing: not usable
+  const r = readWrite(`Here it is:\n\`\`\`json\n${JSON.stringify({ stories: [half, answer.stories[0]] })}\n\`\`\``, 3);
+  assert.equal(r.length, 3);
+  assert.equal(r[0].en.h, "Pond auctioned");
+  assert.equal(r[0].hi.q.length, 9);
+  assert.deepEqual(r[0].groups, ["business"]);
+  assert.equal(r[0].place.district, "Barabanki");
+  assert.equal(r[1], null, "a half answer is not used (written again later)");
+  assert.equal(r[2], null, "a story it skipped");
+  assert.deepEqual(readWrite("no json here", 2), [null, null]);
+});

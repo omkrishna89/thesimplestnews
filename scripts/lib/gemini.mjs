@@ -192,7 +192,8 @@ async function callModel(model, makeBody, key) {
         throw err;
       }
       dailyLimits.set(model, { value: Number(q.value) || 0 });
-      lastLimit = `${model}: ${q.id || "no quota id"}${q.value ? ` = ${q.value}` : ""} · ${firstLine(text).slice(0, 120)}`;
+      // (the main model's words are kept: the stand-in models have their own, smaller limits)
+      if (model === PRIMARY || !lastLimit.startsWith(`${PRIMARY}:`)) lastLimit = `${model}: ${q.id || "no quota id"}${q.value ? ` = ${q.value}` : ""} · ${firstLine(text).slice(0, 120)}`;
       throw new QuotaError(`${model}: free limit reached (429)${q.id ? ` ${q.id}${q.value ? ` = ${q.value}` : ""}` : ` ${firstLine(text)}`}`);
     }
     if (res.status === 400 && variant < VARIANTS - 1) {
@@ -284,6 +285,17 @@ const byNumber = (list, i) => list.find((a) => Number(a?.n) === i + 1);
 export async function summarize(stories) {
   const r = await ask((v) => requestBody(stories, v), "stories");
   return { model: r.model, variant: r.variant, usage: r.usage, results: stories.map((_, i) => clean(byNumber(r.list, i))) };
+}
+
+// The same writing as one plain text, for another AI (Cloudflare's, when Gemini is busy), and reading its answer:
+// results in the same order as `stories`, null where it skipped one or wrote it badly
+export const writePrompt = (stories) => `${SYSTEM}\n\n${JSON_SHAPE}\n\n${stories.map(storyBlock).join("\n\n")}`;
+export function readWrite(text, n) {
+  let list = [];
+  try {
+    list = parseAnswer(text)?.stories || [];
+  } catch {}
+  return Array.from({ length: n }, (_, i) => clean(Array.isArray(list) ? byNumber(list, i) : null));
 }
 
 // Sorts items ({ text }) into the site's groups: { model, usage, groups } — for each item its groups,

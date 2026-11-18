@@ -206,10 +206,15 @@ To check that all feeds still work: `node scripts/check-feeds.mjs` (see section 
   each run uses only its share of what is left, so the Indian morning gets short summaries too. Each run first sorts the
   new headlines (1–4 requests), then writes 12 stories per request. The 24 biggest stories go first; the rest is shared out
   so every group, every state and every state's districts get some (never more than 4 from one news feed). If Google is
-  busy ("high demand"), the robot keeps trying with longer waits while the run has time; sorting then uses smaller requests
-  (50 headlines), and if Gemini still doesn't answer, **Cloudflare's free AI** sorts the headlines (through the site's Worker,
-  signed with the Gemini key — no extra key needed). Each run leaves a short note in the database (`db.runLog`). The log shows the tokens each run used — what a
-  paid plan would charge. Settings: `config/site.json` → `gemini`.
+  busy ("high demand"), the robot waits 1, 2 and 3 minutes and tries again; sorting then uses smaller requests
+  (50 headlines). If Gemini still doesn't answer, or its free limit for today is used up, **Cloudflare's free AI** helps
+  (through the site's Worker, signed with the Gemini key — no extra key needed): it sorts the headlines, and **Mistral**
+  (the only Cloudflare model whose Hindi is good) writes the stories, 4 a request, at most 4 requests a run. Cloudflare's
+  free allowance (10,000 "neurons" a day, from 5:30 am India time) is shared with the site's visitors, so the robot uses
+  only **half**, and sorting at most a fifth of that half (about 500 headlines and 60 stories a day; `db.cfUse` counts it).
+  Each run leaves a short note in the database (`db.runLog`: Gemini's tries, stories written, `cfWrote` by Cloudflare, and
+  Google's own words when it stops for the day). The log shows the tokens each run used — what a paid plan would charge.
+  Settings: `config/site.json` → `gemini` and `rewrite`.
 - **GitHub Pages limits:** the site must stay under 1 GB (it is about 40–200 MB) and about 100 GB of visits a month.
   If the site becomes very popular, move it to **Cloudflare Pages** (also free, no visit limit).
 - **The 30-minute schedule:** cron-job.org (Step 8) starts the update every 30 minutes. GitHub's own timer is only a backup:
