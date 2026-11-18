@@ -32,7 +32,7 @@ export function HELP_PAGES(site, { groups = [], base = "" } = {}) {
 <h2>यह कैसे काम करता है</h2>
 <ul>
 <li>हर 30 मिनट में हमारा रोबोट भारत की बड़ी समाचार वेबसाइटों की RSS फ़ीड पढ़ता है — देश, दुनिया, राज्य और ज़िलों की खबरें।</li>
-<li>Google Gemini (AI) हर खबर का सबसे छोटा शीर्षक लिखता है और 9 सवालों के जवाब देता है: क्या, कौन, किसे, किसका, कहां, कब, क्यों, कौन-सा, कैसे।</li>
+<li>Google Gemini (AI) — और Gemini व्यस्त हो तो Mistral (AI) — हर खबर का सबसे छोटा शीर्षक लिखता है और 9 सवालों के जवाब देता है: क्या, कौन, किसे, किसका, कहां, कब, क्यों, कौन-सा, कैसे।</li>
 <li>हम मूल खबर कॉपी नहीं करते। हर खबर के साथ मूल वेबसाइट का लिंक होता है, ताकि आप पूरी खबर वहीं पढ़ सकें।</li>
 <li>जो वेबसाइट robots.txt से रोबोट को मना करती हैं, उनके पेज हम नहीं पढ़ते।</li>
 <li>उत्तर प्रदेश, बिहार, मध्य प्रदेश, राजस्थान, दिल्ली, हरियाणा, झारखंड, उत्तराखंड, छत्तीसगढ़ और हिमाचल प्रदेश की ज़िला और तहसील स्तर की खबरें भी।</li>
@@ -45,7 +45,7 @@ export function HELP_PAGES(site, { groups = [], base = "" } = {}) {
 <h2>How it works</h2>
 <ul>
 <li>Every 30 minutes our robot reads the RSS feeds of major Indian news websites — national, world, state and district news.</li>
-<li>Google Gemini (AI) writes the shortest headline for each story and answers 9 questions: what, who, whom, whose, where, when, why, which and how.</li>
+<li>Google Gemini (AI) — or Mistral (AI) when Gemini is busy — writes the shortest headline for each story and answers 9 questions: what, who, whom, whose, where, when, why, which and how.</li>
 <li>We don't copy the original story. Every story links to the original website, where you can read it in full.</li>
 <li>We don't read pages of websites that ask robots to stay away (robots.txt).</li>
 <li>District and tehsil news for Uttar Pradesh, Bihar, Madhya Pradesh, Rajasthan, Delhi, Haryana, Jharkhand, Uttarakhand, Chhattisgarh and Himachal Pradesh.</li>
@@ -84,8 +84,8 @@ export function HELP_PAGES(site, { groups = [], base = "" } = {}) {
 <h2>खबर कैसे लिखी जाती है</h2>
 <ol>
 <li>हर 30 मिनट में हमारा रोबोट नई हेडलाइन इकट्ठा करता है।</li>
-<li>Google Gemini (AI) हर हेडलाइन को हमारे विषयों में बांटता है; बाकी छोड़ दी जाती हैं।</li>
-<li>Gemini मूल खबर पढ़कर सबसे छोटा शीर्षक और 9 छोटे जवाब (क्या, कौन, किसे, किसका, कहां, कब, क्यों, कौन-सा, कैसे) हिंदी और अंग्रेज़ी में लिखता है — सिर्फ़ मूल खबर की बातों से।</li>
+<li>Google Gemini (AI) हर हेडलाइन को हमारे विषयों में बांटता है (Gemini व्यस्त हो तो Cloudflare के मुफ़्त AI); बाकी छोड़ दी जाती हैं।</li>
+<li>Gemini (व्यस्त हो तो Mistral) मूल खबर पढ़कर सबसे छोटा शीर्षक और 9 छोटे जवाब (क्या, कौन, किसे, किसका, कहां, कब, क्यों, कौन-सा, कैसे) हिंदी और अंग्रेज़ी में लिखता है — सिर्फ़ मूल खबर की बातों से।</li>
 <li>हर खबर के साथ उसका स्रोत और मूल खबर का लिंक होता है।</li>
 </ol>
 <p>छोटे सार AI लिखता है और वे अपने-आप छपते हैं: छपने से पहले कोई व्यक्ति हर सार नहीं जांचता। इसीलिए हर खबर के साथ मूल खबर का लिंक है। खोज के नतीजों में दूसरी वेबसाइटों की हेडलाइन Google का Gemma AI आसान शब्दों में लिखता है; असली हेडलाइन और खबर उसी वेबसाइट पर है।</p>
@@ -106,8 +106,8 @@ export function HELP_PAGES(site, { groups = [], base = "" } = {}) {
 <h2>How a story is written</h2>
 <ol>
 <li>Every 30 minutes our robot collects new headlines.</li>
-<li>Google Gemini (AI) sorts each headline into our topics; the rest is left out.</li>
-<li>Gemini reads the original article and writes the shortest headline and 9 short answers (what, who, whom, whose, where, when, why, which, how) in Hindi and English — using only facts from the original.</li>
+<li>Google Gemini (AI) sorts each headline into our topics (when Gemini is busy, free AI on Cloudflare does it); the rest is left out.</li>
+<li>Gemini (or Mistral, when Gemini is busy) reads the original article and writes the shortest headline and 9 short answers (what, who, whom, whose, where, when, why, which, how) in Hindi and English — using only facts from the original.</li>
 <li>Every story shows its source and links to the original article.</li>
 </ol>
 <p>The short versions are written by AI and published automatically: a person does not check each one before it appears. That is why every story links to the original. Under search results, headlines from other websites are written in simpler words by Google's Gemma AI; the original headline and story are on that website.</p>
@@ -192,11 +192,11 @@ ${gaEn}<h2>Hosting</h2>
       slug: "disclaimer",
       title: "Disclaimer · अस्वीकरण",
       hi: `<h1>अस्वीकरण</h1>
-<p>The Simplest News पर खबरें दूसरी समाचार वेबसाइटों से ली जाती हैं और AI (Google Gemini) उनका छोटा सार लिखता है। हम हर सार की जांच इंसान से नहीं कराते, इसलिए गलती हो सकती है।</p>
+<p>The Simplest News पर खबरें दूसरी समाचार वेबसाइटों से ली जाती हैं और AI (Google Gemini, या Gemini व्यस्त हो तो Mistral) उनका छोटा सार लिखता है। हम हर सार की जांच इंसान से नहीं कराते, इसलिए गलती हो सकती है।</p>
 <p>शेयर बाज़ार, पैसे या कानून से जुड़ी खबरें सिर्फ़ जानकारी के लिए हैं — यह निवेश या कानूनी सलाह नहीं है।</p>
 <p>कोई खबर गलत लगे या हटवानी हो तो ${mail} पर लिखें।</p>`,
       en: `<h1>Disclaimer</h1>
-<p>News on The Simplest News comes from other news websites, and AI (Google Gemini) writes the short summaries. Summaries are not checked by a person, so they can contain mistakes.</p>
+<p>News on The Simplest News comes from other news websites, and AI (Google Gemini, or Mistral when Gemini is busy) writes the short summaries. Summaries are not checked by a person, so they can contain mistakes.</p>
 <p>Stories about the stock market, money or law are for information only — not investment or legal advice.</p>
 <p>If a story looks wrong or should be removed, write to ${mail}.</p>`,
     },

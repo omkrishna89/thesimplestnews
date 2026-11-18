@@ -140,7 +140,8 @@ function readList(text, n, lang) {
 // and Hindi; Llama 4 Scout in 2–5 s, but its Hindi could not be used; Gemma 3 12B: "not allowed" for this account.
 const AI_MODELS = ["@cf/mistralai/mistral-small-3.1-24b-instruct", "@cf/meta/llama-4-scout-17b-16e-instruct", "@cf/meta/llama-3.1-8b-instruct-fast", "@cf/google/gemma-3-12b-it"];
 const aiModels = (env) => (env.AI_MODEL ? String(env.AI_MODEL).split(",").map((s) => s.trim()).filter(Boolean) : AI_MODELS);
-async function askAI(env, name, text, maxTokens = 1024) {
+// meta (optional) gets the tokens the answer used, so the robot can count its part of the free daily allowance
+async function askAI(env, name, text, maxTokens = 1024, meta) {
   let r;
   try {
     r = await env.AI.run(name, { messages: [{ role: "user", content: text }], max_tokens: maxTokens, temperature: 0.2 });
@@ -150,6 +151,7 @@ async function askAI(env, name, text, maxTokens = 1024) {
     const status = /5007|5018|no such model|not found|unknown model|not allowed to access/i.test(m) ? 404 : /4006|neuron|allocation|limit/i.test(m) ? 429 : 502;
     throw Object.assign(new Error(`${name}: ${m.slice(0, 120)}`), { status });
   }
+  if (meta && r?.usage) meta.usage = r.usage;
   const out = typeof r === "string" ? r : (r?.response ?? r?.choices?.[0]?.message?.content ?? r?.result?.response);
   if (typeof out === "string") return out;
   if (out && typeof out === "object") return JSON.stringify(out); // some models hand back the list already read
@@ -195,7 +197,7 @@ async function ask(env, text, read, maxTokens = 1024, opts = {}) {
   const totalMs = opts.totalMs || Number(env.TOTAL_MS) || TOTAL_MS;
   const rest = (name, ms = REST_MS) => resting.set(name, Date.now() + ms);
   const helpers = async function* () {
-    if (env.AI?.run) for (const name of aiModels(env)) yield { name, run: () => askAI(env, name, text, maxTokens) };
+    if (env.AI?.run) for (const name of opts.models || aiModels(env)) yield { name, run: () => askAI(env, name, text, maxTokens, opts.meta) };
     if (env.GEMINI_API_KEY) {
       let list = [];
       try {
@@ -486,11 +488,15 @@ async function aiJob(env, body) {
   const prompt = String(body?.prompt || "").slice(0, 60000);
   if (!prompt) return { status: 400, data: { error: "send the prompt" } };
   const max = Math.min(Math.max(Number(body?.max) || 2000, 64), 8000);
+  // the robot may ask for some of Cloudflare's models only (stories: Mistral, whose Hindi is the best of them)
+  const only = Array.isArray(body?.models) ? AI_MODELS.filter((m) => body.models.includes(m)) : null;
+  if (only && !only.length) return { status: 400, data: { error: `unknown models; these can be asked: ${AI_MODELS.join(", ")}` } };
+  const meta = {};
   try {
     // Cloudflare's models only (the robot comes here because Google is busy)
-    const r = await ask({ ...env, GEMINI_API_KEY: "" }, prompt, (out) => (typeof out === "string" && out.trim() ? out : null), max, { tryMs: 50000, totalMs: 60000 });
+    const r = await ask({ ...env, GEMINI_API_KEY: "" }, prompt, (out) => (typeof out === "string" && out.trim() ? out : null), max, { tryMs: 50000, totalMs: 60000, meta, ...(only ? { models: only } : {}) });
     if (!r.value) return { status: 502, data: { error: "no answer", tried: r.tried } };
-    return { status: 200, data: { text: r.value, model: r.model, tried: r.tried } };
+    return { status: 200, data: { text: r.value, model: r.model, tried: r.tried, ...(meta.usage ? { usage: meta.usage } : {}) } };
   } catch (e) {
     return { status: e.status === 429 ? 429 : 502, data: { error: String(e.message || e), tried: e.tried } };
   }

@@ -3,6 +3,8 @@
 //  2. Google Gemini sorts the new headlines and trending topics into the site's groups (others are left out)
 //  3. reads the full article of the most important new stories (only where robots.txt allows), and Gemini
 //     writes the shortest headline + 9 answers in Hindi and English — within this run's share of the free limit
+//     (when Gemini can't — still busy after waiting, or its free limit for today used up — Cloudflare's free AI
+//     writes, within the robot's part of its free daily allowance)
 //  4. updates gold/silver rates
 //  5. forgets stories older than 7 days (written or not, so the search finds a whole week), and saves
 //     everything in .data/db.json.gz
@@ -11,12 +13,12 @@ import { inHindi, isNotSaid } from "./lib/answers.mjs";
 import { readArticle, allowedByRobots } from "./lib/article.mjs";
 import { loadDB, saveDB, similarity, words } from "./lib/db.mjs";
 import { parseFeed } from "./lib/feeds.mjs";
-import { NOT_SAID, PRIMARY, QUESTIONS, QuotaError, dailyLimitOf, hasKey, lastLimit, readSort, requestShapes, sortHeadlines, sortPrompt, summarize, triesOf } from "./lib/gemini.mjs";
+import { NOT_SAID, PRIMARY, QUESTIONS, QuotaError, dailyLimitOf, hasKey, lastLimit, readSort, readWrite, requestShapes, sortHeadlines, sortPrompt, summarize, triesOf, writePrompt } from "./lib/gemini.mjs";
 import { googleDay, learnLimit, msToReset, runBudget } from "./lib/pace.mjs";
 import { pickForAI } from "./lib/pick.mjs";
 import { COVERED, districtSlug, placeSlug, stateCode } from "./lib/places.mjs";
 import { updateTrends } from "./lib/trends.mjs";
-import { workerAI, workerReady } from "./lib/worker-ai.mjs";
+import { CF_WRITER, cfLeft, cfUse, neuronsOf, workerAI, workerReady } from "./lib/worker-ai.mjs";
 import { clip, config, get, hash, log, plain, pool, sleep, TZ } from "./lib/util.mjs";
 import { groupsFromWords } from "./lib/words.mjs";
 import { AI_HOURS } from "../src/assets/js/ui.js";
@@ -300,12 +302,13 @@ function noteLimit() {
 // Many headlines in one request, so this costs little of the free limit. "other" = not news for this site:
 // the story is left out and never written.
 // What each run did (kept in the database as db.runLog): requests, stories written, and how often Gemini was busy
-const runStats = { sortReq: 0, sortBusy: 0, sortCf: 0, writeReq: 0, wrote: 0, busy: 0, why: "", limit: "", lastErr: "" };
+const runStats = { sortReq: 0, sortBusy: 0, sortCf: 0, writeReq: 0, wrote: 0, busy: 0, cfReq: 0, cfWrote: 0, why: "", limit: "", lastErr: "", cfErr: "" };
 let runTries = Infinity; // set by ai(): this run's share of the free limit, in tries
 const SORT_SMALL = 50; // a busy Gemini takes small requests more easily
 const CF_BATCH = 100; // headlines in one request to Cloudflare's AI (headlines only: its free daily allowance is small)
 const CF_MAX = 4; // requests to Cloudflare's AI in one run
-async function sortNew(maxRequests) {
+// geminiOff: Gemini's free limit for today is used up, so Cloudflare's AI sorts at once
+async function sortNew(maxRequests, geminiOff = false) {
   const fresh = db.stories.filter((s) => s.s === "new" && !s.sg && now - s.p < AI_MAX_AGE);
   // a news feed of one of the site's groups needs no sorting
   for (const s of fresh) if (ours(s.gh).length) s.sg = ours(s.gh);
@@ -315,17 +318,18 @@ async function sortNew(maxRequests) {
     ...topics.map((t) => ({ t, text: `Trending Google search in India: "${t.t}". Its news: ${t.news.map((n) => n.h).join(" | ")}` })),
     ...stories.map((s) => ({ s, text: `${s.t}${s.x ? ` — ${clip(s.x, 300)}` : ""}` })),
   ];
-  if (!items.length || maxRequests <= 0) return 0;
+  if (!items.length || (maxRequests <= 0 && !geminiOff)) return 0;
   const size = Number(process.env.GEMINI_SORT_BATCH || site.gemini.sortBatch || 150);
   let requests = 0;
   let kept = 0;
   let other = 0;
   // Gemini first, in parts of 150; when it is busy, parts of 50; when even those fail, Cloudflare's free AI sorts
-  // the headlines (headline only, 100 at a time, at most 4 requests a run)
+  // the headlines (headline only, 100 at a time, at most 4 requests a run, within sorting's part of the robot's
+  // part of Cloudflare's free daily allowance)
   const queue = [];
   for (let i = 0; i < items.length; i += size) queue.push(items.slice(i, i + size));
-  let geminiDown = false;
-  while (queue.length && requests < maxRequests) {
+  let geminiDown = geminiOff;
+  while (queue.length && (requests < maxRequests || geminiDown)) {
     let part = queue.shift();
     let r = null;
     if (!geminiDown) {
@@ -366,9 +370,19 @@ async function sortNew(maxRequests) {
       const all = [...part, ...rest];
       part = all.slice(0, CF_BATCH);
       for (let j = CF_BATCH; j < all.length; j += CF_BATCH) queue.push(all.slice(j, j + CF_BATCH));
+      const text = sortPrompt(part.map((it) => ({ text: it.s ? it.s.t : it.text })));
+      // (an answer is about 15 tokens a headline)
+      if (cfLeft(db, "sort") < neuronsOf({ usage: { completion_tokens: 15 * part.length } }, text)) {
+        log("[sort] sorting's part of Cloudflare's free allowance for today is used; the rest waits for Gemini");
+        queue.unshift(part);
+        break;
+      }
       try {
-        const text = sortPrompt(part.map((it) => ({ text: it.s ? it.s.t : it.text })));
         const out = await workerAI(text, 3000);
+        const use = cfUse(db);
+        use.sort += neuronsOf(out, text);
+        use.req++;
+        use.sorted += part.length;
         r = { model: out.model, groups: readSort(out.text, part.length) };
         runStats.sortCf++;
         log(`[sort] Cloudflare's AI (${out.model}) sorted ${r.groups.filter(Boolean).length} of ${part.length} headlines`);
@@ -397,26 +411,72 @@ async function sortNew(maxRequests) {
 }
 
 // ---------- 3. read articles and let Gemini write ----------
-async function writeStories(maxRequests) {
+// When Gemini can't write (still busy after waiting 1, 2 and 3 minutes, or its free limit for today is used up),
+// Cloudflare's free AI writes the rest of the run: Mistral only (its Hindi is the best of Cloudflare's models),
+// 4 stories a request, at most 4 requests a run, within the robot's part of Cloudflare's free daily allowance.
+const CF_WRITE_BATCH = Number(site.rewrite?.writeBatch || 4);
+const CF_WRITE_MAX = 4; // Cloudflare's AI: requests a run
+const BUSY_WAIT_MS = Number(process.env.GEMINI_BUSY_WAIT_MS || 60e3); // Gemini busy: wait 1, 2, 3 minutes
+const storyInput = (s) => ({
+  sourceName: s.pub.en,
+  stateHint: s.st ? STATE_NAMES[s.st]?.en : "",
+  districtHint: s.d || "",
+  tehsilHint: s.th || "",
+  publishedIST: istTime(s.p),
+  title: s.t,
+  text: clip(s._text, 3500),
+});
+const cfCanWrite = () => !MOCK && workerReady() && runStats.cfReq < CF_WRITE_MAX && cfLeft(db, "write") > 0;
+// Cloudflare's AI writes a batch: { model, results, cf } like Gemini's summarize(), or throws
+async function cfWrite(batch) {
+  const prompt = writePrompt(batch.map(storyInput));
+  // (an answer is about 600 tokens a story)
+  if (cfLeft(db, "write") < neuronsOf({ model: CF_WRITER, usage: { completion_tokens: 600 * batch.length } }, prompt)) {
+    throw new Error("the robot's part of Cloudflare's free allowance for today is used");
+  }
+  runStats.cfReq++;
+  const out = await workerAI(prompt, 1000 * batch.length + 1000, { models: [CF_WRITER], timeoutMs: 80000 });
+  const use = cfUse(db);
+  use.write += neuronsOf(out, prompt);
+  use.req++;
+  const results = readWrite(out.text, batch.length);
+  use.stories += results.filter(Boolean).length;
+  return { model: out.model, results, cf: true };
+}
+
+// geminiOff: Gemini's free limit for today is used up, so Cloudflare's AI writes at once
+async function writeStories(maxRequests, geminiOff = false) {
   const batchSize = Number(process.env.GEMINI_BATCH || site.gemini.batch);
-  const list = candidates(Math.max(0, maxRequests) * batchSize);
-  log(`[ai] ${list.length} stories to write (${maxRequests} requests of ${batchSize})`);
+  let cf = geminiOff && cfCanWrite(); // true = Cloudflare's AI writes (Gemini can't any more in this run)
+  if (geminiOff && !cf) return log("[ai] Gemini's free limit for today is used up and Cloudflare's AI can't write now");
+  const list = candidates(cf ? CF_WRITE_MAX * CF_WRITE_BATCH : Math.max(0, maxRequests) * batchSize);
+  log(`[ai] ${list.length} stories to write (${cf ? `by Cloudflare's AI, ${CF_WRITE_BATCH} a request` : `${maxRequests} requests of ${batchSize}`})`);
   const fresh = [];
   const run = { stories: 0, in: 0, out: 0, think: 0 };
   let calls = 0;
   let failedInARow = 0;
-  for (let i = 0; i < list.length; i += batchSize) {
-    if (!MOCK && triesOf(PRIMARY) >= runTries) {
+  const toCloudflare = (why) => {
+    if (!cfCanWrite()) return false;
+    log(`[ai] ${why}: Cloudflare's AI (${CF_WRITER.split("/").pop()}) writes the rest of this run`);
+    cf = true;
+    return true;
+  };
+  for (let i = 0; i < list.length; ) {
+    if (!cf && !MOCK && triesOf(PRIMARY) >= runTries) {
       log(`[ai] this run's share of the free limit is used (${triesOf(PRIMARY)} tries); the rest waits for the next run`);
       runStats.why ||= "share";
       break;
     }
-    if (Date.now() - started > RUN_BUDGET_MS) {
+    if (cf && runStats.cfReq >= CF_WRITE_MAX) {
+      log(`[ai] Cloudflare's AI has written its ${CF_WRITE_MAX} requests for this run; the rest waits for the next run`);
+      break;
+    }
+    if (Date.now() - started > RUN_BUDGET_MS - (cf ? 90e3 : 0)) {
       log("[ai] time is up for this run; the rest waits for the next run");
       runStats.why = "time";
       break;
     }
-    const batch = list.slice(i, i + batchSize);
+    const batch = list.slice(i, i + (cf ? CF_WRITE_BATCH : batchSize));
     // read the full articles (only where the website allows robots)
     await pool(batch, 8, async (s) => {
       if (s._text) return; // already read (the same stories again after Gemini was busy)
@@ -429,49 +489,47 @@ async function writeStories(maxRequests) {
     let out;
     try {
       if (MOCK) out = { model: "mock", results: batch.map(mockAnswer) };
+      else if (cf) out = await cfWrite(batch);
       else {
         if (calls++ > 0) await sleep(Number(process.env.GEMINI_PAUSE_MS || site.gemini.pauseMs));
-        out = await summarize(
-          batch.map((s) => ({
-            sourceName: s.pub.en,
-            stateHint: s.st ? STATE_NAMES[s.st]?.en : "",
-            districtHint: s.d || "",
-            tehsilHint: s.th || "",
-            publishedIST: istTime(s.p),
-            title: s.t,
-            text: clip(s._text, 3500),
-          })),
-        );
+        out = await summarize(batch.map(storyInput));
       }
     } catch (err) {
+      for (const s of batch) s.tr--; // no answer: not these stories' fault
+      if (cf) {
+        log(`[ai] Cloudflare's AI: ${String(err.message).slice(0, 160)} — the rest waits for the next run`);
+        runStats.cfErr = String(err.message).slice(0, 160);
+        break;
+      }
       if (err instanceof QuotaError) {
-        log(`[ai] free limit reached: ${err.message.slice(0, 120)} — the rest waits for the next run`);
-        for (const s of batch) s.tr--; // not their fault
+        log(`[ai] free limit reached: ${err.message.slice(0, 120)}`);
         noteLimit();
         runStats.why = "limit";
         runStats.limit = lastLimit;
+        if (toCloudflare("Gemini's free limit for today is used up")) continue; // the same stories
+        log("[ai] the rest waits for the next run");
         break;
       }
-      for (const s of batch) s.tr--; // Gemini didn't answer: not these stories' fault
       log(`[ai] batch failed: ${String(err.message).slice(0, 160)}`);
-      // Google's free service is busy ("high demand"): wait a little longer each time (30 s, 60 s … 3 minutes) and
-      // try the same stories again, while this run has time. Failed requests don't use the free limit, and the
-      // robot's time on GitHub is free for this public repository.
+      // Google's free service is busy ("high demand"): wait a little longer each time (1, 2, 3 minutes) and try the
+      // same stories again while this run has time and tries left (every try counts against the free limit; the
+      // robot's time on GitHub is free for this public repository). Still busy: Cloudflare's AI writes.
       failedInARow++;
       runStats.busy++;
       runStats.lastErr = String(err.message).slice(0, 160);
-      const wait = Math.min(180e3, 60e3 * failedInARow); // 1, 2, 3 minutes
-      if (failedInARow > MAX_BUSY || Date.now() - started + wait > RUN_BUDGET_MS - 60e3) {
-        log("[ai] Gemini is still busy and this run's time is nearly up; the rest waits for the next run");
+      const wait = Math.min(3 * BUSY_WAIT_MS, BUSY_WAIT_MS * failedInARow);
+      if (failedInARow > MAX_BUSY || triesOf(PRIMARY) >= runTries || Date.now() - started + wait > RUN_BUDGET_MS - 60e3) {
         runStats.why = "busy";
+        if (toCloudflare("Gemini is still busy")) continue; // the same stories
+        log("[ai] Gemini is still busy and this run's time or share is used; the rest waits for the next run");
         break;
       }
       log(`[ai] Gemini is busy: the same stories again in ${wait / 1000} s`);
       await sleep(wait);
-      i -= batchSize; // the same batch again
-      continue;
+      continue; // the same batch again
     }
     failedInARow = 0;
+    i += batch.length;
     out.results.forEach((r, j) => {
       const s = batch[j];
       delete s._text;
@@ -482,6 +540,7 @@ async function writeStories(maxRequests) {
     });
     const written = out.results.filter(Boolean).length;
     runStats.wrote += written;
+    if (out.cf) runStats.cfWrote += written;
     const u = out.usage;
     if (u) {
       countTokens(out.model, u, { stories: written });
@@ -490,7 +549,7 @@ async function writeStories(maxRequests) {
       run.out += u.out;
       run.think += u.think;
     }
-    log(`[ai] batch ${i / batchSize + 1}: ${written}/${batch.length} written by ${out.model}${out.variant ? ` (request shape ${out.variant})` : ""}${u ? ` · tokens: ${n0(u.in)} in, ${n0(u.out)} out, ${n0(u.think)} thinking` : ""}`);
+    log(`[ai] ${written}/${batch.length} written by ${out.model}${out.variant ? ` (request shape ${out.variant})` : ""}${u ? ` · tokens: ${n0(u.in)} in, ${n0(u.out)} out, ${n0(u.think)} thinking` : ""}`);
   }
   for (const s of list) {
     delete s._text; // the articles' text is never saved
@@ -532,13 +591,24 @@ async function ai() {
   log(`[ai] free limit ${db.aiLimit.from === "google" ? "" : "~"}${db.aiLimit.req} requests a day for ${PRIMARY}${db.aiLimit.from === "google" ? " (Google's number)" : ""}, ${usedToday()} used today; this run may use ${budget}`);
   runTries = budget; // this run's share of the free limit, counted in tries (answered or not)
   usedAtStart = usedToday();
-  const sorted = await sortNew(Math.min(SORT_MAX, budget));
-  await writeStories(budget - sorted);
+  // Gemini's free limit for today is used up (by the robot's count, or Google said so): Cloudflare's AI sorts and
+  // writes at once, within the robot's part of its free daily allowance
+  const geminiOff = !MOCK && (usedToday() >= db.aiLimit.req || !!today()._hit);
+  if (geminiOff) {
+    log("[ai] Gemini's free limit for today is used up: Cloudflare's free AI sorts and writes");
+    runStats.why = "limit";
+  }
+  const sorted = await sortNew(Math.min(SORT_MAX, budget), geminiOff);
+  await writeStories(budget - sorted, geminiOff);
   saveTries();
   db.aiShape.v = requestShapes.get();
+  if (db.cfUse) {
+    const u = cfUse(db);
+    log(`[ai] Cloudflare's free AI today (UTC): the robot used ${Math.round(u.sort + u.write)} neurons (${Math.round(u.sort)} sorting ${u.sorted} headlines, ${Math.round(u.write)} writing ${u.stories} stories); ${cfLeft(db, "write")} left`);
+  }
   // this run in a few numbers (the last 200 runs, about 4 days)
-  const { sortReq, sortBusy, sortCf, writeReq, wrote, busy, why, limit, lastErr } = runStats;
-  db.runLog = [...(db.runLog || []), { at: now, budget, tries: triesOf(PRIMARY), sortReq, sortBusy, sortCf, writeReq, wrote, busy, why: why || "done", ...(limit ? { limit } : {}), ...(lastErr ? { lastErr } : {}) }].slice(-200);
+  const { sortReq, sortBusy, sortCf, writeReq, wrote, busy, cfReq, cfWrote, why, limit, lastErr, cfErr } = runStats;
+  db.runLog = [...(db.runLog || []), { at: now, budget, tries: triesOf(PRIMARY), sortReq, sortBusy, sortCf, writeReq, wrote, busy, cfReq, cfWrote, why: why || "done", ...(limit ? { limit } : {}), ...(lastErr ? { lastErr } : {}), ...(cfErr ? { cfErr } : {}) }].slice(-200);
 }
 
 // "Trending now": what India searches on Google (sorted into the site's groups in step 2)

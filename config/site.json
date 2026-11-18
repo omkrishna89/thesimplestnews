@@ -37,8 +37,13 @@
     "key": "f5032c1d2dca1898c799740cdc2a34e8"
   },
   "rewrite": {
-    "about": "url: the address of the free Cloudflare Worker (worker/rewrite.js) that writes the 'On other news websites' headlines in simple words with Google's free Gemma model, e.g. https://simple.yourname.workers.dev. Empty = the websites' own headlines.",
-    "url": "https://simple-headlines.omkrishna89.workers.dev"
+    "about": "url: the address of the free Cloudflare Worker (worker/rewrite.js) with Cloudflare's free AI: it writes internet news headlines and answers in simple words for visitors, and helps the robot when Gemini is busy, e.g. https://simple.yourname.workers.dev. Empty = no Worker. dailyNeurons: Cloudflare's free AI allowance a day. robotShare: the robot's part of it (the rest is for visitors). sortShare: the part of the robot's part that sorting headlines may use (writing stories gets the rest). writer: the only model that writes stories. writeBatch: stories in one request.",
+    "url": "https://simple-headlines.omkrishna89.workers.dev",
+    "dailyNeurons": 10000,
+    "robotShare": 0.5,
+    "sortShare": 0.2,
+    "writer": "@cf/mistralai/mistral-small-3.1-24b-instruct",
+    "writeBatch": 4
   },
   "searchConsole": {
     "about": "verification: the code inside Google Search Console's HTML tag (content=\"...\"), so Google knows the site is yours. Empty = no tag.",
